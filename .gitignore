@@ -1,0 +1,69 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+Thumbs.db
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+
+# IntelliJ & Android Studio & VS Code
+*.iml
+*.ipr
+*.iws
+.idea/
+.vscode/
+
+# Flutter / Dart / Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+/build/
+/coverage/
+
+# Android specific
+**/android/.gradle/
+**/android/local.properties
+**/android/**/build/
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+.cxx/
+*.jks
+*.keystore
+
+# iOS specific
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/app.framework
+**/ios/**/build/
+
+# Windows desktop specific
+**/windows/flutter/ephemeral/
+
+# Stitch Prototype / Node.js
+**/node_modules/
+**/dist/
+*.tar.gz
+**/stitch_prototype/public/*.tar.gz
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.env
+.env.local
+.env.*.local

@@ -1,0 +1,6 @@
+{
+  "name": "Furni3D - Smart Living & 3D AR Furniture",
+  "description": "Trải nghiệm nội thất 3D & lắp ráp thông minh tại nhà, quản lý đơn hàng, hỗ trợ linh kiện siêu tốc và đối soát thanh toán VNPAY.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

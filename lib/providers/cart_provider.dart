@@ -1,0 +1,141 @@
+import 'package:flutter/material.dart';
+import '../models/cart_item_model.dart';
+import '../models/voucher_model.dart';
+import '../data/mock_data.dart';
+
+class CartProvider extends ChangeNotifier {
+  final List<CartItemModel> _items = [
+    CartItemModel(
+      id: 'part-cam-set',
+      name: 'Bộ ốc khóa chốt cam M6x35',
+      price: 25000,
+      quantity: 2,
+      image:
+          'https://lh3.googleusercontent.com/aida-public/AB6AXuAL8hG0kckF4v2k3krGiYybPv1_HBGUBxEQ6dLhi8-AxcfXp17rIqftn9wSVVMHEjKOR1FZtIIZPJL6tUBEWXpfYrGVSx1nXBsm1VlvZeLz7cWDNXeHrJNWN7Bp8auZKI8kGndcJEJ2n0bJ0TBNKnzFJPYGBdDz1aUdeZdgUrZVoh_NWS0IhYc3GzaRAHEkJuB-wgEy0zPLbtIBbga167FHSgy4WKgVtc8M0F9htq51l9YGRhB01IvvfA',
+      variant: 'Túi 10 cái',
+    ),
+  ];
+
+  VoucherModel? _appliedVoucher;
+  bool _useFurniCoins = false;
+  final List<VoucherModel> _vouchers = getMockVouchers();
+
+  List<CartItemModel> get items => _items;
+  VoucherModel? get appliedVoucher => _appliedVoucher;
+  bool get useFurniCoins => _useFurniCoins;
+  List<VoucherModel> get vouchers => _vouchers;
+
+  int get itemCount => _items.fold(0, (sum, item) => sum + item.quantity);
+
+  int get subtotal => _items.fold(0, (sum, item) => sum + item.total);
+
+  int get voucherDiscount {
+    if (_appliedVoucher == null) return 0;
+    return _appliedVoucher!.calculateDiscount(subtotal);
+  }
+
+  int getShippingFee() {
+    if (_items.isEmpty) return 0;
+    return subtotal > 2000000 ? 0 : 45000;
+  }
+
+  int getCoinsDiscount(int userCoins) {
+    if (!_useFurniCoins || userCoins <= 0) return 0;
+    final maxAllowed = (subtotal - voucherDiscount) ~/ 1000;
+    final coinsToUse = userCoins < maxAllowed ? userCoins : maxAllowed;
+    return coinsToUse * 1000;
+  }
+
+  int getCoinsUsed(int userCoins) {
+    if (!_useFurniCoins || userCoins <= 0) return 0;
+    final maxAllowed = (subtotal - voucherDiscount) ~/ 1000;
+    return userCoins < maxAllowed ? userCoins : maxAllowed;
+  }
+
+  int getFinalTotal(int userCoins) {
+    if (_items.isEmpty) return 0;
+    final total = subtotal -
+        voucherDiscount -
+        getCoinsDiscount(userCoins) +
+        getShippingFee();
+    return total < 0 ? 0 : total;
+  }
+
+  void addItem({
+    required String id,
+    required String name,
+    required int price,
+    required String image,
+    String? variant,
+    int quantity = 1,
+  }) {
+    final existingIndex = _items.indexWhere((item) => item.id == id);
+    if (existingIndex >= 0) {
+      _items[existingIndex].quantity += quantity;
+    } else {
+      _items.add(CartItemModel(
+        id: id,
+        name: name,
+        price: price,
+        quantity: quantity,
+        image: image,
+        variant: variant,
+      ));
+    }
+    notifyListeners();
+  }
+
+  void updateQuantity(String id, int delta) {
+    final index = _items.indexWhere((item) => item.id == id);
+    if (index >= 0) {
+      _items[index].quantity += delta;
+      if (_items[index].quantity <= 0) {
+        _items.removeAt(index);
+      }
+      notifyListeners();
+    }
+  }
+
+  void removeItem(String id) {
+    _items.removeWhere((item) => item.id == id);
+    notifyListeners();
+  }
+
+  void clearCart() {
+    _items.clear();
+    _appliedVoucher = null;
+    _useFurniCoins = false;
+    notifyListeners();
+  }
+
+  bool applyVoucher(String code) {
+    final match = _vouchers.firstWhere(
+      (v) => v.code.toUpperCase() == code.toUpperCase().trim() && v.isActive,
+      orElse: () => VoucherModel(
+        code: '',
+        title: '',
+        discountType: '',
+        discountValue: 0,
+        minSpend: 0,
+        isActive: false,
+      ),
+    );
+
+    if (match.code.isEmpty) return false;
+    if (subtotal < match.minSpend) return false;
+
+    _appliedVoucher = match;
+    notifyListeners();
+    return true;
+  }
+
+  void removeVoucher() {
+    _appliedVoucher = null;
+    notifyListeners();
+  }
+
+  void setUseFurniCoins(bool value) {
+    _useFurniCoins = value;
+    notifyListeners();
+  }
+}
