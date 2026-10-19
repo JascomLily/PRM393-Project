@@ -14,7 +14,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController(text: 'KDuy8383@gmail.com');
+  final _emailController = TextEditingController(text: 'customer@furni3d.vn');
   final _passwordController = TextEditingController(text: '123456');
   bool _obscurePassword = true;
   bool _rememberMe = true;
@@ -28,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _quickFill(String role) {
     if (role == 'customer') {
-      _emailController.text = 'KDuy8383@gmail.com';
+      _emailController.text = 'customer@furni3d.vn';
       _passwordController.text = '123456';
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Đã điền tài khoản Khách hàng mẫu')),

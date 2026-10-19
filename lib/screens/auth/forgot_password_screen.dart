@@ -8,7 +8,7 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  final _emailController = TextEditingController(text: 'KDuy8383@gmail.com');
+  final _emailController = TextEditingController(text: 'customer@furni3d.vn');
   final _otpController = TextEditingController();
   final _newPasswordController = TextEditingController();
   bool _otpSent = false;

@@ -56,7 +56,7 @@ class AuthProvider extends ChangeNotifier {
       id: 'usr-${DateTime.now().millisecondsSinceEpoch}',
       name: isAdmin
           ? 'Quản Trị Viên Furni3D'
-          : (email == 'KDuy8383@gmail.com' ? 'Đặng Thảo Vy' : email.split('@')[0]),
+          : (email.toLowerCase() == 'customer@furni3d.vn' ? 'Đặng Thảo Vy' : email.split('@')[0]),
       email: email,
       phone: isAdmin ? '1900 8383' : '0983 838 311',
       avatar: isAdmin
@@ -83,8 +83,8 @@ class AuthProvider extends ChangeNotifier {
 
     _currentUser = UserModel(
       id: 'google-${DateTime.now().millisecondsSinceEpoch}',
-      name: 'Duy Khánh (Google)',
-      email: 'kduy8383@gmail.com',
+      name: 'Google User Demo',
+      email: 'customer@furni3d.vn',
       phone: '0983 838 311',
       avatar:
           'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',

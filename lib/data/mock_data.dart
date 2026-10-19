@@ -12,7 +12,7 @@ const String kUserAvatar =
 UserModel getInitialUser() => UserModel(
       id: 'usr-01',
       name: 'Đặng Thảo Vy',
-      email: 'KDuy8383@gmail.com',
+      email: 'customer@furni3d.vn',
       phone: '0983 838 311',
       avatar: kUserAvatar,
       furniCoins: 150,

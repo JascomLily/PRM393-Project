@@ -5,7 +5,7 @@ export const USER_AVATAR = 'https://lh3.googleusercontent.com/aida-public/AB6AXu
 
 export const INITIAL_USER: UserProfile = {
   name: 'Đặng Thảo Vy',
-  email: 'KDuy8383@gmail.com',
+  email: 'customer@furni3d.vn',
   phone: '0983 838 311',
   avatar: USER_AVATAR,
   furniCoins: 150,

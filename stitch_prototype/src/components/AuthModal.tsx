@@ -21,7 +21,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [showPassword, setShowPassword] = useState(false);
 
   // Form states - Login
-  const [loginEmail, setLoginEmail] = useState('KDuy8383@gmail.com');
+  const [loginEmail, setLoginEmail] = useState('customer@furni3d.vn');
   const [loginPassword, setLoginPassword] = useState('123456');
   const [rememberMe, setRememberMe] = useState(true);
 
@@ -46,7 +46,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   // Handle Demo Quick Fill
   const handleQuickFill = (role: 'customer' | 'admin') => {
     if (role === 'customer') {
-      setLoginEmail('KDuy8383@gmail.com');
+      setLoginEmail('customer@furni3d.vn');
       setLoginPassword('123456');
       onShowToast('Đã điền tài khoản Khách hàng mẫu');
     } else {
@@ -69,7 +69,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setIsLoading(false);
       const isAdmin = loginEmail.toLowerCase().includes('admin');
       const loggedUser: UserProfile = {
-        name: isAdmin ? 'Quản Trị Viên Furni3D' : (loginEmail === 'KDuy8383@gmail.com' ? 'Đặng Thảo Vy' : loginEmail.split('@')[0]),
+        name: isAdmin ? 'Quản Trị Viên Furni3D' : (loginEmail === 'customer@furni3d.vn' ? 'Đặng Thảo Vy' : loginEmail.split('@')[0]),
         email: loginEmail,
         phone: isAdmin ? '1900 8383' : '0983 838 311',
         avatar: isAdmin
@@ -94,8 +94,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setTimeout(() => {
       setIsLoading(false);
       const googleUser: UserProfile = {
-        name: 'Duy Khánh (Google)',
-        email: 'kduy8383@gmail.com',
+        name: 'Google User Demo',
+        email: 'customer@furni3d.vn',
         phone: '0983 838 311',
         avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
         furniCoins: 200,
@@ -265,7 +265,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     required
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
-                    placeholder="VD: KDuy8383@gmail.com"
+                    placeholder="VD: customer@furni3d.vn"
                     className="w-full h-11 pl-10 pr-3 rounded-xl bg-[#f2f3ff] text-xs text-[#161b28] focus:bg-white focus:ring-2 focus:ring-[#2d5a46] outline-none border border-transparent focus:border-transparent transition-all"
                   />
                 </div>
@@ -496,7 +496,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     required
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
-                    placeholder="VD: KDuy8383@gmail.com"
+                    placeholder="VD: customer@furni3d.vn"
                     className="flex-1 h-10 px-3 rounded-xl bg-[#f2f3ff] text-xs text-[#161b28] focus:bg-white focus:ring-2 focus:ring-[#2d5a46] outline-none"
                   />
                   <button
