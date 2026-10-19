@@ -1,4 +1,4 @@
-# 🛋️ FURNI3D MOBILE - PRM393 FLUTTER PROJECT
+# FURNI3D MOBILE - PRM393 FLUTTER PROJECT
 
 Ứng dụng thương mại điện tử bán nội thất thông minh tích hợp hướng dẫn lắp ráp 3D Unity, đối soát thanh toán VNPAY Sandbox, tích lũy điểm thưởng Xu (FurniCoins) và GPS tracking tài xế giao hàng.
 
@@ -6,7 +6,7 @@ Dự án được xây dựng chuẩn theo yêu cầu môn học **PRM393 (Mobil
 
 ---
 
-## 🏗️ Cấu trúc thư mục (Architecture: MVC / N-Layer with Provider)
+## Cấu trúc thư mục (Architecture: MVC / N-Layer with Provider)
 
 ```
 PRM393-Project/
@@ -58,7 +58,7 @@ PRM393-Project/
 
 ---
 
-## 🚀 Hướng dẫn chạy ứng dụng
+## Hướng dẫn chạy ứng dụng
 
 ### 1. Cài đặt thư viện dependencies
 ```bash
@@ -84,15 +84,15 @@ flutter run -d windows
 
 ---
 
-## 🔑 Tài khoản Demo (Hỗ trợ 1-Click Fill trên màn hình Đăng nhập)
+## Tài khoản Demo (Hỗ trợ 1-Click Fill trên màn hình Đăng nhập)
 
-- 👤 **Khách hàng**: `customer@furni3d.vn` / Mật khẩu: `123456`
-- 👑 **Quản trị viên (Admin)**: `admin@furni3d.vn` / Mật khẩu: `admin123`
-- 🌐 **Đăng nhập Google**: Bấm nút *"Đăng nhập với Google"* để xác thực và trải nghiệm tức thì.
+- **Khách hàng**: `customer@furni3d.vn` / Mật khẩu: `123456`
+- **Quản trị viên (Admin)**: `admin@furni3d.vn` / Mật khẩu: `admin123`
+- **Đăng nhập Google**: Bấm nút *"Đăng nhập với Google"* để xác thực và trải nghiệm tức thì.
 
 ---
 
-## 💳 Thông tin Thẻ Test VNPAY Sandbox
+## Thông tin Thẻ Test VNPAY Sandbox
 
 - **Ngân hàng**: NCB - Ngân hàng Quốc Dân
 - **Số thẻ ATM**: `9704 1985 2619 1432` *(có nút Điền nhanh trên màn hình thanh toán)*
