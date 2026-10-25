@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
 import '../../models/order_model.dart';
 import '../../providers/order_provider.dart';
 import '../../providers/auth_provider.dart';
-import 'driver_tracking_dialog.dart';
 import 'vnpay_invoice_dialog.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -17,16 +17,28 @@ class OrdersScreen extends StatefulWidget {
 class _OrdersScreenState extends State<OrdersScreen> {
   String _filter = 'all'; // 'all', 'shipping', 'completed'
 
-  void _showReviewDialog(BuildContext context, OrderModel order, OrderProvider orderProvider, AuthProvider auth) {
+  void _showReviewDialog(
+    BuildContext context,
+    OrderModel order,
+    OrderProvider orderProvider,
+    AuthProvider auth,
+  ) {
     int stars = 5;
-    final commentCtrl = TextEditingController(text: 'Rất hài lòng! Gỗ thơm tự nhiên, ăn khớp 100% bản vẽ 3D.');
+    final commentCtrl = TextEditingController(
+      text: 'Rất hài lòng! Gỗ thơm tự nhiên, ăn khớp 100% bản vẽ 3D.',
+    );
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Text('Đánh giá đơn hàng ${order.code}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            'Đánh giá đơn hàng ${order.code}',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -38,12 +50,20 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.monetization_on, color: Color(0xFF805528), size: 20),
+                    Icon(
+                      Icons.monetization_on,
+                      color: Color(0xFF805528),
+                      size: 20,
+                    ),
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Đánh giá kèm ảnh nhận ngay +50 Xu thưởng FurniCoins!',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF794F23)),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF794F23),
+                        ),
                       ),
                     ),
                   ],
@@ -73,13 +93,26 @@ class _OrdersScreenState extends State<OrdersScreen> {
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Color(0xFF2D5A46)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
-                icon: const Icon(Icons.camera_alt_outlined, size: 18, color: Color(0xFF2D5A46)),
-                label: const Text('Chụp ảnh thực tế sản phẩm (Camera)', style: TextStyle(fontSize: 11, color: Color(0xFF2D5A46))),
+                icon: const Icon(
+                  Icons.camera_alt_outlined,
+                  size: 18,
+                  color: Color(0xFF2D5A46),
+                ),
+                label: const Text(
+                  'Chụp ảnh thực tế sản phẩm (Camera)',
+                  style: TextStyle(fontSize: 11, color: Color(0xFF2D5A46)),
+                ),
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('📷 Đã chụp ảnh nghiệm thu sản phẩm thành công!')),
+                    const SnackBar(
+                      content: Text(
+                        '📷 Đã chụp ảnh nghiệm thu sản phẩm thành công!',
+                      ),
+                    ),
                   );
                 },
               ),
@@ -109,7 +142,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2D5A46),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               onPressed: () {
                 orderProvider.submitReview(order.id, stars, commentCtrl.text);
@@ -117,7 +152,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('🎉 Cảm ơn bạn! Đã nhận +50 Xu thưởng FurniCoins!'),
+                    content: Text(
+                      '🎉 Cảm ơn bạn! Đã nhận +50 Xu thưởng FurniCoins!',
+                    ),
                     backgroundColor: Color(0xFF2D5A46),
                   ),
                 );
@@ -132,7 +169,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
+    final currencyFormatter = NumberFormat.currency(
+      locale: 'vi_VN',
+      symbol: '₫',
+    );
     final orderProvider = Provider.of<OrderProvider>(context);
     final auth = Provider.of<AuthProvider>(context);
 
@@ -149,7 +189,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
         elevation: 0,
         title: const Text(
           'Đơn hàng & Giao dịch',
-          style: TextStyle(color: Color(0xFF161B28), fontWeight: FontWeight.bold, fontSize: 18),
+          style: TextStyle(
+            color: Color(0xFF161B28),
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
         centerTitle: true,
       ),
@@ -165,13 +209,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 _filterChip(
                   'Đang giao',
                   'shipping',
-                  orderProvider.orders.where((o) => o.status == 'shipping').length,
+                  orderProvider.orders
+                      .where((o) => o.status == 'shipping')
+                      .length,
                 ),
                 const SizedBox(width: 8),
                 _filterChip(
                   'Đã hoàn thành',
                   'completed',
-                  orderProvider.orders.where((o) => o.status == 'completed').length,
+                  orderProvider.orders
+                      .where((o) => o.status == 'completed')
+                      .length,
                 ),
               ],
             ),
@@ -181,7 +229,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
           Expanded(
             child: filteredOrders.isEmpty
                 ? const Center(
-                    child: Text('Không có đơn hàng nào', style: TextStyle(color: Colors.grey)),
+                    child: Text(
+                      'Không có đơn hàng nào',
+                      style: TextStyle(color: Colors.grey),
+                    ),
                   )
                 : ListView.separated(
                     padding: const EdgeInsets.all(16),
@@ -196,7 +247,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.black.withOpacity(0.05)),
+                          border: Border.all(
+                            color: Colors.black.withOpacity(0.05),
+                          ),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.02),
@@ -216,29 +269,44 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                   children: [
                                     Text(
                                       order.code,
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
                                       order.date,
-                                      style: const TextStyle(fontSize: 11, color: Color(0xFF717973)),
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF717973),
+                                      ),
                                     ),
                                   ],
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: isShipping
-                                        ? const Color(0xFFFEC38D).withOpacity(0.35)
-                                        : const Color(0xFFBCEED3).withOpacity(0.5),
+                                        ? const Color(0xFFFEC38D)
+                                              .withOpacity(0.35)
+                                        : const Color(0xFFBCEED3)
+                                              .withOpacity(0.5),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
-                                    isShipping ? 'Đang giao hàng' : 'Đã giao thành công',
+                                    isShipping
+                                        ? 'Đang giao hàng'
+                                        : 'Đã hoàn thành',
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
-                                      color: isShipping ? const Color(0xFF805528) : const Color(0xFF134230),
+                                      color: isShipping
+                                          ? const Color(0xFF805528)
+                                          : const Color(0xFF134230),
                                     ),
                                   ),
                                 ),
@@ -247,41 +315,61 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             const Divider(height: 16),
 
                             // Items summary
-                            ...order.items.map((item) => Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 4),
-                                  child: Row(
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Image.network(
-                                          item.image,
-                                          width: 40,
-                                          height: 40,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => const Icon(Icons.chair, size: 24),
-                                        ),
+                            ...order.items.map(
+                              (item) => Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 4,
+                                ),
+                                child: Row(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(
+                                        item.image,
+                                        width: 40,
+                                        height: 40,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) =>
+                                            const Icon(Icons.chair, size: 24),
                                       ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              item.name,
-                                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                                              overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            item.name,
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
                                             ),
-                                            Text('SL: x${item.quantity}', style: const TextStyle(fontSize: 10, color: Color(0xFF717973))),
-                                          ],
-                                        ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          Text(
+                                            'SL: x${item.quantity}',
+                                            style: const TextStyle(
+                                              fontSize: 10,
+                                              color: Color(0xFF717973),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      Text(
-                                        currencyFormatter.format(item.price * item.quantity),
-                                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      currencyFormatter.format(
+                                        item.price * item.quantity,
                                       ),
-                                    ],
-                                  ),
-                                )),
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                             const SizedBox(height: 8),
 
                             // Total & Method
@@ -290,16 +378,32 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               children: [
                                 Row(
                                   children: [
-                                    const Text('Thanh toán: ', style: TextStyle(fontSize: 11, color: Color(0xFF717973))),
+                                    const Text(
+                                      'Thanh toán: ',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF717973),
+                                      ),
+                                    ),
                                     Text(
-                                      order.paymentMethod == 'COD' ? 'COD' : 'VNPAY QR',
-                                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF005BA9)),
+                                      order.paymentMethod == 'COD'
+                                          ? 'COD'
+                                          : 'VNPAY QR',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF005BA9),
+                                      ),
                                     ),
                                   ],
                                 ),
                                 Text(
                                   'Tổng: ${currencyFormatter.format(order.totalAmount)}',
-                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF2D5A46)),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF2D5A46),
+                                  ),
                                 ),
                               ],
                             ),
@@ -312,17 +416,44 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                   Expanded(
                                     child: ElevatedButton.icon(
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFF2D5A46),
+                                        backgroundColor: const Color(
+                                          0xFF2D5A46,
+                                        ),
                                         foregroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 8,
+                                        ),
                                       ),
-                                      icon: const Icon(Icons.navigation_outlined, size: 16),
-                                      label: const Text('GPS Shipper', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                      icon: const Icon(
+                                        Icons.check_circle_outline,
+                                        size: 16,
+                                      ),
+                                      label: const Text(
+                                        'Đã nhận hàng',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                       onPressed: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (_) => DriverTrackingDialog(order: order),
+                                        orderProvider.updateOrderStatus(
+                                          order.id,
+                                          'completed',
+                                        );
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Đơn hàng đã được chuyển sang Đã hoàn thành.',
+                                            ),
+                                            backgroundColor: Color(0xFF2D5A46),
+                                          ),
                                         );
                                       },
                                     ),
@@ -331,31 +462,71 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                   Expanded(
                                     child: OutlinedButton.icon(
                                       style: OutlinedButton.styleFrom(
-                                        side: const BorderSide(color: Color(0xFF805528)),
-                                        foregroundColor: const Color(0xFF805528),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                        side: const BorderSide(
+                                          color: Color(0xFF805528),
+                                        ),
+                                        foregroundColor: const Color(
+                                          0xFF805528,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 8,
+                                        ),
                                       ),
-                                      icon: const Icon(Icons.star_outline, size: 16),
-                                      label: const Text('Đánh giá (+50 Xu)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                                      onPressed: () => _showReviewDialog(context, order, orderProvider, auth),
+                                      icon: const Icon(
+                                        Icons.star_outline,
+                                        size: 16,
+                                      ),
+                                      label: const Text(
+                                        'Đánh giá (+50 Xu)',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      onPressed: () => _showReviewDialog(
+                                        context,
+                                        order,
+                                        orderProvider,
+                                        auth,
+                                      ),
                                     ),
                                   ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: OutlinedButton.icon(
                                     style: OutlinedButton.styleFrom(
-                                      side: const BorderSide(color: Color(0xFF005BA9)),
+                                      side: const BorderSide(
+                                        color: Color(0xFF005BA9),
+                                      ),
                                       foregroundColor: const Color(0xFF005BA9),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 8,
+                                      ),
                                     ),
-                                    icon: const Icon(Icons.receipt_long, size: 16),
-                                    label: const Text('Hóa đơn VNPAY', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                    icon: const Icon(
+                                      Icons.receipt_long,
+                                      size: 16,
+                                    ),
+                                    label: const Text(
+                                      'Hóa đơn VNPAY',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                     onPressed: () {
                                       showDialog(
                                         context: context,
-                                        builder: (_) => VnpayInvoiceDialog(order: order),
+                                        builder: (_) =>
+                                            VnpayInvoiceDialog(order: order),
                                       );
                                     },
                                   ),

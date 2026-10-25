@@ -4,9 +4,14 @@ import 'package:provider/provider.dart';
 import '../../providers/order_provider.dart';
 import '../../providers/cart_provider.dart';
 
-class AdminScreen extends StatelessWidget {
+class AdminScreen extends StatefulWidget {
   const AdminScreen({super.key});
 
+  @override
+  State<AdminScreen> createState() => _AdminScreenState();
+}
+
+class _AdminScreenState extends State<AdminScreen> {
   @override
   Widget build(BuildContext context) {
     final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
@@ -60,6 +65,8 @@ class AdminScreen extends StatelessWidget {
                     children: [
                       _statTag('Đơn hàng: ${orderProvider.orders.length}'),
                       const SizedBox(width: 8),
+                      _statTag('Đang giao: ${orderProvider.orders.where((o) => o.status == 'shipping').length}'),
+                      const SizedBox(width: 8),
                       _statTag('Tỉ lệ giao: 98%'),
                     ],
                   ),
@@ -91,14 +98,39 @@ class AdminScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('${order.code} • ${order.receiverName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                          Text(currencyFormatter.format(order.totalAmount), style: const TextStyle(fontSize: 12, color: Color(0xFF2D5A46), fontWeight: FontWeight.bold)),
+                          Text(
+                            '${order.code} • ${order.receiverName}',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            currencyFormatter.format(order.totalAmount),
+                            style: const TextStyle(fontSize: 12, color: Color(0xFF2D5A46), fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 2),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: isShipping
+                                  ? const Color(0xFFFEC38D).withOpacity(0.35)
+                                  : const Color(0xFFBCEED3).withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              isShipping ? '🚚 Đang giao' : '✅ Đã giao',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: isShipping ? const Color(0xFF805528) : const Color(0xFF134230),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isShipping ? const Color(0xFF2D5A46) : Colors.grey,
+                        backgroundColor: isShipping ? const Color(0xFF2D5A46) : Colors.grey.shade400,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -107,10 +139,14 @@ class AdminScreen extends StatelessWidget {
                         final nextStatus = isShipping ? 'completed' : 'shipping';
                         orderProvider.updateOrderStatus(order.id, nextStatus);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Đã cập nhật đơn ${order.code} thành: $nextStatus')),
+                          SnackBar(content: Text('Đã cập nhật ${order.code}: ${isShipping ? 'Đã giao thành công' : 'Đang giao'}')),
                         );
                       },
-                      child: Text(isShipping ? 'Xác nhận Đã Giao' : 'Chuyển Đang Giao', style: const TextStyle(fontSize: 10)),
+                      child: Text(
+                        isShipping ? 'Xác nhận\nĐã Giao' : 'Chuyển\nĐang Giao',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 10),
+                      ),
                     ),
                   ],
                 ),
@@ -119,20 +155,29 @@ class AdminScreen extends StatelessWidget {
             const SizedBox(height: 20),
 
             // Voucher Management
-            const Text('Quản lý mã Voucher khuyến mãi', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            const Text(
+              'Quản lý mã Voucher khuyến mãi',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 10),
             ...cartProvider.vouchers.map((v) {
-              return SwitchListTile(
-                tileColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                title: Text(v.code, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                subtitle: Text(v.title, style: const TextStyle(fontSize: 11, color: Color(0xFF717973))),
-                value: v.isActive,
-                activeColor: const Color(0xFF2D5A46),
-                onChanged: (val) {
-                  v.isActive = val;
-                  (context as Element).markNeedsBuild();
-                },
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: SwitchListTile(
+                  title: Text(v.code, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  subtitle: Text(v.title, style: const TextStyle(fontSize: 11, color: Color(0xFF717973))),
+                  value: v.isActive,
+                  activeColor: const Color(0xFF2D5A46),
+                  onChanged: (val) {
+                    setState(() {
+                      v.isActive = val;
+                    });
+                  },
+                ),
               );
             }),
           ],
@@ -148,7 +193,7 @@ class AdminScreen extends StatelessWidget {
         color: Colors.white24,
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+      child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
     );
   }
 }

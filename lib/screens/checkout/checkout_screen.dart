@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/order_provider.dart';
@@ -29,6 +30,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _addressController = TextEditingController();
   final _noteController = TextEditingController(text: 'Giao giờ hành chính, gọi trước khi đến');
   String _paymentMethod = 'VNPAY_QR'; // 'VNPAY_QR', 'VNPAY_ATM', 'COD'
+  bool _isGettingLocation = false;
+  String? _gpsCoordinates;
 
   @override
   void initState() {
@@ -48,6 +51,116 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _addressController.dispose();
     _noteController.dispose();
     super.dispose();
+  }
+
+  Future<void> _useCurrentLocation() async {
+    setState(() => _isGettingLocation = true);
+
+    try {
+      // Check permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          setState(() => _isGettingLocation = false);
+          _showLocationDeniedDialog();
+        }
+        return;
+      }
+
+      if (permission == LocationPermission.denied) {
+        if (mounted) {
+          setState(() => _isGettingLocation = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Quyền vị trí bị từ chối. Bạn có thể nhập địa chỉ thủ công.')),
+          );
+        }
+        return;
+      }
+
+      // Get position
+      final Position position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 15),
+        ),
+      );
+
+      // Simulate reverse geocoding (in real app, call Google Maps Geocoding API)
+      final lat = position.latitude;
+      final lng = position.longitude;
+      setState(() {
+        _gpsCoordinates = '${lat.toStringAsFixed(6)}, ${lng.toStringAsFixed(6)}';
+        // Simulate address from coordinates
+        _addressController.text = _simulateReverseGeocode(lat, lng);
+        _isGettingLocation = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('📍 Đã lấy vị trí GPS: $_gpsCoordinates'),
+            backgroundColor: const Color(0xFF2D5A46),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isGettingLocation = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Không lấy được vị trí GPS: ${e.toString().contains('timeout') ? 'Hết thời gian chờ, thử lại' : 'Vui lòng nhập địa chỉ thủ công'}'),
+          ),
+        );
+      }
+    }
+  }
+
+  String _simulateReverseGeocode(double lat, double lng) {
+    // Simulated reverse geocoding based on coordinates range
+    // In production: call Google Maps Geocoding API or similar
+    if (lat >= 10.0 && lat <= 11.2 && lng >= 106.0 && lng <= 107.0) {
+      return 'Khu vực TP. Hồ Chí Minh, Việt Nam (GPS: ${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)})';
+    } else if (lat >= 20.9 && lat <= 21.2 && lng >= 105.7 && lng <= 106.0) {
+      return 'Khu vực Hà Nội, Việt Nam (GPS: ${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)})';
+    } else {
+      return 'Vị trí GPS: ${lat.toStringAsFixed(4)}°N, ${lng.toStringAsFixed(4)}°E — Vui lòng bổ sung chi tiết địa chỉ';
+    }
+  }
+
+  void _showLocationDeniedDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Quyền vị trí bị từ chối', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text(
+          'Bạn đã từ chối quyền vị trí. Để sử dụng tính năng GPS, hãy vào Cài đặt > Ứng dụng > Quyền vị trí.\n\nBạn vẫn có thể nhập địa chỉ giao hàng thủ công.',
+          style: TextStyle(fontSize: 13, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Nhập thủ công', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2D5A46),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              Geolocator.openAppSettings();
+            },
+            child: const Text('Mở Cài đặt'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _finishOrder(String txId, String method) {
@@ -81,9 +194,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       MaterialPageRoute(
         builder: (_) => OrderSuccessScreen(
           order: newOrder,
-          onGoToOrders: () {
-            // Handled in root main navigation
-          },
+          onGoToOrders: () {},
         ),
       ),
     );
@@ -113,7 +224,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             amount: widget.amount,
             txId: txId,
             onPaymentSuccess: () {
-              Navigator.pop(context); // Pop ATM screen
+              Navigator.pop(context);
               _finishOrder(txId, 'VNPAY_ATM');
             },
           ),
@@ -128,7 +239,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             amount: widget.amount,
             txId: txId,
             onPaymentSuccess: () {
-              Navigator.pop(context); // Pop QR screen
+              Navigator.pop(context);
               _finishOrder(txId, 'VNPAY_QR');
             },
           ),
@@ -216,12 +327,62 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               decoration: _inputDecoration('Số điện thoại nhận hàng *', Icons.phone_outlined),
             ),
             const SizedBox(height: 10),
-            TextField(
-              controller: _addressController,
-              maxLines: 2,
-              decoration: _inputDecoration('Địa chỉ giao hàng chi tiết *', Icons.location_on_outlined),
+
+            // Address field with GPS button
+            Stack(
+              children: [
+                TextField(
+                  controller: _addressController,
+                  maxLines: 2,
+                  decoration: _inputDecoration('Địa chỉ giao hàng chi tiết *', Icons.location_on_outlined),
+                ),
+              ],
             ),
+            const SizedBox(height: 8),
+
+            // GPS Button
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFF2D5A46)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  foregroundColor: const Color(0xFF2D5A46),
+                ),
+                icon: _isGettingLocation
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF2D5A46)),
+                      )
+                    : const Icon(Icons.my_location, size: 18),
+                label: Text(
+                  _isGettingLocation
+                      ? 'Đang lấy vị trí GPS...'
+                      : _gpsCoordinates != null
+                          ? '📍 Cập nhật vị trí GPS'
+                          : '📍 Dùng vị trí hiện tại (GPS)',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+                onPressed: _isGettingLocation ? null : _useCurrentLocation,
+              ),
+            ),
+            if (_gpsCoordinates != null) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(Icons.gps_fixed, size: 12, color: Color(0xFF2D5A46)),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Tọa độ GPS: $_gpsCoordinates',
+                    style: const TextStyle(fontSize: 10, color: Color(0xFF2D5A46)),
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: 10),
+
             TextField(
               controller: _noteController,
               decoration: _inputDecoration('Ghi chú giao hàng cho tài xế', Icons.note_outlined),
@@ -298,11 +459,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }) {
     final isSelected = _paymentMethod == id;
     return InkWell(
-      onTap: () {
-        setState(() {
-          _paymentMethod = id;
-        });
-      },
+      onTap: () => setState(() => _paymentMethod = id),
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(12),

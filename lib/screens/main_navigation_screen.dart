@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../providers/auth_provider.dart';
 import '../providers/cart_provider.dart';
+import 'home/home_screen.dart';
 import 'explore/explore_screen.dart';
-import 'model3d/model3d_screen.dart';
 import 'parts/parts_screen.dart';
 import 'orders/orders_screen.dart';
 import 'admin/admin_screen.dart';
 import 'cart/cart_screen.dart';
 import 'profile/profile_screen.dart';
 import 'auth/login_screen.dart';
+import 'qr_scanner/qr_scanner_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -28,10 +30,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final isAdmin = auth.isAdmin;
 
     final screens = <Widget>[
-      const ExploreScreen(),
-      const Model3DScreen(),
-      const PartsScreen(),
-      const OrdersScreen(),
+      const HomeScreen(), // UI 02 - Home
+      const ExploreScreen(), // UI 03 - Product Catalog & Search
+      QrScannerScreen(embedded: true, active: _currentIndex == 2),
+      const PartsScreen(), // UI 11 - Replacement Parts Store
+      const OrdersScreen(), // UI 07 - My Orders & Order Detail
       if (isAdmin) const AdminScreen(),
     ];
 
@@ -40,8 +43,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     }
 
     final titles = [
-      'Khám phá Furni3D',
-      'Hướng dẫn 3D Unity',
+      'Furni3D — Nội thất 3D',
+      'Khám phá sản phẩm',
+      'Quét mã QR sản phẩm',
       'Linh kiện thay thế',
       'Đơn hàng & Giao dịch',
       if (isAdmin) 'Quản trị viên Furni3D',
@@ -96,7 +100,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.shopping_bag_outlined, color: Color(0xFF161B28)),
+                icon: const Icon(
+                  Icons.shopping_bag_outlined,
+                  color: Color(0xFF161B28),
+                ),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -114,7 +121,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       color: Color(0xFF805528),
                       shape: BoxShape.circle,
                     ),
-                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
                     child: Text(
                       '${cart.itemCount}',
                       textAlign: TextAlign.center,
@@ -154,11 +164,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2D5A46),
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                 ),
                 icon: const Icon(Icons.login, size: 14),
-                label: const Text('Đăng nhập', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                label: const Text(
+                  'Đăng nhập',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                ),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -169,14 +187,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             ),
         ],
       ),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: screens),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border(top: BorderSide(color: Colors.black.withOpacity(0.06))),
+          border: Border(
+            top: BorderSide(color: Colors.black.withOpacity(0.06)),
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.04),
@@ -191,7 +208,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           elevation: 0,
           selectedItemColor: const Color(0xFF2D5A46),
           unselectedItemColor: const Color(0xFF717973),
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 11,
+          ),
           unselectedLabelStyle: const TextStyle(fontSize: 10),
           type: BottomNavigationBarType.fixed,
           onTap: (index) {
@@ -201,14 +221,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           },
           items: [
             const BottomNavigationBarItem(
-              icon: Icon(Icons.chair_outlined),
-              activeIcon: Icon(Icons.chair),
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
+              label: 'Trang chủ',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.search_outlined),
+              activeIcon: Icon(Icons.search),
               label: 'Khám phá',
             ),
             const BottomNavigationBarItem(
-              icon: Icon(Icons.view_in_ar_outlined),
-              activeIcon: Icon(Icons.view_in_ar),
-              label: 'Mô hình 3D',
+              icon: Icon(Icons.qr_code_scanner_outlined),
+              activeIcon: Icon(Icons.qr_code_scanner),
+              label: 'Quét QR',
             ),
             const BottomNavigationBarItem(
               icon: Icon(Icons.handyman_outlined),
