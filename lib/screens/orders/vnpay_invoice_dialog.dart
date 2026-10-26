@@ -52,7 +52,7 @@ class VnpayInvoiceDialog extends StatelessWidget {
 
               // Company Info
               const Text(
-                'CÔNG TY TNHH NỘI THẤT FURNI3D VIỆT NAM',
+                'CÔNG TY TNHH NỘI THẤT SOFA SO GOOD',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
               ),

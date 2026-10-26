@@ -89,7 +89,7 @@ class _VnpayQrScreenState extends State<VnpayQrScreen> {
                 children: [
                   const Text('ĐƠN VỊ THỤ HƯỞNG:', style: TextStyle(fontSize: 10, color: Color(0xFF717973), fontWeight: FontWeight.bold)),
                   const SizedBox(height: 2),
-                  const Text('FURNI3D VIETNAM SMART LIVING', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF161B28))),
+                  const Text('SOFA SO GOOD LIVING', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF161B28))),
                   const SizedBox(height: 6),
                   Text('Mã GD: ${widget.txId}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF005BA9))),
                   const SizedBox(height: 10),

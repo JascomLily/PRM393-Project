@@ -82,7 +82,7 @@ class ProductProvider extends ChangeNotifier {
         image:
             'https://images.unsplash.com/photo-1580481077111-9a7f34083049?auto=format&fit=crop&w=800&q=80',
         description: 'Bộ 4 đệm chống trầy xước sàn gỗ, giảm rung lắc và triệt tiêu tiếng ồn.',
-        compatibleProduct: 'Tất cả bàn và ghế Furni3D',
+        compatibleProduct: 'Tất cả sản phẩm Sofa so good',
       ),
       SparePartModel(
         id: 'part-brass-handle',

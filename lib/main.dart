@@ -21,18 +21,18 @@ void main() async {
         ChangeNotifierProvider(create: (_) => OrderProvider()),
         ChangeNotifierProvider(create: (_) => MissingReportProvider()),
       ],
-      child: const Furni3DApp(),
+      child: const SofaSoGoodApp(),
     ),
   );
 }
 
-class Furni3DApp extends StatelessWidget {
-  const Furni3DApp({super.key});
+class SofaSoGoodApp extends StatelessWidget {
+  const SofaSoGoodApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Furni3D Mobile',
+      title: 'Sofa so good',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: const MainNavigationScreen(),

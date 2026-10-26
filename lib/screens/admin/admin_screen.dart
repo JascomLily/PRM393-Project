@@ -38,7 +38,7 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
       backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text(
-          'Quản Trị Hệ Thống Furni3D',
+          'Quản Trị Hệ Thống Sofa so good',
           style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
         ),
         bottom: TabBar(

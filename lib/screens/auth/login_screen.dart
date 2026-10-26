@@ -103,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text('Đăng Nhập Furni3D'),
+        title: const Text('Đăng Nhập Sofa so good'),
         leading: Navigator.canPop(context)
             ? IconButton(
                 icon: const Icon(Icons.arrow_back),
@@ -139,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 12),
               const Center(
                 child: Text(
-                  'FURNI3D NORDIC',
+                  'SOFA SO GOOD',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,

@@ -40,7 +40,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     }
 
     final titles = [
-      'Khám phá Furni3D',
+      'Khám phá Sofa so good',
       'Hướng dẫn 3D Unity',
       'Kho linh kiện lẻ',
       'Đơn hàng & Giao dịch',
@@ -60,7 +60,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 color: AppTheme.primary,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.chair, color: Colors.white, size: 18),
+              child: const Icon(Icons.weekend, color: Colors.white, size: 18),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -68,7 +68,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'FURNI3D NORDIC',
+                    'SOFA SO GOOD',
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
@@ -195,8 +195,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           },
           items: [
             const BottomNavigationBarItem(
-              icon: Icon(Icons.chair_outlined),
-              activeIcon: Icon(Icons.chair),
+              icon: Icon(Icons.weekend_outlined),
+              activeIcon: Icon(Icons.weekend),
               label: 'Khám phá',
             ),
             const BottomNavigationBarItem(

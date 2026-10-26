@@ -25,13 +25,13 @@ class AuthProvider extends ChangeNotifier {
       getInitialUser(),
       UserModel(
         id: 'usr-admin-01',
-        name: 'Quản Trị Viên Furni3D',
+        name: 'Quản Trị Viên Sofa so good',
         email: 'admin@furni3d.vn',
         phone: '1900 8383',
         avatar:
             'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
         furniCoins: 9999,
-        savedAddress: 'Trụ sở Furni3D, Tầng 32 Landmark 81, TP. Hồ Chí Minh',
+        savedAddress: 'Trụ sở Sofa so good, Tầng 32 Landmark 81, TP. Hồ Chí Minh',
         role: 'admin',
       ),
       UserModel(
@@ -96,7 +96,7 @@ class AuthProvider extends ChangeNotifier {
     _currentUser = UserModel(
       id: 'usr-${DateTime.now().millisecondsSinceEpoch}',
       name: isAdmin
-          ? 'Quản Trị Viên Furni3D'
+          ? 'Quản Trị Viên Sofa so good'
           : (email.toLowerCase() == 'customer@furni3d.vn' ? 'Đặng Thảo Vy' : email.split('@')[0]),
       email: email,
       phone: isAdmin ? '1900 8383' : '0983 838 311',
@@ -105,7 +105,7 @@ class AuthProvider extends ChangeNotifier {
           : kUserAvatar,
       furniCoins: isAdmin ? 9999 : 150,
       savedAddress: isAdmin
-          ? 'Trụ sở Furni3D, Tầng 32 Landmark 81, TP. Hồ Chí Minh'
+          ? 'Trụ sở Sofa so good, Tầng 32 Landmark 81, TP. Hồ Chí Minh'
           : 'Tòa nhà Landmark 81, P. 22, Q. Bình Thạnh, TP. Hồ Chí Minh',
       role: isAdmin ? 'admin' : 'customer',
     );

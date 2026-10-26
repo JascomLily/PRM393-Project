@@ -63,7 +63,7 @@ class _ReturnRequestDialogState extends State<ReturnRequestDialog> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: AppTheme.primary,
-        content: Text('Đã gửi yêu cầu đổi trả $retId! CSKH Furni3D sẽ liên hệ trong 2h.'),
+        content: Text('Đã gửi yêu cầu đổi trả $retId! CSKH Sofa so good sẽ liên hệ trong 2h.'),
       ),
     );
   }
