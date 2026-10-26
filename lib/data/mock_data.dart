@@ -4,10 +4,10 @@ import '../models/voucher_model.dart';
 import '../models/order_model.dart';
 
 const String kAppLogo =
-    'https://lh3.googleusercontent.com/aida/AEtjO1VjwMTAQZ_e36hJQkPgfxwynSSiIOwKyAKHZ2lC8XSVCJInAtWu_WN20Wv7XsM53Z8y3JWyYLdKhzWD1Pct85FE6V5F2Ufd0SN1vhP7TwhH384wkbbkXeJQrh6ggzaeS3k5M2RXVUjCtn5H_c8EzrQRvtUcWOZXVO2Snkt8JqYX9JfwWUzn6Ttp269WS6D9qvKM5DJJrSyQyXO57WfIn-3YupzTsziKMwoZ8Fi4xSVWraBSjyJ_fLPpkLvr';
+    'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=200&q=80';
 
 const String kUserAvatar =
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuAFnxO2uVjcbzsl6MBu2fAR-IdntAwSFmN8jsWOHQ7ntHLMhP5Gi-t7Z47caoxD6Z8Pz3-KdTgVvaGEAvy2mrmnq_HsFKvUncDzMQRXm4nG6f5iVAU8-W5UpwyrdUoF9h0dqOXIuovbEoe4cdCOfyRGelgq7gInq6O7HrlkY7o3s8FXOzKkLoBT5aXt3DFRdooZchcwyfZhRNTOVltc5xjXMLAod2gQnZFsUPpecG6HL0sOSmS5uNHkKg';
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';
 
 UserModel getInitialUser() => UserModel(
       id: 'usr-01',
