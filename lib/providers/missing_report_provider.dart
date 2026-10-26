@@ -1,11 +1,23 @@
 import 'package:flutter/material.dart';
 import '../models/missing_report_model.dart';
+import '../services/supabase_service.dart';
 
 class MissingReportProvider extends ChangeNotifier {
   final List<MissingReportModel> _reports = [];
 
   MissingReportProvider() {
     _initSampleReports();
+    loadReportsFromSupabase();
+  }
+
+  Future<void> loadReportsFromSupabase() async {
+    if (!SupabaseService.isConfigured) return;
+    final remote = await SupabaseService.fetchMissingReports();
+    if (remote != null && remote.isNotEmpty) {
+      _reports.clear();
+      _reports.addAll(remote);
+      notifyListeners();
+    }
   }
 
   List<MissingReportModel> get reports => List.unmodifiable(_reports);
@@ -44,6 +56,9 @@ class MissingReportProvider extends ChangeNotifier {
   void addReport(MissingReportModel report) {
     _reports.insert(0, report);
     notifyListeners();
+    if (SupabaseService.isConfigured) {
+      SupabaseService.addMissingReport(report);
+    }
   }
 
   void updateReportStatus(String id, String status, {String? adminNote}) {

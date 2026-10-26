@@ -6,10 +6,12 @@ import 'providers/cart_provider.dart';
 import 'providers/order_provider.dart';
 import 'providers/missing_report_provider.dart';
 import 'screens/main_navigation_screen.dart';
+import 'services/supabase_service.dart';
 import 'theme/app_theme.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SupabaseService.initialize();
   runApp(
     MultiProvider(
       providers: [

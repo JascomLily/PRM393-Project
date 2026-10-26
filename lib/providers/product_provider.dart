@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/product_model.dart';
 import '../data/mock_data.dart';
+import '../services/supabase_service.dart';
 
 class SparePartModel {
   final String id;
@@ -29,6 +30,16 @@ class ProductProvider extends ChangeNotifier {
   ProductProvider() {
     _products = getMockProducts();
     _initSpareParts();
+    loadFromSupabase();
+  }
+
+  Future<void> loadFromSupabase() async {
+    if (!SupabaseService.isConfigured) return;
+    final remote = await SupabaseService.fetchProducts();
+    if (remote != null && remote.isNotEmpty) {
+      _products = remote;
+      notifyListeners();
+    }
   }
 
   List<ProductModel> get products => List.unmodifiable(_products);
@@ -83,6 +94,9 @@ class ProductProvider extends ChangeNotifier {
   void addProduct(ProductModel product) {
     _products.insert(0, product);
     notifyListeners();
+    if (SupabaseService.isConfigured) {
+      SupabaseService.upsertProduct(product);
+    }
   }
 
   // UPDATE Product
@@ -91,6 +105,9 @@ class ProductProvider extends ChangeNotifier {
     if (index != -1) {
       _products[index] = updated;
       notifyListeners();
+      if (SupabaseService.isConfigured) {
+        SupabaseService.upsertProduct(updated);
+      }
     }
   }
 
@@ -98,6 +115,9 @@ class ProductProvider extends ChangeNotifier {
   void deleteProduct(String id) {
     _products.removeWhere((p) => p.id == id);
     notifyListeners();
+    if (SupabaseService.isConfigured) {
+      SupabaseService.deleteProduct(id);
+    }
   }
 
   ProductModel? getProductById(String id) {

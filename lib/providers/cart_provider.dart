@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/cart_item_model.dart';
 import '../models/voucher_model.dart';
 import '../data/mock_data.dart';
+import '../services/supabase_service.dart';
 
 class CartProvider extends ChangeNotifier {
   final List<CartItemModel> _items = [
@@ -19,6 +20,20 @@ class CartProvider extends ChangeNotifier {
   VoucherModel? _appliedVoucher;
   bool _useFurniCoins = false;
   final List<VoucherModel> _vouchers = getMockVouchers();
+
+  CartProvider() {
+    loadVouchersFromSupabase();
+  }
+
+  Future<void> loadVouchersFromSupabase() async {
+    if (!SupabaseService.isConfigured) return;
+    final remote = await SupabaseService.fetchVouchers();
+    if (remote != null && remote.isNotEmpty) {
+      _vouchers.clear();
+      _vouchers.addAll(remote);
+      notifyListeners();
+    }
+  }
 
   List<CartItemModel> get items => List.unmodifiable(_items);
   VoucherModel? get appliedVoucher => _appliedVoucher;
@@ -143,6 +158,9 @@ class CartProvider extends ChangeNotifier {
   void addVoucher(VoucherModel voucher) {
     _vouchers.insert(0, voucher);
     notifyListeners();
+    if (SupabaseService.isConfigured) {
+      SupabaseService.upsertVoucher(voucher);
+    }
   }
 
   void updateVoucher(VoucherModel updated) {
@@ -153,6 +171,9 @@ class CartProvider extends ChangeNotifier {
         _appliedVoucher = updated;
       }
       notifyListeners();
+      if (SupabaseService.isConfigured) {
+        SupabaseService.upsertVoucher(updated);
+      }
     }
   }
 
@@ -164,6 +185,9 @@ class CartProvider extends ChangeNotifier {
         _appliedVoucher = null;
       }
       notifyListeners();
+      if (SupabaseService.isConfigured) {
+        SupabaseService.upsertVoucher(_vouchers[index]);
+      }
     }
   }
 
