@@ -52,23 +52,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    final success = await auth.register(
-      name: name,
-      email: email,
-      phone: phone,
-      password: password,
-      address: address,
-    );
-
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đăng ký thành công! Bạn nhận được +100 Xu FurniCoins!'),
-          backgroundColor: AppTheme.primary,
-        ),
+    try {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final success = await auth.register(
+        name: name,
+        email: email,
+        phone: phone,
+        password: password,
+        address: address,
       );
-      Navigator.pop(context);
+
+      if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đăng ký tài khoản thành công! Bạn nhận được +100 Xu thưởng Sofa so good!'),
+            backgroundColor: AppTheme.primary,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: AppTheme.error,
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+          ),
+        );
+      }
     }
   }
 
@@ -109,7 +120,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           SizedBox(height: 2),
                           Text(
-                            'Nhận ngay +100 Xu thưởng FurniCoins (trị giá 100.000₫) giảm giá trực tiếp vào đơn hàng đầu tiên.',
+                            'Nhận ngay +100 Xu thưởng Sofa so good (trị giá 100.000₫) giảm giá trực tiếp vào đơn hàng đầu tiên.',
                             style: TextStyle(fontSize: 11, color: AppTheme.textSecondary, height: 1.3),
                           ),
                         ],

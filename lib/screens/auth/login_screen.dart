@@ -60,20 +60,31 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    final success = await auth.login(email, password);
+    try {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final success = await auth.login(email, password);
 
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: AppTheme.primary,
-          content: Text('Chào mừng ${auth.currentUser?.name} đã đăng nhập!'),
-        ),
-      );
-      if (widget.onLoginSuccess != null) {
-        widget.onLoginSuccess!();
-      } else if (Navigator.canPop(context)) {
-        Navigator.pop(context);
+      if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: AppTheme.primary,
+            content: Text('Chào mừng ${auth.currentUser?.name} đã đăng nhập!'),
+          ),
+        );
+        if (widget.onLoginSuccess != null) {
+          widget.onLoginSuccess!();
+        } else if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: AppTheme.error,
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+          ),
+        );
       }
     }
   }

@@ -1,3 +1,4 @@
+import '../services/supabase_service.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -172,22 +173,37 @@ class AuthProvider extends ChangeNotifier {
 
     await Future.delayed(const Duration(milliseconds: 700));
 
+    final normalizedEmail = email.trim().toLowerCase();
+    if (_users.any((u) => u.email.trim().toLowerCase() == normalizedEmail)) {
+      _isLoading = false;
+      notifyListeners();
+      throw Exception('Email này đã được sử dụng. Vui lòng đăng nhập hoặc dùng email khác.');
+    }
+
     _currentUser = UserModel(
       id: 'reg-${DateTime.now().millisecondsSinceEpoch}',
-      name: name,
-      email: email,
-      phone: phone,
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
       avatar:
           'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
       furniCoins: 100, // Chào mừng thành viên mới
       savedAddress: address?.isNotEmpty == true
-          ? address!
+          ? address!.trim()
           : 'Chưa thiết lập địa chỉ mặc định',
       role: 'customer',
       isActive: true,
     );
 
     _users.insert(0, _currentUser!);
+
+    // Đồng bộ nếu có Supabase Cloud
+    try {
+      final client = SupabaseService.client;
+      if (client != null) {
+        await client.auth.signUp(email: email.trim(), password: password);
+      }
+    } catch (_) {}
 
     _isLoading = false;
     await _saveUserToStorage();

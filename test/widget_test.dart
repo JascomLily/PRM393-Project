@@ -1,3 +1,5 @@
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:furni3d_mobile/providers/auth_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:furni3d_mobile/models/user_model.dart';
 import 'package:furni3d_mobile/models/cart_item_model.dart';
@@ -128,5 +130,34 @@ void main() {
 
     final fromJsonUser = UserModel.fromJson(json);
     expect(fromJsonUser.isActive, false);
+  });
+
+  test('AuthProvider registration and duplicate email check test', () async {
+    SharedPreferences.setMockInitialValues({});
+    final auth = AuthProvider();
+
+    // Register a new customer
+    final success = await auth.register(
+      name: 'Khach Hang Moi',
+      email: 'newuser@sofasogood.vn',
+      phone: '0988776655',
+      password: 'password123',
+      address: '789 Vo Van Kiet, HCM',
+    );
+    expect(success, true);
+    expect(auth.currentUser?.name, 'Khach Hang Moi');
+    expect(auth.currentUser?.furniCoins, 100);
+    expect(auth.currentUser?.isActive, true);
+
+    // Attempt to register with duplicate email should throw
+    expect(
+      () => auth.register(
+        name: 'Nguoi Dung Khac',
+        email: 'newuser@sofasogood.vn',
+        phone: '0911223344',
+        password: 'password456',
+      ),
+      throwsA(isA<Exception>()),
+    );
   });
 }
