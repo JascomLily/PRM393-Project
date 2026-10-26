@@ -5,10 +5,9 @@ import '../models/voucher_model.dart';
 import '../models/missing_report_model.dart';
 
 class SupabaseService {
-  // Thay thế bằng Project URL và Anon Key lấy từ Supabase Dashboard:
-  // Settings -> Project Settings -> API
-  static const String supabaseUrl = 'YOUR_SUPABASE_PROJECT_URL';
-  static const String supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
+  // Cấu hình Project URL và Publishable Key từ Supabase Dashboard:
+  static const String supabaseUrl = 'https://vriluovamsnuthscwuqe.supabase.co';
+  static const String supabaseAnonKey = 'sb_publishable_iut1BYb5c3C4o8qD6IDDJA_KcTLeroR';
 
   static bool get isConfigured =>
       supabaseUrl != 'YOUR_SUPABASE_PROJECT_URL' &&
@@ -16,8 +15,16 @@ class SupabaseService {
       supabaseUrl.isNotEmpty &&
       supabaseAnonKey.isNotEmpty;
 
-  static SupabaseClient? get client =>
-      isConfigured ? Supabase.instance.client : null;
+  static bool _initialized = false;
+
+  static SupabaseClient? get client {
+    if (!isConfigured || !_initialized) return null;
+    try {
+      return Supabase.instance.client;
+    } catch (_) {
+      return null;
+    }
+  }
 
   /// Khởi tạo Supabase client an toàn (không crash app nếu chưa điền key)
   static Future<void> initialize() async {
@@ -28,8 +35,9 @@ class SupabaseService {
     try {
       await Supabase.initialize(
         url: supabaseUrl,
-        anonKey: supabaseAnonKey,
+        publishableKey: supabaseAnonKey,
       );
+      _initialized = true;
       debugPrint('[SupabaseService] Kết nối Supabase thành công!');
     } catch (e) {
       debugPrint('[SupabaseService] Lỗi kết nối Supabase: $e');
