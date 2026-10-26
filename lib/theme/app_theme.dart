@@ -2,26 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Nordic Forest & Natural Wood Palette
-  static const Color primary = Color(0xFF1B4332);      // Nordic Deep Forest Pine
-  static const Color primaryLight = Color(0xFF2D5A46); // Muted Forest Green
-  static const Color primaryDark = Color(0xFF112A1F);  // Night Forest
-  static const Color primaryMint = Color(0xFFE8F2EC);  // Soft Sage Mint Background
+  // Warm Walnut & Amber Oak Palette (Đồ gỗ tự nhiên cao cấp)
+  static const Color primary = Color(0xFF2C1810);      // Deep Warm Walnut (Gỗ óc chó trầm sang trọng)
+  static const Color primaryLight = Color(0xFF8D5B36); // Warm Amber Oak (Gỗ sồi hổ phách ấm)
+  static const Color primaryDark = Color(0xFF190C07);  // Deep Espresso
+  static const Color primaryMint = Color(0xFFF7EFE7);  // Pale Linen Tint (Nền be nhạt ấm áp)
 
   static const Color wood = Color(0xFFB87D4B);         // Warm Honey Oak / Amber Wood
   static const Color woodLight = Color(0xFFFDF6EE);    // Pale Warm Linen
-  static const Color woodDark = Color(0xFF7A4E2B);     // Walnut
+  static const Color woodDark = Color(0xFF5A341E);     // Dark Walnut
 
-  static const Color background = Color(0xFFF9F9F6);   // Warm Alabaster (No purple AI tint)
+  static const Color background = Color(0xFFFAF8F5);   // Warm Natural Linen (Không ám xanh/tím)
   static const Color surface = Colors.white;           // Pure Card Surface
-  static const Color surfaceAlt = Color(0xFFF3F2EE);    // Muted Stone Surface
+  static const Color surfaceAlt = Color(0xFFF4ECE4);   // Soft Sand Surface
 
-  static const Color textPrimary = Color(0xFF161816);   // Deep Slate / Charcoal
-  static const Color textSecondary = Color(0xFF5A615B); // Muted Forest Gray
-  static const Color textMuted = Color(0xFF969E97);     // Subtle Gray
+  static const Color textPrimary = Color(0xFF1C130E);   // Deep Espresso Charcoal
+  static const Color textSecondary = Color(0xFF6B5C55); // Warm Muted Gray
+  static const Color textMuted = Color(0xFFA3948D);     // Subtle Sand Gray
 
-  static const Color border = Color(0xFFE6E4DD);        // Ultra Fine Nordic Border
-  static const Color divider = Color(0xFFEFECE5);
+  static const Color border = Color(0xFFE8DFD5);        // Ultra Fine Warm Border
+  static const Color divider = Color(0xFFF0E8DE);
 
   // Status & Feedback Colors
   static const Color success = Color(0xFF2E7D32);

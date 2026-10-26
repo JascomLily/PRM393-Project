@@ -54,7 +54,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: SafeArea(
-        child: CustomScrollView(
+        child: RefreshIndicator(
+          color: AppTheme.primary,
+          onRefresh: () async {
+            productProv.reloadProducts();
+          },
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             // Top Search & Peripherals Bar
             SliverToBoxAdapter(
@@ -498,6 +504,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 ),
           ],
         ),
+      ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppTheme.primary,

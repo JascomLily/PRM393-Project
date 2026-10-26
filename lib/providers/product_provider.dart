@@ -33,6 +33,13 @@ class ProductProvider extends ChangeNotifier {
     loadFromSupabase();
   }
 
+  void reloadProducts() {
+    _products = getMockProducts();
+    _initSpareParts();
+    loadFromSupabase();
+    notifyListeners();
+  }
+
   Future<void> loadFromSupabase() async {
     if (!SupabaseService.isConfigured) return;
     final remote = await SupabaseService.fetchProducts();
