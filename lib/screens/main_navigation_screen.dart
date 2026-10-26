@@ -26,14 +26,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
     final cart = Provider.of<CartProvider>(context);
-    final isAdmin = auth.isAdmin;
 
     final screens = <Widget>[
       const ExploreScreen(),
       const Model3DScreen(),
       const PartsScreen(),
       const OrdersScreen(),
-      if (isAdmin) const AdminScreen(),
+      const AdminScreen(),
     ];
 
     if (_currentIndex >= screens.length) {
@@ -45,7 +44,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       'Hướng dẫn 3D Unity',
       'Kho linh kiện lẻ',
       'Đơn hàng & Giao dịch',
-      if (isAdmin) 'Quản trị viên Furni3D',
+      'Quản trị viên (Admin CRUD)',
     ];
 
     return Scaffold(
@@ -215,12 +214,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               activeIcon: Icon(Icons.receipt_long),
               label: 'Đơn hàng',
             ),
-            if (isAdmin)
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.admin_panel_settings_outlined),
-                activeIcon: Icon(Icons.admin_panel_settings),
-                label: 'Quản trị',
-              ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.admin_panel_settings_outlined),
+              activeIcon: Icon(Icons.admin_panel_settings),
+              label: 'Quản trị CRUD',
+            ),
           ],
         ),
       ),

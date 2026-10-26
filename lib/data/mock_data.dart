@@ -31,7 +31,7 @@ List<ProductModel> getMockProducts() => [
         rating: 4.9,
         reviewCount: 128,
         image:
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuDKoI89GZm9rirBM9_r8CSOhp9G5WgHNi8HFJbCV_cUCSyEEtMBZHFKYX_ZX8p0nv7kQuFham1lok3rYkn4OHXOt2sbRJjUEA08BbhBIIYYzqKuBiPCDMOU0QMfcgkk99CVmaB88AUI5UGOsL5GhbFQmVs5-J2hOp6apzspvxyrQmffF0APasyLMlsmHc6RqY63jfH2HdXPGeQCPnfXM_RYwFHn27ykV1mx5gsf3Aht9BrVAEunxX3mQw',
+            'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=800&q=80',
         badge: '3D Ready',
         category: 'desk',
         assemblyTimeMinutes: 25,
@@ -50,7 +50,7 @@ List<ProductModel> getMockProducts() => [
         rating: 4.8,
         reviewCount: 94,
         image:
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuBsscLVhDaUME-1f0Yl6xVCCvVl3H3neu32KunxIM9sOcjfedNxSwC3BW6PUAlIF_d-RpeDHGNEdngit8tjpzthNqJATNP-EnL7Kr7dqwrx_qHl9dR88XkTv0Y5rR9NCjEsixLwtHRrM2DdJkFfTTIafZJkFHvuKANZK1IFzUcwoem8FCg9XHX_SUx8Bq3-eGEiRCEdzWjl4lwDJaSsJmRERzQ5wCd-vI_DtjtmAHL2wPuGZvO2sgVyJA',
+            'https://images.unsplash.com/photo-1580481077111-9a7f34083049?auto=format&fit=crop&w=800&q=80',
         badge: '15 Phút',
         category: 'chair',
         assemblyTimeMinutes: 15,
@@ -69,7 +69,7 @@ List<ProductModel> getMockProducts() => [
         rating: 4.7,
         reviewCount: 62,
         image:
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuDWpA7VhMU6VnI_bBKWwu5V1WeWwovi-qNhc-AKDBXyAwkXE4tOAubqdqzxdRfdXcYK7m2jr2w466OXeeCfANedB1Y6ZIT9wI53yQA2DnsWqiE2ERsSUWQ14_leIqR2VJKXNE119P71PuL_u4VdKAfHmzIibAEEOcf3rwWjMLoLyrUwHULfQzTdweHrZHfeHaEAOE_uC2GQmTpmeyuS21aoGoC_aCOlCdwl9cbqzHtYLciRcIbrSWgmmg',
+            'https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&w=800&q=80',
         badge: '4 Tầng',
         category: 'shelf',
         assemblyTimeMinutes: 20,
@@ -88,7 +88,7 @@ List<ProductModel> getMockProducts() => [
         rating: 4.9,
         reviewCount: 81,
         image:
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuANt1NPXLHJXVcWkGYboWUbS3J_EdmfyGAJWyau9RxdqA9eNiS8e0GCO_DGH61JlRsvf2K14ofLzxDgXubexb6rAhlDNBcz43bElgsXRAVfEHT0PD20ePrMNIhjzrhtOqRT4TQZIMy-93rO0n5vDx9HgenNcMXKg8JOyB_MjWHqYxMBqDNcAGS2hMnq7O2nmxqp-iR6Jr_d_afa2gDtODRPaiQulQL98aN-QQgcbehQOCyoi4StvfQiqg',
+            'https://images.unsplash.com/photo-1532372320572-cda25653a26d?auto=format&fit=crop&w=800&q=80',
         badge: 'Dễ ráp',
         category: 'desk',
         assemblyTimeMinutes: 10,
@@ -106,13 +106,14 @@ List<ProductModel> getMockProducts() => [
         rating: 5.0,
         reviewCount: 310,
         image:
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuAL8hG0kckF4v2k3krGiYybPv1_HBGUBxEQ6dLhi8-AxcfXp17rIqftn9wSVVMHEjKOR1FZtIIZPJL6tUBEWXpfYrGVSx1nXBsm1VlvZeLz7cWDNXeHrJNWN7Bp8auZKI8kGndcJEJ2n0bJ0TBNKnzFJPYGBdDz1aUdeZdgUrZVoh_NWS0IhYc3GzaRAHEkJuB-wgEy0zPLbtIBbga167FHSgy4WKgVtc8M0F9htq51l9YGRhB01IvvfA',
+            'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&w=800&q=80',
         badge: 'Túi 10 cái',
         category: 'parts',
         assemblyTimeMinutes: 2,
-        description: 'Túi 10 bộ ốc liên kết chốt cam và nở nhựa chuẩn nội thất lắp ráp tháo rời thông minh.',
+        description:
+            'Chốt cam mạ kẽm chống trượt ren, liên kết mộng gỗ siêu chắc chắn không cần keo dính độc hại.',
         is3dReady: false,
-        modelCode: 'PART-CAM-10',
+        modelCode: 'PART-CAM-01',
       ),
     ];
 
@@ -160,7 +161,7 @@ List<OrderModel> getMockOrders() => [
             price: 2450000,
             quantity: 1,
             image:
-                'https://lh3.googleusercontent.com/aida-public/AB6AXuDKoI89GZm9rirBM9_r8CSOhp9G5WgHNi8HFJbCV_cUCSyEEtMBZHFKYX_ZX8p0nv7kQuFham1lok3rYkn4OHXOt2sbRJjUEA08BbhBIIYYzqKuBiPCDMOU0QMfcgkk99CVmaB88AUI5UGOsL5GhbFQmVs5-J2hOp6apzspvxyrQmffF0APasyLMlsmHc6RqY63jfH2HdXPGeQCPnfXM_RYwFHn27ykV1mx5gsf3Aht9BrVAEunxX3mQw',
+                'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=800&q=80',
             variant: 'Gỗ sồi Bắc Âu tự nhiên',
           ),
         ],

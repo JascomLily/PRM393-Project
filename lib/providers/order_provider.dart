@@ -28,7 +28,7 @@ class OrderProvider extends ChangeNotifier {
         reason: 'TRANSIT_DAMAGE',
         note: 'Góc cạnh mặt bàn bị móp do va đập trong quá trình vận chuyển.',
         photoUrl:
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuDKoI89GZm9rirBM9_r8CSOhp9G5WgHNi8HFJbCV_cUCSyEEtMBZHFKYX_ZX8p0nv7kQuFham1lok3rYkn4OHXOt2sbRJjUEA08BbhBIIYYzqKuBiPCDMOU0QMfcgkk99CVmaB88AUI5UGOsL5GhbFQmVs5-J2hOp6apzspvxyrQmffF0APasyLMlsmHc6RqY63jfH2HdXPGeQCPnfXM_RYwFHn27ykV1mx5gsf3Aht9BrVAEunxX3mQw',
+            'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=800&q=80',
         returnMethod: 'EXCHANGE',
         refundAmount: 2450000,
         status: 'APPROVED',

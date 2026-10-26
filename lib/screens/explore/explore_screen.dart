@@ -1,3 +1,4 @@
+import '../admin/admin_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -497,6 +498,19 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppTheme.primary,
+        foregroundColor: Colors.white,
+        elevation: 4,
+        icon: const Icon(Icons.admin_panel_settings, size: 20),
+        label: const Text('Quản trị CRUD', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AdminScreen()),
+          );
+        },
       ),
     );
   }

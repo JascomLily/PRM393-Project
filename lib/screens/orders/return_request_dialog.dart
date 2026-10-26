@@ -21,7 +21,7 @@ class _ReturnRequestDialogState extends State<ReturnRequestDialog> {
   String _returnMethod = 'EXCHANGE';
   final _noteCtrl = TextEditingController(text: 'Khớp mộng đáy bàn bị cấn, không lắp vừa thanh giằng.');
   final String _photoUrl =
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuDKoI89GZm9rirBM9_r8CSOhp9G5WgHNi8HFJbCV_cUCSyEEtMBZHFKYX_ZX8p0nv7kQuFham1lok3rYkn4OHXOt2sbRJjUEA08BbhBIIYYzqKuBiPCDMOU0QMfcgkk99CVmaB88AUI5UGOsL5GhbFQmVs5-J2hOp6apzspvxyrQmffF0APasyLMlsmHc6RqY63jfH2HdXPGeQCPnfXM_RYwFHn27ykV1mx5gsf3Aht9BrVAEunxX3mQw';
+      'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=800&q=80';
 
   final Map<String, String> _reasons = {
     'DEFECTIVE': 'Lỗi gia công / Không khớp mộng âm dương',
