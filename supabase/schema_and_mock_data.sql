@@ -1,13 +1,14 @@
 -- ============================================================================
--- PRM393 - FURNI3D MOBILE APPLICATION
--- SUPABASE POSTGRESQL SCHEMA & MOCK DATA
+-- SOFA SO GOOD - MOBILE APPLICATION
+-- SUPABASE POSTGRESQL SCHEMA & SEED DATA
 -- Chạy script này trong Supabase Dashboard -> SQL Editor -> Run
+-- Script này an toàn và có thể chạy lại nhiều lần (Idempotent) mà không bị lỗi.
 -- ============================================================================
 
 -- BẬT EXTENSION UUID (Nếu chưa có)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 1. BẢNG USERS / PROFILES
+-- 1. BẢNG HỒ SƠ NGƯỜI DÙNG (PROFILES)
 CREATE TABLE IF NOT EXISTS public.profiles (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -17,8 +18,12 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     furni_coins INTEGER DEFAULT 0,
     saved_address TEXT,
     role TEXT DEFAULT 'customer' CHECK (role IN ('customer', 'admin')),
+    is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- Đảm bảo cột is_active tồn tại nếu bảng đã được tạo trước đó
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
 
 -- 2. BẢNG SẢN PHẨM (PRODUCTS)
 CREATE TABLE IF NOT EXISTS public.products (
@@ -115,10 +120,53 @@ CREATE TABLE IF NOT EXISTS public.return_requests (
 );
 
 -- ============================================================================
--- DỮ LIỆU MẪU (MOCK DATA)
+-- CẤU HÌNH ROW LEVEL SECURITY (RLS)
+-- Xóa policy cũ trước nếu đã tồn tại để tránh lỗi 42710 (policy already exists)
+-- ============================================================================
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.vouchers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.missing_reports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.return_requests ENABLE ROW LEVEL SECURITY;
+
+-- 1. Drop existing policies if any
+DROP POLICY IF EXISTS "Public Read Profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Public All Profiles" ON public.profiles;
+
+DROP POLICY IF EXISTS "Public Read Products" ON public.products;
+DROP POLICY IF EXISTS "Public All Products" ON public.products;
+
+DROP POLICY IF EXISTS "Public Read Vouchers" ON public.vouchers;
+DROP POLICY IF EXISTS "Public All Vouchers" ON public.vouchers;
+
+DROP POLICY IF EXISTS "Public Read Orders" ON public.orders;
+DROP POLICY IF EXISTS "Public All Orders" ON public.orders;
+
+DROP POLICY IF EXISTS "Public Read Order Items" ON public.order_items;
+DROP POLICY IF EXISTS "Public All Order Items" ON public.order_items;
+
+DROP POLICY IF EXISTS "Public Read Missing Reports" ON public.missing_reports;
+DROP POLICY IF EXISTS "Public All Missing Reports" ON public.missing_reports;
+
+DROP POLICY IF EXISTS "Public Read Return Requests" ON public.return_requests;
+DROP POLICY IF EXISTS "Public All Return Requests" ON public.return_requests;
+
+-- 2. Tạo policy đầy đủ quyền (SELECT, INSERT, UPDATE, DELETE)
+CREATE POLICY "Public All Profiles" ON public.profiles FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public All Products" ON public.products FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public All Vouchers" ON public.vouchers FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public All Orders" ON public.orders FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public All Order Items" ON public.order_items FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public All Missing Reports" ON public.missing_reports FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public All Return Requests" ON public.return_requests FOR ALL USING (true) WITH CHECK (true);
+
+-- ============================================================================
+-- DỮ LIỆU MẪU (SEED DATA)
 -- ============================================================================
 
--- Xóa dữ liệu cũ nếu chạy lại
+-- Làm sạch dữ liệu cũ khi nạp lại
 DELETE FROM public.order_items;
 DELETE FROM public.orders;
 DELETE FROM public.missing_reports;
@@ -128,9 +176,9 @@ DELETE FROM public.products;
 DELETE FROM public.profiles;
 
 -- 1. Insert Profiles
-INSERT INTO public.profiles (id, name, email, phone, avatar, furni_coins, saved_address, role) VALUES
-('usr-01', 'Đặng Thảo Vy', 'customer@furni3d.vn', '0983 838 311', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80', 150, 'Tòa nhà Landmark 81, P. 22, Q. Bình Thạnh, TP. Hồ Chí Minh', 'customer'),
-('usr-02', 'Admin Quản Trị', 'admin@furni3d.vn', '0909 112 233', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80', 9999, 'Văn phòng Furni3D, Khu Công nghệ cao, TP. Thủ Đức', 'admin');
+INSERT INTO public.profiles (id, name, email, phone, avatar, furni_coins, saved_address, role, is_active) VALUES
+('usr-01', 'Đặng Thảo Vy', 'customer@furni3d.vn', '0983 838 311', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80', 150, 'Tòa nhà Landmark 81, P. 22, Q. Bình Thạnh, TP. Hồ Chí Minh', 'customer', true),
+('usr-02', 'Quản Trị Viên Sofa so good', 'admin@furni3d.vn', '1900 8383', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80', 9999, 'Trụ sở Sofa so good, Tầng 32 Landmark 81, TP. Hồ Chí Minh', 'admin', true);
 
 -- 2. Insert Products
 INSERT INTO public.products (id, name, subtitle, material, price, original_price, rating, review_count, image, badge, category, assembly_time_minutes, description, is_3d_ready, model_code) VALUES
@@ -138,7 +186,7 @@ INSERT INTO public.products (id, name, subtitle, material, price, original_price
 ('poang-chair', 'Poäng Scandi Chair', 'Ghế thư giãn uốn nhiệt', 'Gỗ bạch dương ép nhiệt & đệm vải Linen tự nhiên', 1850000, 2190000, 4.8, 94, 'https://images.unsplash.com/photo-1580481077111-9a7f34083049?auto=format&fit=crop&w=800&q=80', '15 Phút', 'chair', 15, 'Ghế thư giãn công thái học độ cong chuẩn sinh học cột sống. Khung gỗ đàn hồi tự nhiên tạo nhịp bập bênh êm ái thư thái sau ngày làm việc.', true, 'MODEL PC-108'),
 ('kallax-shelf', 'Kallax Modular Shelf 4x2', 'Kệ tủ mô-đun đa năng', 'Gỗ công nghiệp lõi xanh chống ẩm E0 phủ Melamine vân sồi', 1650000, 1950000, 4.7, 83, 'https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&w=800&q=80', 'Đa năng', 'shelf', 30, 'Hệ thống kệ 8 ô chứa đồ mô-đun tùy biến cao. Có thể xoay dọc làm kệ sách hoặc đặt ngang làm vách ngăn phòng khách hiện đại.', true, 'MODEL KS-402'),
 ('stranne-light', 'Stranne Nordic Desk Lamp', 'Đèn bàn kim loại tối giản', 'Thép sơn tĩnh điện mờ & đế gỗ thông', 520000, 650000, 4.9, 41, 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=800&q=80', 'Ánh sáng 3000K', 'lamp', 5, 'Đèn bàn phong cách Hygge ánh sáng vàng ấm chống lóa mắt, cổ xoay đa hướng 360 độ.', false, 'MODEL SL-301'),
-('part-bolt-m6', 'Bộ 10 Bu-lông M6 Mạ Kẽm', 'Linh kiện thay thế chính hãng', 'Thép mạ kẽm cường độ cao chống rỉ sét', 45000, 60000, 5.0, 15, 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=800&q=80', 'Gửi nhanh', 'parts', 1, 'Bộ bu-lông ren M6 tiêu chuẩn vừa khít cho toàn bộ các sản phẩm bàn ghế Furni3D.', false, 'PART-M6-10'),
+('part-bolt-m6', 'Bộ 10 Bu-lông M6 Mạ Kẽm', 'Linh kiện thay thế chính hãng', 'Thép mạ kẽm cường độ cao chống rỉ sét', 45000, 60000, 5.0, 15, 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=800&q=80', 'Gửi nhanh', 'parts', 1, 'Bộ bu-lông ren M6 tiêu chuẩn vừa khít cho toàn bộ các sản phẩm bàn ghế Sofa so good.', false, 'PART-M6-10'),
 ('part-wood-dowel', 'Túi 20 Chốt Gỗ Mộng Beech', 'Chốt mộng định vị', 'Gỗ dẻ gai ép vân gân chống trượt', 30000, 40000, 4.9, 29, 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=800&q=80', 'Chính xác', 'parts', 1, 'Chốt gỗ mộng định vị liên kết các tấm gỗ không cần bắt vít xuyên bề mặt.', false, 'PART-DOW-20');
 
 -- 3. Insert Vouchers
@@ -166,32 +214,3 @@ INSERT INTO public.missing_reports (id, order_code, product_name, part_name, qua
 -- 7. Insert Return Requests
 INSERT INTO public.return_requests (id, order_code, reason, note, photo_url, return_method, refund_amount, status, admin_response, created_at) VALUES
 ('RET-5512', 'F3D-882194', 'TRANSIT_DAMAGE', 'Góc cạnh mặt bàn bị móp do va đập trong quá trình vận chuyển.', 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=800&q=80', 'EXCHANGE', 2450000, 'APPROVED', 'Đã duyệt đổi mặt bàn mới 100%, tài xế sẽ qua thu hồi mặt cũ và giao mặt mới trong ngày mai.', '25/10/2026 10:30');
-
--- ============================================================================
--- CẤU HÌNH ROW LEVEL SECURITY (RLS) - CHO PHÉP ĐỌC / GHI ĐỂ APP DEMO HOẠT ĐỘNG
--- ============================================================================
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.vouchers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.missing_reports ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.return_requests ENABLE ROW LEVEL SECURITY;
-
--- Cho phép đọc công khai (SELECT) cho app
-CREATE POLICY "Public Read Profiles" ON public.profiles FOR SELECT USING (true);
-CREATE POLICY "Public Read Products" ON public.products FOR SELECT USING (true);
-CREATE POLICY "Public Read Vouchers" ON public.vouchers FOR SELECT USING (true);
-CREATE POLICY "Public Read Orders" ON public.orders FOR SELECT USING (true);
-CREATE POLICY "Public Read Order Items" ON public.order_items FOR SELECT USING (true);
-CREATE POLICY "Public Read Missing Reports" ON public.missing_reports FOR SELECT USING (true);
-CREATE POLICY "Public Read Return Requests" ON public.return_requests FOR SELECT USING (true);
-
--- Cho phép CRUD (INSERT, UPDATE, DELETE) cho demo app
-CREATE POLICY "Public All Profiles" ON public.profiles FOR ALL USING (true);
-CREATE POLICY "Public All Products" ON public.products FOR ALL USING (true);
-CREATE POLICY "Public All Vouchers" ON public.vouchers FOR ALL USING (true);
-CREATE POLICY "Public All Orders" ON public.orders FOR ALL USING (true);
-CREATE POLICY "Public All Order Items" ON public.order_items FOR ALL USING (true);
-CREATE POLICY "Public All Missing Reports" ON public.missing_reports FOR ALL USING (true);
-CREATE POLICY "Public All Return Requests" ON public.return_requests FOR ALL USING (true);
