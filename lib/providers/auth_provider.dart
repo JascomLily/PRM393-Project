@@ -7,14 +7,56 @@ import '../data/mock_data.dart';
 class AuthProvider extends ChangeNotifier {
   UserModel? _currentUser;
   bool _isLoading = false;
+  final List<UserModel> _users = [];
 
   UserModel? get currentUser => _currentUser;
   bool get isLoggedIn => _currentUser != null;
   bool get isAdmin => _currentUser?.isAdmin ?? false;
   bool get isLoading => _isLoading;
+  List<UserModel> get allUsers => List.unmodifiable(_users);
 
   AuthProvider() {
+    _initSampleUsers();
     _loadUserFromStorage();
+  }
+
+  void _initSampleUsers() {
+    _users.addAll([
+      getInitialUser(),
+      UserModel(
+        id: 'usr-admin-01',
+        name: 'Quản Trị Viên Furni3D',
+        email: 'admin@furni3d.vn',
+        phone: '1900 8383',
+        avatar:
+            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+        furniCoins: 9999,
+        savedAddress: 'Trụ sở Furni3D, Tầng 32 Landmark 81, TP. Hồ Chí Minh',
+        role: 'admin',
+      ),
+      UserModel(
+        id: 'usr-cust-02',
+        name: 'Nguyễn Văn An',
+        email: 'an.nguyen@gmail.com',
+        phone: '0912 345 678',
+        avatar:
+            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+        furniCoins: 350,
+        savedAddress: 'Số 45 Lê Duẩn, Quận 1, TP. Hồ Chí Minh',
+        role: 'customer',
+      ),
+      UserModel(
+        id: 'usr-cust-03',
+        name: 'Trần Thị Mai',
+        email: 'mai.tran@gmail.com',
+        phone: '0977 889 900',
+        avatar:
+            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+        furniCoins: 500,
+        savedAddress: 'Căn hộ Masteri Thảo Điền, TP. Thủ Đức, TP. Hồ Chí Minh',
+        role: 'customer',
+      ),
+    ]);
   }
 
   Future<void> _loadUserFromStorage() async {
@@ -24,7 +66,6 @@ class AuthProvider extends ChangeNotifier {
       if (userStr != null) {
         _currentUser = UserModel.fromJson(jsonDecode(userStr));
       } else {
-        // Default demo customer for initial experience
         _currentUser = getInitialUser();
       }
     } catch (_) {
@@ -68,6 +109,11 @@ class AuthProvider extends ChangeNotifier {
           : 'Tòa nhà Landmark 81, P. 22, Q. Bình Thạnh, TP. Hồ Chí Minh',
       role: isAdmin ? 'admin' : 'customer',
     );
+
+    // Also update in users list if not present
+    if (!_users.any((u) => u.email.toLowerCase() == email.toLowerCase())) {
+      _users.add(_currentUser!);
+    }
 
     _isLoading = false;
     await _saveUserToStorage();
@@ -124,6 +170,8 @@ class AuthProvider extends ChangeNotifier {
       role: 'customer',
     );
 
+    _users.insert(0, _currentUser!);
+
     _isLoading = false;
     await _saveUserToStorage();
     notifyListeners();
@@ -169,6 +217,24 @@ class AuthProvider extends ChangeNotifier {
     if (_currentUser == null) return;
     _currentUser!.furniCoins += coins;
     _saveUserToStorage();
+    notifyListeners();
+  }
+
+  // Admin User Management CRUD
+  void toggleUserRole(String userId) {
+    final index = _users.indexWhere((u) => u.id == userId);
+    if (index != -1) {
+      _users[index].role = _users[index].role == 'customer' ? 'admin' : 'customer';
+      if (_currentUser?.id == userId) {
+        _currentUser!.role = _users[index].role;
+        _saveUserToStorage();
+      }
+      notifyListeners();
+    }
+  }
+
+  void deleteUser(String userId) {
+    _users.removeWhere((u) => u.id == userId);
     notifyListeners();
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../theme/app_theme.dart';
 import '../providers/auth_provider.dart';
 import '../providers/cart_provider.dart';
 import 'explore/explore_screen.dart';
@@ -42,46 +43,46 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final titles = [
       'Khám phá Furni3D',
       'Hướng dẫn 3D Unity',
-      'Linh kiện thay thế',
+      'Kho linh kiện lẻ',
       'Đơn hàng & Giao dịch',
       if (isAdmin) 'Quản trị viên Furni3D',
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF8FF),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFAF8FF),
+        backgroundColor: AppTheme.background,
         elevation: 0,
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
-                color: const Color(0xFF2D5A46),
+                color: AppTheme.primary,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.chair, color: Colors.white, size: 18),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'FURNI3D MOBILE',
+                    'FURNI3D NORDIC',
                     style: TextStyle(
                       fontSize: 10,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w800,
                       letterSpacing: 1.1,
-                      color: Color(0xFF805528),
+                      color: AppTheme.woodDark,
                     ),
                   ),
                   Text(
                     titles[_currentIndex],
                     style: const TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF161B28),
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -96,7 +97,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.shopping_bag_outlined, color: Color(0xFF161B28)),
+                icon: const Icon(Icons.shopping_bag_outlined, color: AppTheme.textPrimary),
+                tooltip: 'Giỏ hàng',
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -111,7 +113,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: const BoxDecoration(
-                      color: Color(0xFF805528),
+                      color: AppTheme.wood,
                       shape: BoxShape.circle,
                     ),
                     constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
@@ -139,20 +141,20 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 );
               },
               child: Padding(
-                padding: const EdgeInsets.only(right: 12, left: 4),
+                padding: const EdgeInsets.only(right: 14, left: 4),
                 child: CircleAvatar(
                   radius: 16,
                   backgroundImage: NetworkImage(auth.currentUser!.avatar),
-                  backgroundColor: const Color(0xFFF2F3FF),
+                  backgroundColor: AppTheme.surfaceAlt,
                 ),
               ),
             )
           else
             Padding(
-              padding: const EdgeInsets.only(right: 12, left: 4),
+              padding: const EdgeInsets.only(right: 14, left: 4),
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2D5A46),
+                  backgroundColor: AppTheme.primary,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -174,25 +176,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         children: screens,
       ),
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: Colors.black.withOpacity(0.06))),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
+        decoration: const BoxDecoration(
+          color: AppTheme.surface,
+          border: Border(top: BorderSide(color: AppTheme.border)),
         ),
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
-          backgroundColor: Colors.white,
+          backgroundColor: AppTheme.surface,
           elevation: 0,
-          selectedItemColor: const Color(0xFF2D5A46),
-          unselectedItemColor: const Color(0xFF717973),
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
-          unselectedLabelStyle: const TextStyle(fontSize: 10),
+          selectedItemColor: AppTheme.primary,
+          unselectedItemColor: AppTheme.textMuted,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11),
+          unselectedLabelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
           type: BottomNavigationBarType.fixed,
           onTap: (index) {
             setState(() {
@@ -216,8 +211,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               label: 'Linh kiện',
             ),
             const BottomNavigationBarItem(
-              icon: Icon(Icons.inventory_2_outlined),
-              activeIcon: Icon(Icons.inventory_2),
+              icon: Icon(Icons.receipt_long_outlined),
+              activeIcon: Icon(Icons.receipt_long),
               label: 'Đơn hàng',
             ),
             if (isAdmin)

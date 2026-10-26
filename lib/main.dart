@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/product_provider.dart';
 import 'providers/cart_provider.dart';
 import 'providers/order_provider.dart';
+import 'providers/missing_report_provider.dart';
 import 'screens/main_navigation_screen.dart';
+import 'theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,8 +14,10 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => ProductProvider()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
+        ChangeNotifierProvider(create: (_) => MissingReportProvider()),
       ],
       child: const Furni3DApp(),
     ),
@@ -28,17 +32,7 @@ class Furni3DApp extends StatelessWidget {
     return MaterialApp(
       title: 'Furni3D Mobile',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2D5A46),
-          primary: const Color(0xFF2D5A46),
-          secondary: const Color(0xFF805528),
-          surface: const Color(0xFFFAF8FF),
-        ),
-
-        scaffoldBackgroundColor: const Color(0xFFFAF8FF),
-      ),
+      theme: AppTheme.lightTheme,
       home: const MainNavigationScreen(),
     );
   }

@@ -2,16 +2,41 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/order_model.dart';
 import '../models/cart_item_model.dart';
+import '../models/return_request_model.dart';
 import '../data/mock_data.dart';
 
 class OrderProvider extends ChangeNotifier {
   final List<OrderModel> _orders = getMockOrders();
+  final List<ReturnRequestModel> _returnRequests = [];
   OrderModel? _activeTrackingOrder;
   OrderModel? _activeInvoiceOrder;
 
-  List<OrderModel> get orders => _orders;
+  OrderProvider() {
+    _initSampleReturns();
+  }
+
+  List<OrderModel> get orders => List.unmodifiable(_orders);
+  List<ReturnRequestModel> get returnRequests => List.unmodifiable(_returnRequests);
   OrderModel? get activeTrackingOrder => _activeTrackingOrder;
   OrderModel? get activeInvoiceOrder => _activeInvoiceOrder;
+
+  void _initSampleReturns() {
+    _returnRequests.addAll([
+      ReturnRequestModel(
+        id: 'RET-5512',
+        orderCode: 'F3D-882194',
+        reason: 'TRANSIT_DAMAGE',
+        note: 'Góc cạnh mặt bàn bị móp do va đập trong quá trình vận chuyển.',
+        photoUrl:
+            'https://lh3.googleusercontent.com/aida-public/AB6AXuDKoI89GZm9rirBM9_r8CSOhp9G5WgHNi8HFJbCV_cUCSyEEtMBZHFKYX_ZX8p0nv7kQuFham1lok3rYkn4OHXOt2sbRJjUEA08BbhBIIYYzqKuBiPCDMOU0QMfcgkk99CVmaB88AUI5UGOsL5GhbFQmVs5-J2hOp6apzspvxyrQmffF0APasyLMlsmHc6RqY63jfH2HdXPGeQCPnfXM_RYwFHn27ykV1mx5gsf3Aht9BrVAEunxX3mQw',
+        returnMethod: 'EXCHANGE',
+        refundAmount: 2450000,
+        status: 'APPROVED',
+        createdAt: '25/10/2026 10:30',
+        adminResponse: 'Đã duyệt đổi mặt bàn mới 100%, tài xế sẽ qua thu hồi mặt cũ và giao mặt mới trong ngày mai.',
+      ),
+    ]);
+  }
 
   void setActiveTrackingOrder(OrderModel? order) {
     _activeTrackingOrder = order;
@@ -34,9 +59,10 @@ class OrderProvider extends ChangeNotifier {
     String? orderNote,
   }) {
     final rand = Random();
-    final newOrderCode = '#F3D-${10000 + rand.nextInt(90000)}';
+    final newOrderCode = 'F3D-${100000 + rand.nextInt(900000)}';
     final now = DateTime.now();
-    final dateStr = '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
+    final dateStr =
+        '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
 
     final newOrder = OrderModel(
       id: 'ord-${now.millisecondsSinceEpoch}',
@@ -47,7 +73,7 @@ class OrderProvider extends ChangeNotifier {
       paymentMethod: paymentMethod,
       paymentStatus: paymentMethod == 'COD' ? 'PENDING' : 'PAID',
       transactionId: transactionId,
-      status: 'shipping',
+      status: 'pending', // Started with pending
       receiverName: receiverName,
       receiverPhone: receiverPhone,
       shippingAddress: shippingAddress,
@@ -75,18 +101,18 @@ class OrderProvider extends ChangeNotifier {
           id: 1,
           title: paymentMethod == 'COD'
               ? 'Đã tiếp nhận đơn hàng COD'
-              : 'Khớp lệnh cổng thanh toán VNPAY thành công',
+              : 'Thanh toán VNPAY Sandbox thành công',
           time: 'Vừa xong',
           description: paymentMethod == 'COD'
               ? 'Hệ thống chuẩn bị xuất kho và giao hàng thu tiền tận nơi.'
-              : 'Giao dịch VNPAY Sandbox đã được đối soát và xác thực.',
+              : 'Giao dịch VNPAY Sandbox đã được đối soát thành công.',
           status: 'completed',
         ),
         TimelineStepModel(
           id: 2,
-          title: 'Đã xuất kho & kiểm đếm phụ kiện',
+          title: 'Đang chuẩn bị hàng & kiểm đếm phụ kiện',
           time: 'Đang xử lý',
-          description: 'Kho Trung tâm chuẩn bị quét mã vạch và bọc xốp chống sốc.',
+          description: 'Kho Trung tâm chuẩn bị quét mã vạch và đóng gói.',
           status: 'current',
         ),
         TimelineStepModel(
@@ -98,7 +124,7 @@ class OrderProvider extends ChangeNotifier {
         ),
         TimelineStepModel(
           id: 4,
-          title: 'Giao hàng & quét QR nghiệm thu',
+          title: 'Giao hàng & quét QR hướng dẫn 3D',
           time: 'Dự kiến 16:30',
           description: 'Bàn giao và hướng dẫn quét QR mở model 3D.',
           status: 'upcoming',
@@ -116,8 +142,24 @@ class OrderProvider extends ChangeNotifier {
     final index = _orders.indexWhere((o) => o.id == orderId);
     if (index >= 0) {
       _orders[index].status = newStatus;
+      if (newStatus == 'completed') {
+        _orders[index].paymentStatus = 'PAID';
+      }
       notifyListeners();
     }
+  }
+
+  void cancelOrder(String orderId) {
+    final index = _orders.indexWhere((o) => o.id == orderId);
+    if (index >= 0) {
+      _orders[index].status = 'cancelled';
+      notifyListeners();
+    }
+  }
+
+  void deleteOrder(String orderId) {
+    _orders.removeWhere((o) => o.id == orderId);
+    notifyListeners();
   }
 
   void submitReview(String orderId, int stars, String comment) {
@@ -125,6 +167,23 @@ class OrderProvider extends ChangeNotifier {
     if (index >= 0) {
       _orders[index].reviewStars = stars;
       _orders[index].reviewComment = comment;
+      notifyListeners();
+    }
+  }
+
+  // Returns / Refund Flow
+  void submitReturnRequest(ReturnRequestModel req) {
+    _returnRequests.insert(0, req);
+    notifyListeners();
+  }
+
+  void updateReturnStatus(String id, String status, {String? adminResponse}) {
+    final index = _returnRequests.indexWhere((r) => r.id == id);
+    if (index != -1) {
+      _returnRequests[index] = _returnRequests[index].copyWith(
+        status: status,
+        adminResponse: adminResponse ?? _returnRequests[index].adminResponse,
+      );
       notifyListeners();
     }
   }

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../theme/app_theme.dart';
+import '../../providers/product_provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/missing_report_provider.dart';
+import 'report_missing_dialog.dart';
 
 class PartsScreen extends StatelessWidget {
   const PartsScreen({super.key});
@@ -9,89 +13,70 @@ class PartsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
+    final productProv = Provider.of<ProductProvider>(context);
+    final reportProv = Provider.of<MissingReportProvider>(context);
     final cart = Provider.of<CartProvider>(context, listen: false);
 
-    final parts = [
-      {
-        'id': 'part-cam-set',
-        'name': 'Bộ ốc khóa chốt cam M6x35',
-        'code': 'PART-CAM-10',
-        'price': 25000,
-        'image':
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuAL8hG0kckF4v2k3krGiYybPv1_HBGUBxEQ6dLhi8-AxcfXp17rIqftn9wSVVMHEjKOR1FZtIIZPJL6tUBEWXpfYrGVSx1nXBsm1VlvZeLz7cWDNXeHrJNWN7Bp8auZKI8kGndcJEJ2n0bJ0TBNKnzFJPYGBdDz1aUdeZdgUrZVoh_NWS0IhYc3GzaRAHEkJuB-wgEy0zPLbtIBbga167FHSgy4WKgVtc8M0F9htq51l9YGRhB01IvvfA',
-        'desc': 'Túi 10 cái chốt cam thép mạ kẽm',
-      },
-      {
-        'id': 'part-hinge-blum',
-        'name': 'Bản lề giảm chấn cánh tủ inox 304',
-        'code': 'PART-HINGE-02',
-        'price': 45000,
-        'image':
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuANt1NPXLHJXVcWkGYboWUbS3J_EdmfyGAJWyau9RxdqA9eNiS8e0GCO_DGH61JlRsvf2K14ofLzxDgXubexb6rAhlDNBcz43bElgsXRAVfEHT0PD20ePrMNIhjzrhtOqRT4TQZIMy-93rO0n5vDx9HgenNcMXKg8JOyB_MjWHqYxMBqDNcAGS2hMnq7O2nmxqp-iR6Jr_d_afa2gDtODRPaiQulQL98aN-QQgcbehQOCyoi4StvfQiqg',
-        'desc': 'Khớp bản lề đóng mở êm ái chống kẹt tay',
-      },
-      {
-        'id': 'part-leg-pad',
-        'name': 'Miếng đệm cao su bọc chân bàn ghế',
-        'code': 'PART-PAD-04',
-        'price': 15000,
-        'image':
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuBsscLVhDaUME-1f0Yl6xVCCvVl3H3neu32KunxIM9sOcjfedNxSwC3BW6PUAlIF_d-RpeDHGNEdngit8tjpzthNqJATNP-EnL7Kr7dqwrx_qHl9dR88XkTv0Y5rR9NCjEsixLwtHRrM2DdJkFfTTIafZJkFHvuKANZK1IFzUcwoem8FCg9XHX_SUx8Bq3-eGEiRCEdzWjl4lwDJaSsJmRERzQ5wCd-vI_DtjtmAHL2wPuGZvO2sgVyJA',
-        'desc': 'Bộ 4 đệm chống trầy xước sàn gỗ',
-      },
-    ];
-
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF8FF),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text('Kho linh kiện Furni3D', style: TextStyle(color: Color(0xFF161B28), fontWeight: FontWeight.bold, fontSize: 18)),
-        centerTitle: true,
-      ),
+      backgroundColor: AppTheme.background,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Report Missing Parts Banner
+            // Report Missing Parts Hero Banner
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: const Color(0xFFBCEED3).withOpacity(0.4),
+                color: AppTheme.surface,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFF2D5A46).withOpacity(0.3)),
+                border: Border.all(color: AppTheme.border),
+                boxShadow: AppTheme.cardShadow,
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.support_agent, color: Color(0xFF2D5A46), size: 32),
-                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.woodLight,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppTheme.wood.withOpacity(0.2)),
+                    ),
+                    child: const Icon(Icons.support_agent, color: AppTheme.woodDark, size: 28),
+                  ),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
                           'Thiếu linh kiện khi nhận hàng?',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF002114)),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13,
+                            color: AppTheme.textPrimary,
+                          ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 3),
                         const Text(
-                          'Gửi yêu cầu hỗ trợ, Furni3D sẽ gửi bù linh kiện miễn phí trong 24h.',
-                          style: TextStyle(fontSize: 11, color: Color(0xFF134230)),
+                          'Gửi yêu cầu kèm ảnh, Furni3D cam kết gửi bù phụ kiện miễn phí trong 24h.',
+                          style: TextStyle(fontSize: 11, color: AppTheme.textSecondary, height: 1.3),
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(width: 8),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2D5A46),
+                      backgroundColor: AppTheme.primary,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Đang mở form Báo cáo thiếu phụ kiện cho đơn hàng...')),
+                      showDialog(
+                        context: context,
+                        builder: (_) => const ReportMissingDialog(),
                       );
                     },
                     child: const Text('Báo cáo', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
@@ -99,32 +84,68 @@ class PartsScreen extends StatelessWidget {
                 ],
               ),
             ),
+
             const SizedBox(height: 20),
 
-            const Text(
-              'Mua lẻ linh kiện thay thế',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
+            // Active Missing Reports Status Tracker (Customer Ticket Tracking)
+            if (reportProv.reports.isNotEmpty) ...[
+              const Row(
+                children: [
+                  Icon(Icons.mark_email_read_outlined, size: 16, color: AppTheme.primary),
+                  SizedBox(width: 6),
+                  Text(
+                    'Phiếu hỗ trợ linh kiện của bạn:',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
 
-            ...parts.map((p) => Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(12),
+              ...reportProv.reports.map((report) {
+                Color statusBg;
+                Color statusColor;
+                String statusText;
+
+                switch (report.status) {
+                  case 'APPROVED':
+                    statusBg = AppTheme.successBg;
+                    statusColor = AppTheme.success;
+                    statusText = 'Đã duyệt gửi bù';
+                    break;
+                  case 'DELIVERING':
+                    statusBg = AppTheme.infoBg;
+                    statusColor = AppTheme.info;
+                    statusText = 'Đang chuyển phát nhanh';
+                    break;
+                  case 'COMPLETED':
+                    statusBg = AppTheme.successBg;
+                    statusColor = AppTheme.success;
+                    statusText = 'Đã nhận đủ phụ kiện';
+                    break;
+                  default:
+                    statusBg = AppTheme.warningBg;
+                    statusColor = AppTheme.warning;
+                    statusText = 'Đang chờ xử lý';
+                }
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppTheme.surface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.black.withOpacity(0.04)),
+                    border: Border.all(color: AppTheme.border),
                   ),
                   child: Row(
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: Image.network(
-                          p['image'] as String,
-                          width: 54,
-                          height: 54,
+                          report.photoUrl,
+                          width: 44,
+                          height: 44,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(Icons.handyman, size: 32),
+                          errorBuilder: (_, __, ___) => const Icon(Icons.handyman, size: 24),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -132,33 +153,169 @@ class PartsScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(p['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                            Text(p['desc'] as String, style: const TextStyle(fontSize: 11, color: Color(0xFF717973))),
-                            const SizedBox(height: 4),
-                            Text(
-                              currencyFormatter.format(p['price']),
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF2D5A46)),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '${report.id} • ${report.orderCode}',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: statusBg,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    statusText,
+                                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: statusColor),
+                                  ),
+                                ),
+                              ],
                             ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${report.productName} • ${report.partName} (x${report.quantity})',
+                              style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (report.adminNote != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  'Phản hồi CSKH: ${report.adminNote}',
+                                  style: const TextStyle(fontSize: 10, color: AppTheme.primary, fontStyle: FontStyle.italic),
+                                ),
+                              ),
                           ],
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.add_shopping_cart, color: Color(0xFF2D5A46)),
-                        onPressed: () {
-                          cart.addItem(
-                            id: p['id'] as String,
-                            name: p['name'] as String,
-                            price: p['price'] as int,
-                            image: p['image'] as String,
-                          );
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Đã thêm ${p['name']} vào giỏ hàng')),
-                          );
-                        },
-                      ),
                     ],
                   ),
-                )),
+                );
+              }),
+              const SizedBox(height: 16),
+            ],
+
+            // Spare Parts Store Catalog
+            const Row(
+              children: [
+                Icon(Icons.inventory_2_outlined, size: 16, color: AppTheme.primary),
+                SizedBox(width: 6),
+                Text(
+                  'Kho phụ tùng & Linh kiện thay thế chính hãng:',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            ...productProv.spareParts.map((part) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppTheme.surface,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: AppTheme.border),
+                  boxShadow: AppTheme.cardShadow,
+                ),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        part.image,
+                        width: 64,
+                        height: 64,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          width: 64,
+                          height: 64,
+                          color: AppTheme.surfaceAlt,
+                          child: const Icon(Icons.handyman, size: 24, color: AppTheme.textMuted),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            part.name,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.textPrimary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            part.description,
+                            style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Tương thích: ${part.compatibleProduct}',
+                            style: const TextStyle(fontSize: 10, color: AppTheme.textMuted),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                currencyFormatter.format(part.price),
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.primary,
+                                ),
+                              ),
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.primaryMint,
+                                  foregroundColor: AppTheme.primary,
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                                icon: const Icon(Icons.add_shopping_cart, size: 14),
+                                label: const Text('Thêm vào giỏ', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                onPressed: () {
+                                  cart.addItem(
+                                    id: part.id,
+                                    name: part.name,
+                                    price: part.price,
+                                    image: part.image,
+                                    variant: part.code,
+                                  );
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      backgroundColor: AppTheme.primary,
+                                      content: Text('Đã thêm "${part.name}" vào giỏ hàng!'),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+
+            const SizedBox(height: 24),
           ],
         ),
       ),

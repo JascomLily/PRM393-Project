@@ -20,10 +20,10 @@ class CartProvider extends ChangeNotifier {
   bool _useFurniCoins = false;
   final List<VoucherModel> _vouchers = getMockVouchers();
 
-  List<CartItemModel> get items => _items;
+  List<CartItemModel> get items => List.unmodifiable(_items);
   VoucherModel? get appliedVoucher => _appliedVoucher;
   bool get useFurniCoins => _useFurniCoins;
-  List<VoucherModel> get vouchers => _vouchers;
+  List<VoucherModel> get vouchers => List.unmodifiable(_vouchers);
 
   int get itemCount => _items.fold(0, (sum, item) => sum + item.quantity);
 
@@ -136,6 +136,42 @@ class CartProvider extends ChangeNotifier {
 
   void setUseFurniCoins(bool value) {
     _useFurniCoins = value;
+    notifyListeners();
+  }
+
+  // VOUCHER CRUD
+  void addVoucher(VoucherModel voucher) {
+    _vouchers.insert(0, voucher);
+    notifyListeners();
+  }
+
+  void updateVoucher(VoucherModel updated) {
+    final index = _vouchers.indexWhere((v) => v.code == updated.code);
+    if (index != -1) {
+      _vouchers[index] = updated;
+      if (_appliedVoucher?.code == updated.code) {
+        _appliedVoucher = updated;
+      }
+      notifyListeners();
+    }
+  }
+
+  void toggleVoucher(String code) {
+    final index = _vouchers.indexWhere((v) => v.code == code);
+    if (index != -1) {
+      _vouchers[index].isActive = !_vouchers[index].isActive;
+      if (!_vouchers[index].isActive && _appliedVoucher?.code == code) {
+        _appliedVoucher = null;
+      }
+      notifyListeners();
+    }
+  }
+
+  void deleteVoucher(String code) {
+    _vouchers.removeWhere((v) => v.code == code);
+    if (_appliedVoucher?.code == code) {
+      _appliedVoucher = null;
+    }
     notifyListeners();
   }
 }

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../models/product_model.dart';
+import '../../theme/app_theme.dart';
+import '../../providers/product_provider.dart';
 import '../../providers/cart_provider.dart';
-import '../../data/mock_data.dart';
 import 'product_detail_screen.dart';
+import 'qr_scanner_dialog.dart';
+import 'voice_search_dialog.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -18,14 +20,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
   String _searchQuery = '';
   final _searchController = TextEditingController();
 
-  final List<ProductModel> _allProducts = getMockProducts();
-
   final List<Map<String, dynamic>> _categories = [
-    {'id': 'all', 'label': 'Tất cả', 'icon': Icons.tune},
+    {'id': 'all', 'label': 'Tất cả', 'icon': Icons.grid_view_rounded},
     {'id': 'desk', 'label': 'Bàn làm việc', 'icon': Icons.table_restaurant_outlined},
     {'id': 'chair', 'label': 'Ghế thư giãn', 'icon': Icons.chair_outlined},
-    {'id': 'shelf', 'label': 'Tủ sách', 'icon': Icons.shelves},
-    {'id': 'parts', 'label': 'Linh kiện', 'icon': Icons.handyman_outlined},
+    {'id': 'shelf', 'label': 'Kệ tủ mô-đun', 'icon': Icons.shelves},
+    {'id': 'parts', 'label': 'Linh kiện lẻ', 'icon': Icons.handyman_outlined},
   ];
 
   @override
@@ -37,9 +37,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
   @override
   Widget build(BuildContext context) {
     final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
+    final productProv = Provider.of<ProductProvider>(context);
     final cart = Provider.of<CartProvider>(context, listen: false);
 
-    final filteredProducts = _allProducts.where((p) {
+    final filteredProducts = productProv.products.where((p) {
       final matchesCategory =
           _selectedCategory == 'all' || p.category == _selectedCategory;
       final matchesQuery = _searchQuery.isEmpty ||
@@ -50,48 +51,95 @@ class _ExploreScreenState extends State<ExploreScreen> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF8FF),
+      backgroundColor: AppTheme.background,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // Search and Category Bar
+            // Top Search & Peripherals Bar
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                 child: Column(
                   children: [
-                    // Search Bar
-                    TextField(
-                      controller: _searchController,
-                      onChanged: (val) {
-                        setState(() {
-                          _searchQuery = val.trim();
-                        });
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Tìm kiếm bàn, ghế, phụ kiện...',
-                        hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF717973)),
-                        prefixIcon: const Icon(Icons.search, color: Color(0xFF414944)),
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.qr_code_scanner, color: Color(0xFF2D5A46)),
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Đang khởi động Camera quét mã QR thùng hàng...')),
-                            );
-                          },
+                    // Search Bar with Camera QR & Micro Voice
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppTheme.surface,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppTheme.border),
+                              boxShadow: AppTheme.cardShadow,
+                            ),
+                            child: TextField(
+                              controller: _searchController,
+                              onChanged: (val) {
+                                setState(() {
+                                  _searchQuery = val.trim();
+                                });
+                              },
+                              style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary),
+                              decoration: InputDecoration(
+                                hintText: 'Tìm bàn, ghế, phụ kiện...',
+                                hintStyle: const TextStyle(fontSize: 13, color: AppTheme.textMuted),
+                                prefixIcon: const Icon(Icons.search, color: AppTheme.textSecondary, size: 20),
+                                suffixIcon: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (_searchQuery.isNotEmpty)
+                                      IconButton(
+                                        icon: const Icon(Icons.clear, size: 16, color: AppTheme.textMuted),
+                                        onPressed: () {
+                                          _searchController.clear();
+                                          setState(() => _searchQuery = '');
+                                        },
+                                      ),
+                                    // Voice Search (Microphone Hardware Peripheral)
+                                    IconButton(
+                                      icon: const Icon(Icons.mic, color: AppTheme.primary, size: 20),
+                                      tooltip: 'Tìm kiếm bằng giọng nói (Micro)',
+                                      onPressed: () {
+                                        showDialog(
+                                          context: context,
+                                          builder: (_) => VoiceSearchDialog(
+                                            onQueryRecognized: (query) {
+                                              _searchController.text = query;
+                                              setState(() => _searchQuery = query);
+                                            },
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    // QR Scanner (Camera Hardware Peripheral)
+                                    IconButton(
+                                      icon: const Icon(Icons.qr_code_scanner, color: AppTheme.primary, size: 20),
+                                      tooltip: 'Quét mã QR thùng hàng (Camera)',
+                                      onPressed: () {
+                                        showDialog(
+                                          context: context,
+                                          builder: (_) => QRScannerDialog(products: productProv.products),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                filled: true,
+                                fillColor: Colors.transparent,
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                          ),
                         ),
-                        filled: true,
-                        fillColor: const Color(0xFFE9EDFF).withOpacity(0.8),
-                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
+                      ],
                     ),
+
                     const SizedBox(height: 12),
 
-                    // Category Chips
+                    // Category Chips (Refined Pill Filter)
                     SizedBox(
                       height: 38,
                       child: ListView.separated(
@@ -101,30 +149,54 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         itemBuilder: (context, index) {
                           final cat = _categories[index];
                           final isSelected = _selectedCategory == cat['id'];
-                          return ChoiceChip(
-                            avatar: Icon(
-                              cat['icon'] as IconData,
-                              size: 16,
-                              color: isSelected ? Colors.white : const Color(0xFF414944),
-                            ),
-                            label: Text(cat['label'] as String),
-                            selected: isSelected,
-                            selectedColor: const Color(0xFF2D5A46),
-                            backgroundColor: const Color(0xFFE9EDFF),
-                            labelStyle: TextStyle(
-                              fontSize: 12,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                              color: isSelected ? Colors.white : const Color(0xFF414944),
-                            ),
-                            side: BorderSide.none,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                            onSelected: (val) {
-                              if (val) {
-                                setState(() {
-                                  _selectedCategory = cat['id'] as String;
-                                });
-                              }
+
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                _selectedCategory = cat['id'];
+                              });
                             },
+                            borderRadius: BorderRadius.circular(20),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isSelected ? AppTheme.primary : AppTheme.surface,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: isSelected ? AppTheme.primary : AppTheme.border,
+                                  width: 1,
+                                ),
+                                boxShadow: isSelected
+                                    ? [
+                                        BoxShadow(
+                                          color: AppTheme.primary.withOpacity(0.2),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    cat['icon'],
+                                    size: 14,
+                                    color: isSelected ? Colors.white : AppTheme.textSecondary,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    cat['label'],
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                      color: isSelected ? Colors.white : AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           );
                         },
                       ),
@@ -134,274 +206,295 @@ class _ExploreScreenState extends State<ExploreScreen> {
               ),
             ),
 
-            // Hero Banner: 3D Unity Guide
+            // Nordic Heritage Header Banner
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 child: Container(
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF2D5A46), Color(0xFF1B3D2F), Color(0xFF134230)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    color: AppTheme.surface,
                     borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF2D5A46).withOpacity(0.25),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                    border: Border.all(color: AppTheme.border),
+                    boxShadow: AppTheme.cardShadow,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: Colors.white24,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Row(
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryMint,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(Icons.view_in_ar, color: AppTheme.primary, size: 28),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(
                               children: [
-                                Icon(Icons.circle, size: 6, color: Color(0xFFFEC38D)),
-                                SizedBox(width: 4),
                                 Text(
-                                  'INTERACTIVE 3D UNITY',
+                                  'BẢN VẼ LẮP RÁP 3D UNITY',
                                   style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFFBCEED3),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.woodDark,
                                     letterSpacing: 0.5,
                                   ),
                                 ),
+                                SizedBox(width: 6),
+                                Icon(Icons.verified, color: AppTheme.primary, size: 14),
                               ],
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Nội thất 3D & Lắp ráp thông minh',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
+                            const SizedBox(height: 2),
+                            const Text(
+                              'Quét mã trên thùng hàng để xem hướng dẫn lắp ráp 3D bóc tách chi tiết.',
+                              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.3),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Quét mã QR trên vỏ thùng để xem hướng dẫn bóc tách từng ốc vít 3D xoay 360 độ siêu trực quan.',
-                        style: TextStyle(color: Colors.white70, fontSize: 11, height: 1.4),
                       ),
                     ],
                   ),
-                ),
-              ),
-            ),
-
-            // Section Header
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Sản phẩm nổi bật (${filteredProducts.length})',
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF161B28),
-                      ),
-                    ),
-                    const Text(
-                      'Chuẩn IKEA',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2D5A46)),
-                    ),
-                  ],
                 ),
               ),
             ),
 
             // Product Grid
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.68,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final product = filteredProducts[index];
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ProductDetailScreen(product: product),
+            filteredProducts.isEmpty
+                ? const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.search_off, size: 48, color: AppTheme.textMuted),
+                          SizedBox(height: 12),
+                          Text(
+                            'Không tìm thấy sản phẩm phù hợp',
+                            style: TextStyle(fontSize: 14, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
                           ),
-                        );
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
+                        ],
+                      ),
+                    ),
+                  )
+                : SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                    sliver: SliverGrid(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.65,
+                        crossAxisSpacing: 14,
+                        mainAxisSpacing: 14,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                        final product = filteredProducts[index];
+
+                        return InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ProductDetailScreen(product: product),
+                              ),
+                            );
+                          },
                           borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: Colors.black.withOpacity(0.04)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.03),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppTheme.surface,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(color: AppTheme.border),
+                              boxShadow: AppTheme.cardShadow,
                             ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Product Image with Badge
-                            Stack(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                ClipRRect(
-                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                                  child: AspectRatio(
-                                    aspectRatio: 1.1,
-                                    child: Image.network(
-                                      product.image,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Container(
-                                        color: const Color(0xFFF2F3FF),
-                                        child: const Center(
-                                          child: Icon(Icons.chair, color: Colors.grey, size: 36),
+                                // Image with 3D ready badge
+                                Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: const BorderRadius.vertical(top: Radius.circular(17)),
+                                      child: AspectRatio(
+                                        aspectRatio: 1.15,
+                                        child: Image.network(
+                                          product.image,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => Container(
+                                            color: AppTheme.surfaceAlt,
+                                            child: const Icon(Icons.chair, size: 40, color: AppTheme.textMuted),
+                                          ),
                                         ),
                                       ),
+                                    ),
+
+                                    // 3D Ready Badge
+                                    if (product.is3dReady)
+                                      Positioned(
+                                        top: 8,
+                                        left: 8,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.primary.withOpacity(0.9),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.view_in_ar, color: Colors.white, size: 10),
+                                              SizedBox(width: 4),
+                                              Text(
+                                                '3D',
+                                                style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+
+                                    // Assembly Time Badge
+                                    Positioned(
+                                      top: 8,
+                                      right: 8,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withOpacity(0.55),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          '${product.assemblyTimeMinutes}p',
+                                          style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w600),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                // Content
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(10),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          product.name,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w700,
+                                            color: AppTheme.textPrimary,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          product.subtitle,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            color: AppTheme.textSecondary,
+                                          ),
+                                        ),
+                                        const Spacer(),
+
+                                        // Rating
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.star, color: Color(0xFFF59E0B), size: 13),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              '${product.rating}',
+                                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                                            ),
+                                            Text(
+                                              ' (${product.reviewCount})',
+                                              style: const TextStyle(fontSize: 10, color: AppTheme.textMuted),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 6),
+
+                                        // Price & Add to cart button
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    currencyFormatter.format(product.price),
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.w800,
+                                                      color: AppTheme.primary,
+                                                    ),
+                                                  ),
+                                                  if (product.originalPrice != null)
+                                                    Text(
+                                                      currencyFormatter.format(product.originalPrice!),
+                                                      style: const TextStyle(
+                                                        fontSize: 9,
+                                                        color: AppTheme.textMuted,
+                                                        decoration: TextDecoration.lineThrough,
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                            ),
+
+                                            InkWell(
+                                              onTap: () {
+                                                cart.addItem(
+                                                  id: product.id,
+                                                  name: product.name,
+                                                  price: product.price,
+                                                  image: product.image,
+                                                );
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(
+                                                    backgroundColor: AppTheme.primary,
+                                                    content: Text('Đã thêm "${product.name}" vào giỏ hàng!'),
+                                                    duration: const Duration(milliseconds: 1400),
+                                                  ),
+                                                );
+                                              },
+                                              borderRadius: BorderRadius.circular(10),
+                                              child: Container(
+                                                padding: const EdgeInsets.all(7),
+                                                decoration: BoxDecoration(
+                                                  color: AppTheme.primaryMint,
+                                                  borderRadius: BorderRadius.circular(10),
+                                                ),
+                                                child: const Icon(
+                                                  Icons.add_shopping_cart,
+                                                  color: AppTheme.primary,
+                                                  size: 15,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
-                                if (product.badge != null)
-                                  Positioned(
-                                    top: 8,
-                                    left: 8,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.92),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        product.badge!,
-                                        style: const TextStyle(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF2D5A46),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
                               ],
                             ),
-
-                            // Product Info
-                            Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.star, size: 12, color: Colors.amber),
-                                      const SizedBox(width: 3),
-                                      Text(
-                                        product.rating.toString(),
-                                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-                                      ),
-                                      Text(
-                                        ' (${product.reviewCount})',
-                                        style: const TextStyle(fontSize: 10, color: Color(0xFF717973)),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    product.name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13,
-                                      color: Color(0xFF161B28),
-                                    ),
-                                  ),
-                                  Text(
-                                    product.subtitle,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontSize: 10, color: Color(0xFF717973)),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Flexible(
-                                        child: Text(
-                                          currencyFormatter.format(product.price),
-                                          style: const TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF2D5A46),
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      InkWell(
-                                        onTap: () {
-                                          cart.addItem(
-                                            id: product.id,
-                                            name: product.name,
-                                            price: product.price,
-                                            image: product.image,
-                                          );
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text('Đã thêm ${product.name} vào giỏ hàng'),
-                                              duration: const Duration(seconds: 1),
-                                            ),
-                                          );
-                                        },
-                                        child: Container(
-                                          padding: const EdgeInsets.all(6),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFE9EDFF),
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          child: const Icon(
-                                            Icons.add_shopping_cart,
-                                            size: 16,
-                                            color: Color(0xFF2D5A46),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                  childCount: filteredProducts.length,
+                          ),
+                        );
+                      },
+                      childCount: filteredProducts.length,
+                    ),
+                  ),
                 ),
-              ),
-            ),
           ],
         ),
       ),

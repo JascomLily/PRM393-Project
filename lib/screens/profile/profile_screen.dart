@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../auth/login_screen.dart';
 
@@ -17,8 +18,9 @@ class ProfileScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Chỉnh sửa thông tin', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        backgroundColor: AppTheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        title: const Text('Chỉnh sửa thông tin', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -27,12 +29,12 @@ class ProfileScreen extends StatelessWidget {
                 controller: nameCtrl,
                 decoration: const InputDecoration(labelText: 'Họ và tên'),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               TextField(
                 controller: phoneCtrl,
                 decoration: const InputDecoration(labelText: 'Số điện thoại'),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               TextField(
                 controller: addrCtrl,
                 maxLines: 2,
@@ -44,14 +46,9 @@ class ProfileScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Hủy', style: TextStyle(color: Colors.grey)),
+            child: const Text('Hủy', style: TextStyle(color: AppTheme.textMuted)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2D5A46),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
             onPressed: () {
               auth.updateProfile(
                 name: nameCtrl.text.trim(),
@@ -60,7 +57,10 @@ class ProfileScreen extends StatelessWidget {
               );
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Đã cập nhật thông tin thành công!')),
+                const SnackBar(
+                  backgroundColor: AppTheme.primary,
+                  content: Text('Đã cập nhật thông tin thành công!'),
+                ),
               );
             },
             child: const Text('Lưu thay đổi'),
@@ -77,13 +77,8 @@ class ProfileScreen extends StatelessWidget {
 
     if (user == null) {
       return Scaffold(
-        backgroundColor: const Color(0xFFFAF8FF),
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          title: const Text('Tài khoản cá nhân', style: TextStyle(color: Color(0xFF161B28), fontWeight: FontWeight.bold)),
-          centerTitle: true,
-        ),
+        backgroundColor: AppTheme.background,
+        appBar: AppBar(title: const Text('Tài Khoản Cá Nhân')),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -91,37 +86,35 @@ class ProfileScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF2F3FF),
-                    borderRadius: BorderRadius.circular(40),
+                  width: 72,
+                  height: 72,
+                  decoration: const BoxDecoration(
+                    color: AppTheme.surfaceAlt,
+                    shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.person_outline, size: 40, color: Color(0xFF2D5A46)),
+                  child: const Icon(Icons.person_outline, size: 36, color: AppTheme.textMuted),
                 ),
                 const SizedBox(height: 16),
-                const Text('Chưa đăng nhập tài khoản', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Bạn chưa đăng nhập',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Đăng nhập để xem lịch sử mua sắm, nhận mã giảm giá và tích lũy ví FurniCoins.',
+                  'Đăng nhập để quản lý đơn hàng, tích lũy FurniCoins và xem bản vẽ 3D.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 13, color: Color(0xFF717973)),
+                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                 ),
                 const SizedBox(height: 24),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2D5A46),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                  ),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.login, size: 16),
+                  label: const Text('Đăng nhập ngay'),
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const LoginScreen()),
                     );
                   },
-                  child: const Text('Đăng nhập / Đăng ký', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -130,63 +123,41 @@ class ProfileScreen extends StatelessWidget {
       );
     }
 
+    final isAdmin = user.isAdmin;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF8FF),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          'Hồ sơ người dùng',
-          style: TextStyle(color: Color(0xFF161B28), fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        centerTitle: true,
+        title: const Text('Tài Khoản Cá Nhân', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit_outlined, color: Color(0xFF2D5A46)),
+            icon: const Icon(Icons.edit_outlined, size: 20),
+            tooltip: 'Sửa thông tin',
             onPressed: () => _showEditProfileDialog(context, auth),
           ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // User Header Card
+            // User Profile Card
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF2D5A46), Color(0xFF1B3D2F)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF2D5A46).withOpacity(0.25),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: AppTheme.border),
+                boxShadow: AppTheme.cardShadow,
               ),
               child: Row(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Image.network(
-                      user.avatar,
-                      width: 68,
-                      height: 68,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        width: 68,
-                        height: 68,
-                        color: Colors.white24,
-                        child: const Icon(Icons.person, color: Colors.white, size: 36),
-                      ),
-                    ),
+                  CircleAvatar(
+                    radius: 32,
+                    backgroundImage: NetworkImage(user.avatar),
+                    backgroundColor: AppTheme.surfaceAlt,
                   ),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -196,11 +167,7 @@ class ProfileScreen extends StatelessWidget {
                             Flexible(
                               child: Text(
                                 user.name,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -208,76 +175,67 @@ class ProfileScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: user.isAdmin ? const Color(0xFFFEC38D) : Colors.white24,
+                                color: isAdmin ? AppTheme.primaryMint : AppTheme.woodLight,
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
-                                user.isAdmin ? 'ADMIN' : 'VIP',
+                                isAdmin ? 'ADMIN' : 'MEMBER',
                                 style: TextStyle(
                                   fontSize: 9,
                                   fontWeight: FontWeight.bold,
-                                  color: user.isAdmin ? Colors.black : Colors.white,
+                                  color: isAdmin ? AppTheme.primary : AppTheme.woodDark,
                                 ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          user.email,
-                          style: const TextStyle(color: Colors.white70, fontSize: 12),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          user.phone,
-                          style: const TextStyle(color: Colors.white70, fontSize: 12),
-                        ),
+                        const SizedBox(height: 2),
+                        Text(user.email, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                        Text(user.phone, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
                       ],
                     ),
                   ),
                 ],
               ),
             ),
+
             const SizedBox(height: 16),
 
-            // FurniCoins Balance Wallet Card
+            // FurniCoins Points Card
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: const Color(0xFFFEC38D).withOpacity(0.25),
+                color: AppTheme.woodLight,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFF805528).withOpacity(0.2)),
+                border: Border.all(color: AppTheme.wood.withOpacity(0.25)),
               ),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF805528).withOpacity(0.15),
+                      color: AppTheme.wood.withOpacity(0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.monetization_on, color: Color(0xFF805528), size: 28),
+                    child: const Icon(Icons.monetization_on, color: AppTheme.woodDark, size: 28),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Ví điểm thưởng FurniCoins',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF794F23)),
+                          'VÍ XU THƯỞNG FURNICOINS',
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.woodDark, letterSpacing: 0.5),
                         ),
+                        const SizedBox(height: 2),
                         Text(
                           '${user.furniCoins} Xu',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF805528),
-                          ),
+                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppTheme.woodDark),
                         ),
                         const Text(
-                          '1 Xu = 1.000₫ (Dùng giảm trực tiếp khi thanh toán đơn hàng)',
-                          style: TextStyle(fontSize: 10, color: Color(0xFF794F23)),
+                          '1 Xu = 1.000₫ • Dùng trực tiếp khi thanh toán đơn hàng',
+                          style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                         ),
                       ],
                     ),
@@ -285,107 +243,114 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
+
             const SizedBox(height: 16),
 
-            // Address Info Card
+            // Role Switch (Customer <-> Admin Quick Switch for Demo PRM393)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppTheme.border),
+                boxShadow: AppTheme.cardShadow,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryMint,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.swap_horiz, color: AppTheme.primary, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Chuyển đổi vai trò demo', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                          Text(
+                            isAdmin ? 'Đang ở vai trò: Quản trị viên (Admin)' : 'Đang ở vai trò: Khách hàng (Customer)',
+                            style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isAdmin ? AppTheme.wood : AppTheme.primary,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: () {
+                      auth.switchRole();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: AppTheme.primary,
+                          content: Text(
+                            auth.isAdmin
+                                ? 'Đã kích hoạt quyền Quản trị viên (Admin)!'
+                                : 'Đã chuyển về quyền Khách hàng (Customer)!',
+                          ),
+                        ),
+                      );
+                    },
+                    child: Text(isAdmin ? 'Sang Customer' : 'Sang Admin', style: const TextStyle(fontSize: 11)),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Saved Address Card
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.black.withOpacity(0.06)),
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppTheme.border),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.location_on_outlined, size: 18, color: Color(0xFF2D5A46)),
+                      Icon(Icons.location_on_outlined, size: 16, color: AppTheme.primary),
                       SizedBox(width: 6),
-                      Text(
-                        'Địa chỉ giao hàng mặc định:',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF161B28)),
-                      ),
+                      Text('Địa chỉ giao hàng mặc định:', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    user.savedAddress,
-                    style: const TextStyle(fontSize: 13, color: Color(0xFF414944), height: 1.4),
-                  ),
+                  Text(user.savedAddress, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
 
-            // Switch Role button (Customer <-> Admin)
-            ListTile(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Colors.black.withOpacity(0.08)),
-              ),
-              tileColor: Colors.white,
-              leading: Icon(
-                user.isAdmin ? Icons.person_outline : Icons.admin_panel_settings_outlined,
-                color: const Color(0xFF2D5A46),
-              ),
-              title: Text(
-                user.isAdmin ? 'Chuyển sang Khách hàng' : 'Chuyển sang Quản trị viên (Admin)',
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-              ),
-              trailing: const Icon(Icons.chevron_right, size: 20),
-              onTap: () {
-                auth.switchRole();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Đã chuyển sang ${auth.isAdmin ? "Admin" : "Khách hàng"}')),
-                );
-              },
-            ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 24),
 
-            // Switch Account
-            ListTile(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Colors.black.withOpacity(0.08)),
+            // Logout Button
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.error,
+                  side: const BorderSide(color: AppTheme.error),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                icon: const Icon(Icons.logout, size: 16),
+                label: const Text('Đăng xuất tài khoản'),
+                onPressed: () {
+                  auth.logout();
+                  Navigator.pop(context);
+                },
               ),
-              tileColor: Colors.white,
-              leading: const Icon(Icons.switch_account_outlined, color: Color(0xFF2D5A46)),
-              title: const Text(
-                'Đổi tài khoản đăng nhập',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-              ),
-              trailing: const Icon(Icons.chevron_right, size: 20),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-
-            // Logout
-            ListTile(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Colors.red.withOpacity(0.2)),
-              ),
-              tileColor: Colors.red.withOpacity(0.05),
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text(
-                'Đăng xuất',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.red),
-              ),
-              onTap: () async {
-                await auth.logout();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Đã đăng xuất tài khoản')),
-                  );
-                }
-              },
             ),
           ],
         ),

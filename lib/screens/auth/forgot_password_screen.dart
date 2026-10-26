@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_theme.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -32,17 +33,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       _otpSent = true;
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Mã OTP đã gửi về ${_emailController.text}. Nhập mã 123456 để tiếp tục.'),
-        backgroundColor: const Color(0xFF2D5A46),
+      const SnackBar(
+        backgroundColor: AppTheme.primary,
+        content: Text('Mã OTP xác thực đã được gửi về email (Mã test: 123456)'),
       ),
     );
   }
 
-  void _resetPassword() {
+  void _handleResetPassword() {
     if (_otpController.text.trim() != '123456') {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mã OTP không đúng! (Mã test: 123456)')),
+        const SnackBar(content: Text('Mã OTP không đúng! Nhập 123456')),
       );
       return;
     }
@@ -55,8 +56,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
+        backgroundColor: AppTheme.primary,
         content: Text('Đổi mật khẩu thành công! Vui lòng đăng nhập lại.'),
-        backgroundColor: Color(0xFF2D5A46),
       ),
     );
     Navigator.pop(context);
@@ -65,108 +66,58 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF8FF),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          'Khôi phục mật khẩu',
-          style: TextStyle(
-            color: Color(0xFF161B28),
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF161B28)),
-          onPressed: () => Navigator.pop(context),
-        ),
+        title: const Text('Khôi Phục Mật Khẩu'),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
-                'Nhập địa chỉ email đăng ký để nhận mã OTP khôi phục mật khẩu.',
-                style: TextStyle(fontSize: 13, color: Color(0xFF414944)),
+                'Nhập địa chỉ email đăng ký tài khoản để nhận mã OTP khôi phục.',
+                style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+              ),
+              const SizedBox(height: 20),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _emailController,
+                      decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.mail_outline, size: 18)),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: _sendOtp,
+                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14)),
+                    child: Text(_otpSent ? 'Gửi lại' : 'Gửi OTP'),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
 
-              TextField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.email_outlined, size: 20, color: Color(0xFF717973)),
-                  hintText: 'Nhập email của bạn',
-                  filled: true,
-                  fillColor: const Color(0xFFF2F3FF),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              if (!_otpSent)
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2D5A46),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  onPressed: _sendOtp,
-                  child: const Text('Gửi mã OTP (Test: 123456)', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-
               if (_otpSent) ...[
-                const SizedBox(height: 12),
-                TextField(
+                TextFormField(
                   controller: _otpController,
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.pin_outlined, size: 20, color: Color(0xFF717973)),
-                    hintText: 'Nhập mã 6 số OTP (123456)',
-                    filled: true,
-                    fillColor: const Color(0xFFF2F3FF),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
+                  decoration: const InputDecoration(labelText: 'Mã OTP (Test: 123456)', prefixIcon: Icon(Icons.key, size: 18)),
                 ),
-                const SizedBox(height: 12),
-                TextField(
+                const SizedBox(height: 14),
+
+                TextFormField(
                   controller: _newPasswordController,
                   obscureText: true,
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.lock_outline, size: 20, color: Color(0xFF717973)),
-                    hintText: 'Nhập mật khẩu mới',
-                    filled: true,
-                    fillColor: const Color(0xFFF2F3FF),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
+                  decoration: const InputDecoration(labelText: 'Mật khẩu mới', prefixIcon: Icon(Icons.lock_outline, size: 18)),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
+
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2D5A46),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  onPressed: _resetPassword,
-                  child: const Text('Xác nhận & Đổi mật khẩu', style: TextStyle(fontWeight: FontWeight.bold)),
+                  onPressed: _handleResetPassword,
+                  child: const Text('Đặt lại mật khẩu'),
                 ),
               ],
             ],
