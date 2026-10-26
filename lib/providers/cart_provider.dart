@@ -154,7 +154,7 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // VOUCHER CRUD
+  // QUẢN LÝ MÃ KHUYẾN MÃI
   void addVoucher(VoucherModel voucher) {
     _vouchers.insert(0, voucher);
     notifyListeners();

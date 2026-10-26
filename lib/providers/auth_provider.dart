@@ -33,6 +33,7 @@ class AuthProvider extends ChangeNotifier {
         furniCoins: 9999,
         savedAddress: 'Trụ sở Sofa so good, Tầng 32 Landmark 81, TP. Hồ Chí Minh',
         role: 'admin',
+        isActive: true,
       ),
       UserModel(
         id: 'usr-cust-02',
@@ -44,6 +45,7 @@ class AuthProvider extends ChangeNotifier {
         furniCoins: 350,
         savedAddress: 'Số 45 Lê Duẩn, Quận 1, TP. Hồ Chí Minh',
         role: 'customer',
+        isActive: true,
       ),
       UserModel(
         id: 'usr-cust-03',
@@ -55,6 +57,7 @@ class AuthProvider extends ChangeNotifier {
         furniCoins: 500,
         savedAddress: 'Căn hộ Masteri Thảo Điền, TP. Thủ Đức, TP. Hồ Chí Minh',
         role: 'customer',
+        isActive: true,
       ),
     ]);
   }
@@ -92,26 +95,38 @@ class AuthProvider extends ChangeNotifier {
 
     await Future.delayed(const Duration(milliseconds: 600));
 
-    final isAdmin = email.toLowerCase().contains('admin');
-    _currentUser = UserModel(
-      id: 'usr-${DateTime.now().millisecondsSinceEpoch}',
-      name: isAdmin
-          ? 'Quản Trị Viên Sofa so good'
-          : (email.toLowerCase() == 'customer@furni3d.vn' ? 'Đặng Thảo Vy' : email.split('@')[0]),
-      email: email,
-      phone: isAdmin ? '1900 8383' : '0983 838 311',
-      avatar: isAdmin
-          ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
-          : kUserAvatar,
-      furniCoins: isAdmin ? 9999 : 150,
-      savedAddress: isAdmin
-          ? 'Trụ sở Sofa so good, Tầng 32 Landmark 81, TP. Hồ Chí Minh'
-          : 'Tòa nhà Landmark 81, P. 22, Q. Bình Thạnh, TP. Hồ Chí Minh',
-      role: isAdmin ? 'admin' : 'customer',
-    );
-
-    // Also update in users list if not present
-    if (!_users.any((u) => u.email.toLowerCase() == email.toLowerCase())) {
+    final existingIndex = _users.indexWhere(
+        (u) => u.email.toLowerCase() == email.toLowerCase().trim());
+    if (existingIndex != -1) {
+      final user = _users[existingIndex];
+      if (!user.isActive) {
+        _isLoading = false;
+        notifyListeners();
+        throw Exception(
+            'Tài khoản này đã bị vô hiệu hóa bởi Quản trị viên. Vui lòng liên hệ bộ phận hỗ trợ.');
+      }
+      _currentUser = user;
+    } else {
+      final isAdmin = email.toLowerCase().contains('admin');
+      _currentUser = UserModel(
+        id: 'usr-${DateTime.now().millisecondsSinceEpoch}',
+        name: isAdmin
+            ? 'Quản Trị Viên Sofa so good'
+            : (email.toLowerCase() == 'customer@furni3d.vn'
+                ? 'Đặng Thảo Vy'
+                : email.split('@')[0]),
+        email: email.trim(),
+        phone: isAdmin ? '1900 8383' : '0983 838 311',
+        avatar: isAdmin
+            ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
+            : kUserAvatar,
+        furniCoins: isAdmin ? 9999 : 150,
+        savedAddress: isAdmin
+            ? 'Trụ sở Sofa so good, Tầng 32 Landmark 81, TP. Hồ Chí Minh'
+            : 'Tòa nhà Landmark 81, P. 22, Q. Bình Thạnh, TP. Hồ Chí Minh',
+        role: isAdmin ? 'admin' : 'customer',
+        isActive: true,
+      );
       _users.add(_currentUser!);
     }
 
@@ -129,7 +144,7 @@ class AuthProvider extends ChangeNotifier {
 
     _currentUser = UserModel(
       id: 'google-${DateTime.now().millisecondsSinceEpoch}',
-      name: 'Google User Demo',
+      name: 'Đặng Thảo Vy',
       email: 'customer@furni3d.vn',
       phone: '0983 838 311',
       avatar:
@@ -137,6 +152,7 @@ class AuthProvider extends ChangeNotifier {
       furniCoins: 200,
       savedAddress: 'Tòa nhà Landmark 81, P. 22, Q. Bình Thạnh, TP. Hồ Chí Minh',
       role: 'customer',
+      isActive: true,
     );
 
     _isLoading = false;
@@ -163,11 +179,12 @@ class AuthProvider extends ChangeNotifier {
       phone: phone,
       avatar:
           'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-      furniCoins: 100, // Tặng ngay 100 Xu chào mừng
+      furniCoins: 100, // Chào mừng thành viên mới
       savedAddress: address?.isNotEmpty == true
           ? address!
           : 'Chưa thiết lập địa chỉ mặc định',
       role: 'customer',
+      isActive: true,
     );
 
     _users.insert(0, _currentUser!);
@@ -192,17 +209,42 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateFullProfile({
+    required String name,
+    required String email,
+    required String phone,
+    required String address,
+    String? avatar,
+  }) {
+    if (_currentUser == null) return;
+    _currentUser!.name = name;
+    _currentUser!.email = email;
+    _currentUser!.phone = phone;
+    _currentUser!.savedAddress = address;
+    if (avatar != null && avatar.trim().isNotEmpty) {
+      _currentUser!.avatar = avatar.trim();
+    }
+    final idx = _users.indexWhere((u) => u.id == _currentUser!.id);
+    if (idx != -1) {
+      _users[idx] = _currentUser!;
+    }
+    _saveUserToStorage();
+    notifyListeners();
+  }
+
   void updateProfile({
     required String name,
     required String phone,
     required String address,
   }) {
     if (_currentUser == null) return;
-    _currentUser!.name = name;
-    _currentUser!.phone = phone;
-    _currentUser!.savedAddress = address;
-    _saveUserToStorage();
-    notifyListeners();
+    updateFullProfile(
+      name: name,
+      email: _currentUser!.email,
+      phone: phone,
+      address: address,
+      avatar: _currentUser!.avatar,
+    );
   }
 
   void deductCoins(int coins) {
@@ -220,11 +262,12 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Admin User Management CRUD
+  // Quản Lý Tài Khoản Người Dùng (Admin & Profile)
   void toggleUserRole(String userId) {
     final index = _users.indexWhere((u) => u.id == userId);
     if (index != -1) {
-      _users[index].role = _users[index].role == 'customer' ? 'admin' : 'customer';
+      _users[index].role =
+          _users[index].role == 'customer' ? 'admin' : 'customer';
       if (_currentUser?.id == userId) {
         _currentUser!.role = _users[index].role;
         _saveUserToStorage();
@@ -233,8 +276,31 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  void toggleUserActive(String userId) {
+    final index = _users.indexWhere((u) => u.id == userId);
+    if (index != -1) {
+      _users[index].isActive = !_users[index].isActive;
+      if (_currentUser?.id == userId) {
+        _currentUser!.isActive = _users[index].isActive;
+        _saveUserToStorage();
+      }
+      notifyListeners();
+    }
+  }
+
   void deleteUser(String userId) {
     _users.removeWhere((u) => u.id == userId);
-    notifyListeners();
+    if (_currentUser?.id == userId) {
+      logout();
+    } else {
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteMyAccount() async {
+    if (_currentUser == null) return;
+    final currentId = _currentUser!.id;
+    _users.removeWhere((u) => u.id == currentId);
+    await logout();
   }
 }

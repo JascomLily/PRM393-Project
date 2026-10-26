@@ -44,7 +44,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       'Hướng dẫn 3D Unity',
       'Kho linh kiện lẻ',
       'Đơn hàng & Giao dịch',
-      'Quản trị viên (Admin CRUD)',
+      'Quản trị hệ thống',
     ];
 
     return Scaffold(
@@ -217,7 +217,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             const BottomNavigationBarItem(
               icon: Icon(Icons.admin_panel_settings_outlined),
               activeIcon: Icon(Icons.admin_panel_settings),
-              label: 'Quản trị CRUD',
+              label: 'Quản trị',
             ),
           ],
         ),

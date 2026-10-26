@@ -51,8 +51,8 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
           labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
           tabs: const [
             Tab(icon: Icon(Icons.analytics_outlined, size: 18), text: 'Thống kê'),
-            Tab(icon: Icon(Icons.chair_outlined, size: 18), text: 'Sản phẩm (CRUD)'),
-            Tab(icon: Icon(Icons.local_offer_outlined, size: 18), text: 'Khuyến mãi (CRUD)'),
+            Tab(icon: Icon(Icons.chair_outlined, size: 18), text: 'Sản phẩm'),
+            Tab(icon: Icon(Icons.local_offer_outlined, size: 18), text: 'Khuyến mãi'),
             Tab(icon: Icon(Icons.receipt_long_outlined, size: 18), text: 'Đơn hàng'),
             Tab(icon: Icon(Icons.support_agent_outlined, size: 18), text: 'Bù linh kiện & Đổi trả'),
             Tab(icon: Icon(Icons.people_outline, size: 18), text: 'Tài khoản'),
@@ -571,7 +571,7 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
     );
   }
 
-  // 6. Quản Lý Tài Khoản (User CRUD)
+  // 6. Quản Lý Tài Khoản Người Dùng
   Widget _buildUsersTab() {
     final authProv = Provider.of<AuthProvider>(context);
 
@@ -582,60 +582,262 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
       itemBuilder: (context, index) {
         final u = authProv.allUsers[index];
         final isAdmin = u.role == 'admin';
+        final isActive = u.isActive;
 
         return Container(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppTheme.surface,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppTheme.border),
+            border: Border.all(color: isActive ? AppTheme.border : AppTheme.error.withOpacity(0.3)),
+            boxShadow: AppTheme.cardShadow,
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                backgroundImage: NetworkImage(u.avatar),
-                radius: 22,
-                backgroundColor: AppTheme.surfaceAlt,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    backgroundImage: NetworkImage(u.avatar),
+                    radius: 24,
+                    backgroundColor: AppTheme.surfaceAlt,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(u.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: isAdmin ? AppTheme.primaryMint : AppTheme.woodLight,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            isAdmin ? 'ADMIN' : 'CUSTOMER',
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold,
-                              color: isAdmin ? AppTheme.primary : AppTheme.woodDark,
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                u.name,
+                                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: isAdmin ? AppTheme.primaryMint : AppTheme.woodLight,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                isAdmin ? 'QUẢN TRỊ VIÊN' : 'KHÁCH HÀNG',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                  color: isAdmin ? AppTheme.primary : AppTheme.woodDark,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: isActive
+                                    ? AppTheme.primaryMint
+                                    : AppTheme.error.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    isActive ? Icons.check_circle : Icons.block,
+                                    size: 11,
+                                    color: isActive ? AppTheme.primary : AppTheme.error,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    isActive ? 'Đang hoạt động' : 'Đã vô hiệu hóa',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: isActive ? AppTheme.primary : AppTheme.error,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Ví: ${u.furniCoins} Xu',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppTheme.woodDark,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${u.email} • ${u.phone}',
+                          style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                        ),
+                        if (u.savedAddress.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            'Địa chỉ: ${u.savedAddress}',
+                            style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ],
                     ),
-                    Text('${u.email} • ${u.phone}', style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
-                    Text('Ví xu: ${u.furniCoins} Xu', style: const TextStyle(fontSize: 10, color: AppTheme.woodDark, fontWeight: FontWeight.bold)),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              TextButton(
-                onPressed: () => authProv.toggleUserRole(u.id),
-                child: Text(isAdmin ? 'Chuyển Customer' : 'Thăng Admin', style: const TextStyle(fontSize: 11)),
+              const Divider(height: 20),
+              // Action Buttons Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  // Toggle Role Button
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      side: const BorderSide(color: AppTheme.border),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    icon: const Icon(Icons.manage_accounts_outlined, size: 14),
+                    label: Text(
+                      isAdmin ? 'Hạ quyền' : 'Thăng Admin',
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                    onPressed: () => authProv.toggleUserRole(u.id),
+                  ),
+                  const SizedBox(width: 8),
+                  // Toggle Active/Inactive Button
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      foregroundColor: isActive ? AppTheme.warning : AppTheme.success,
+                      side: BorderSide(
+                        color: isActive ? AppTheme.warning.withOpacity(0.5) : AppTheme.success.withOpacity(0.5),
+                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    icon: Icon(isActive ? Icons.lock_outline : Icons.lock_open, size: 14),
+                    label: Text(
+                      isActive ? 'Vô hiệu hóa' : 'Kích hoạt lại',
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                    onPressed: () => _confirmToggleActive(context, authProv, u),
+                  ),
+                  const SizedBox(width: 8),
+                  // Delete Button
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, color: AppTheme.error, size: 18),
+                    tooltip: 'Xóa tài khoản',
+                    onPressed: () => _confirmDeleteUser(context, authProv, u),
+                  ),
+                ],
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  void _confirmToggleActive(BuildContext context, AuthProvider authProv, dynamic u) {
+    final bool willDeactivate = u.isActive;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          willDeactivate ? 'Vô hiệu hóa tài khoản' : 'Kích hoạt lại tài khoản',
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+        ),
+        content: Text(
+          willDeactivate
+              ? 'Tài khoản "${u.name}" (${u.email}) sẽ bị khóa quyền truy cập hệ thống cho đến khi được mở lại.'
+              : 'Kích hoạt lại quyền truy cập hệ thống cho tài khoản "${u.name}" (${u.email})?',
+          style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Hủy', style: TextStyle(color: AppTheme.textMuted)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: willDeactivate ? AppTheme.warning : AppTheme.success,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              authProv.toggleUserActive(u.id);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: willDeactivate ? AppTheme.warning : AppTheme.success,
+                  content: Text(
+                    willDeactivate
+                        ? 'Đã vô hiệu hóa tài khoản ${u.name}.'
+                        : 'Đã kích hoạt lại tài khoản ${u.name}.',
+                  ),
+                ),
+              );
+            },
+            child: Text(willDeactivate ? 'Khóa tài khoản' : 'Mở khóa'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteUser(BuildContext context, AuthProvider authProv, dynamic u) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: AppTheme.error, size: 22),
+            SizedBox(width: 8),
+            Text('Xác nhận xóa tài khoản', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+          ],
+        ),
+        content: Text(
+          'Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản "${u.name}" (${u.email}) khỏi hệ thống? Hành động này không thể khôi phục.',
+          style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Hủy', style: TextStyle(color: AppTheme.textMuted)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.error,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              authProv.deleteUser(u.id);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: AppTheme.error,
+                  content: Text('Đã xóa vĩnh viễn tài khoản ${u.name}.'),
+                ),
+              );
+            },
+            child: const Text('Xác nhận xóa'),
+          ),
+        ],
+      ),
     );
   }
 

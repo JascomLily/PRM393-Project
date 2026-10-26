@@ -45,7 +45,7 @@ class SupabaseService {
   }
 
   // ==========================================================================
-  // PRODUCTS CRUD
+  // QUẢN LÝ SẢN PHẨM
   // ==========================================================================
   static Future<List<ProductModel>?> fetchProducts() async {
     final c = client;
@@ -119,7 +119,7 @@ class SupabaseService {
   }
 
   // ==========================================================================
-  // VOUCHERS CRUD
+  // QUẢN LÝ VOUCHER
   // ==========================================================================
   static Future<List<VoucherModel>?> fetchVouchers() async {
     final c = client;

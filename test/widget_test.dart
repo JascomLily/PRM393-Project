@@ -106,4 +106,27 @@ void main() {
     expect(updated.status, 'APPROVED');
     expect(updated.adminNote, 'Đã duyệt gửi bù');
   });
+
+  test('UserModel isActive and deactivation status test', () {
+    final user = UserModel(
+      id: 'u-active-01',
+      name: 'Test User',
+      email: 'test@sofasogood.vn',
+      phone: '0909123456',
+      avatar: '',
+      furniCoins: 200,
+      savedAddress: '123 Le Loi',
+      isActive: true,
+    );
+    expect(user.isActive, true);
+
+    final deactivated = user.copyWith(isActive: false);
+    expect(deactivated.isActive, false);
+
+    final json = deactivated.toJson();
+    expect(json['isActive'], false);
+
+    final fromJsonUser = UserModel.fromJson(json);
+    expect(fromJsonUser.isActive, false);
+  });
 }
