@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-import '../model3d/model3d_screen.dart';
 import '../../data/mock_data.dart';
+import '../../models/product_model.dart';
+import '../model3d/model3d_screen.dart';
 
 class QrScannerScreen extends StatefulWidget {
   final bool embedded;
@@ -22,21 +23,6 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
 
   bool _hasScanned = false;
   bool _flashOn = false;
-
-  // Danh sách model codes hợp lệ (liên kết với sản phẩm)
-  final Map<String, String> _validQRCodes = {
-    'MODEL ND-2024': 'nordic-desk',
-    'MODEL PC-108': 'poang-chair',
-    'MODEL BM-402': 'billy-shelf',
-    'MODEL HW-12': 'hemnes-table',
-    // QR thùng hàng thực tế thường có format ngắn hơn
-    'ND2024': 'nordic-desk',
-    'PC108': 'poang-chair',
-    'BM402': 'billy-shelf',
-    'HW12': 'hemnes-table',
-    'FURNI3D-DESK-001': 'nordic-desk',
-    'FURNI3D-CHAIR-001': 'poang-chair',
-  };
 
   @override
   void initState() {
@@ -85,22 +71,26 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
   }
 
   void _processQRCode(String code) {
-    final productId =
-        _validQRCodes[code.trim().toUpperCase()] ?? _validQRCodes[code.trim()];
+    final productId = _extractProductId(code);
+    final products = getMockProducts();
+    ProductModel? product;
 
     if (productId != null) {
-      // Tìm sản phẩm tương ứng
-      final products = getMockProducts();
-      final product = products.firstWhere(
-        (p) => p.id == productId,
-        orElse: () => products.first,
-      );
+      for (final candidate in products) {
+        if (candidate.id == productId) {
+          product = candidate;
+          break;
+        }
+      }
+    }
 
+    if (product != null) {
+      final matchedProduct = product;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '✅ Nhận dạng: ${product.name} — Đang mở hướng dẫn 3D...',
+              '✅ Nhận dạng: ${matchedProduct.name} — Đang mở hướng dẫn 3D...',
             ),
             backgroundColor: const Color(0xFF2D5A46),
             duration: const Duration(seconds: 2),
@@ -112,7 +102,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (_) => Model3DScreen(initialProduct: product),
+                builder: (_) => Model3DScreen(initialProduct: matchedProduct),
               ),
             );
           }
@@ -137,7 +127,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                 const Icon(Icons.error_outline, size: 48, color: Colors.orange),
                 const SizedBox(height: 12),
                 Text(
-                  'Mã "$code" không khớp với sản phẩm Furni3D nào.\n\nVui lòng quét mã QR trên vỏ thùng hàng chính hãng Furni3D.',
+                  'Link "$code" không chứa ID sản phẩm Furni3D hợp lệ.\n\nVui lòng quét link QR trên vỏ thùng hàng chính hãng Furni3D.',
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 13),
                 ),
@@ -164,6 +154,22 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
         );
       }
     }
+  }
+
+  String? _extractProductId(String rawCode) {
+    final value = rawCode.trim();
+    final uri = Uri.tryParse(value);
+
+    if (uri == null ||
+        (uri.scheme != 'http' && uri.scheme != 'https') ||
+        uri.pathSegments.isEmpty) {
+      return null;
+    }
+
+    final nonEmptySegments = uri.pathSegments
+        .where((segment) => segment.isNotEmpty)
+        .toList();
+    return nonEmptySegments.isEmpty ? null : nonEmptySegments.last;
   }
 
   @override

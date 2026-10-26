@@ -174,6 +174,38 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_embed_unity:
+    dependency: "direct main"
+    description:
+      name: flutter_embed_unity
+      sha256: b1d153b09d9c79ba1f0c10c65d2df0328e6a6dd04f77d78f6ae2a2eb86fdd001
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
+  flutter_embed_unity_2022_3_ios:
+    dependency: transitive
+    description:
+      name: flutter_embed_unity_2022_3_ios
+      sha256: f140d197069d2e7217579ebae5d4aa0964961d939c6343a01ae7d5a1474594fa
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
+  flutter_embed_unity_6000_0_android:
+    dependency: "direct main"
+    description:
+      name: flutter_embed_unity_6000_0_android
+      sha256: "60856ba16b0e68111d569c9b2aad00d178ddeac24d670725953bd3c5c6e2de67"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
+  flutter_embed_unity_platform_interface:
+    dependency: transitive
+    description:
+      name: flutter_embed_unity_platform_interface
+      sha256: "1a3abeaf192f0b435d9ac472fe541d5431178d068cd1308ee6858539f24a8eb5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -593,18 +625,18 @@ packages:
     dependency: "direct main"
     description:
       name: permission_handler
-      sha256: e6bcecadfe40df6b888141f23cbaf6ba6c3da49fb33f6ff887d060dd48544fbd
+      sha256: fe54465bcc62a4564c6e4db337bbaded6c0c0fa6e10487414436d163114784f6
       url: "https://pub.dev"
     source: hosted
-    version: "13.0.2"
+    version: "12.0.3"
   permission_handler_android:
     dependency: transitive
     description:
       name: permission_handler_android
-      sha256: b1ce660f4d0dcaffdf2605a19544c129fb5adda4e6fd039992ae356c4e437039
+      sha256: "1e3bc410ca1bf84662104b100eb126e066cb55791b7451307f9708d4007350e6"
       url: "https://pub.dev"
     source: hosted
-    version: "14.1.0"
+    version: "13.0.1"
   permission_handler_apple:
     dependency: transitive
     description:

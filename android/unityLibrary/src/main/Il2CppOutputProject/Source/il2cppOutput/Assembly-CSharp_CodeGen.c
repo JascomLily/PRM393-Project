@@ -1,0 +1,69 @@
+﻿#include "pch-c.h"
+
+
+#include "codegen/il2cpp-codegen-metadata.h"
+
+
+
+
+
+extern void SendToFlutter_Send_mC3EEBDA79530F83C75829EFC506B20AF3C9B16AE (void);
+extern void SendToFlutter__ctor_mC1E72A3BCF91ABFED2B53D4D12E5D43091965061 (void);
+extern void AssemblyStep__ctor_mF8F508D345E7895DCB110E0419B91D4B1EB4073B (void);
+extern void AssemblyManager_Start_m06A581902A0D95C584159A36F1C8FC4F8D23495D (void);
+extern void AssemblyManager_OnNextClicked_mDB8A8334FEBFFEFBD180BFECC0304D98587ECDE8 (void);
+extern void AssemblyManager_OnBackClicked_m2F26DDC62D1F1D8FC2BA1AC708532AD8DAF572AD (void);
+extern void AssemblyManager_SetId_mDC692B005732EB0A5A80E192D568C676ED2A7E10 (void);
+extern void AssemblyManager_UpdateUI_mEB386285B1CB415BC24BFEB4C753013E9DFC746F (void);
+extern void AssemblyManager__ctor_m7678E3FA50D5ACA222A61A5CF268846A770C94C6 (void);
+extern void Readme__ctor_m69C325C4C171DCB0312B646A9034AA91EA8C39C6 (void);
+extern void Section__ctor_m5F732533E4DFC0167D965E5F5DB332E46055399B (void);
+static Il2CppMethodPointer s_methodPointers[11] = 
+{
+	SendToFlutter_Send_mC3EEBDA79530F83C75829EFC506B20AF3C9B16AE,
+	SendToFlutter__ctor_mC1E72A3BCF91ABFED2B53D4D12E5D43091965061,
+	AssemblyStep__ctor_mF8F508D345E7895DCB110E0419B91D4B1EB4073B,
+	AssemblyManager_Start_m06A581902A0D95C584159A36F1C8FC4F8D23495D,
+	AssemblyManager_OnNextClicked_mDB8A8334FEBFFEFBD180BFECC0304D98587ECDE8,
+	AssemblyManager_OnBackClicked_m2F26DDC62D1F1D8FC2BA1AC708532AD8DAF572AD,
+	AssemblyManager_SetId_mDC692B005732EB0A5A80E192D568C676ED2A7E10,
+	AssemblyManager_UpdateUI_mEB386285B1CB415BC24BFEB4C753013E9DFC746F,
+	AssemblyManager__ctor_m7678E3FA50D5ACA222A61A5CF268846A770C94C6,
+	Readme__ctor_m69C325C4C171DCB0312B646A9034AA91EA8C39C6,
+	Section__ctor_m5F732533E4DFC0167D965E5F5DB332E46055399B,
+};
+static const int32_t s_InvokerIndices[11] = 
+{
+	23049,
+	13755,
+	13755,
+	13755,
+	13755,
+	13755,
+	10446,
+	13755,
+	13755,
+	13755,
+	13755,
+};
+IL2CPP_EXTERN_C const Il2CppCodeGenModule g_AssemblyU2DCSharp_CodeGenModule;
+const Il2CppCodeGenModule g_AssemblyU2DCSharp_CodeGenModule = 
+{
+	"Assembly-CSharp.dll",
+	11,
+	s_methodPointers,
+	0,
+	NULL,
+	s_InvokerIndices,
+	0,
+	NULL,
+	0,
+	NULL,
+	0,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+};

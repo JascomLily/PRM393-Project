@@ -42,7 +42,9 @@ dependencies:
   geolocator: ^14.1.2
   image_picker: ^1.2.4
   mobile_scanner: ^7.4.2
-  permission_handler: ^13.0.2
+  permission_handler: ^12.0.1
+  flutter_embed_unity: ^2.0.0
+  flutter_embed_unity_6000_0_android: ^2.0.0
 
 dev_dependencies:
   flutter_test:
