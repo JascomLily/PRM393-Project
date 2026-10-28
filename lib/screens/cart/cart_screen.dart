@@ -415,7 +415,12 @@ class _CartScreenState extends State<CartScreen> {
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (_) => const CheckoutScreen()),
+                                  MaterialPageRoute(
+                                    builder: (_) => CheckoutScreen(
+                                      amount: cart.getFinalTotal(userCoins),
+                                      coinsUsed: cart.useFurniCoins ? (cart.getCoinsDiscount(userCoins) ~/ 1000) : 0,
+                                    ),
+                                  ),
                                 );
                               },
                               child: const Text('Thanh toán ngay'),
