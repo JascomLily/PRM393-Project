@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/cart_item_model.dart';
 import '../models/voucher_model.dart';
 import '../data/mock_data.dart';
+import '../services/supabase_service.dart';
 
 class CartProvider extends ChangeNotifier {
   final List<CartItemModel> _items = [
@@ -11,7 +12,7 @@ class CartProvider extends ChangeNotifier {
       price: 25000,
       quantity: 2,
       image:
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuAL8hG0kckF4v2k3krGiYybPv1_HBGUBxEQ6dLhi8-AxcfXp17rIqftn9wSVVMHEjKOR1FZtIIZPJL6tUBEWXpfYrGVSx1nXBsm1VlvZeLz7cWDNXeHrJNWN7Bp8auZKI8kGndcJEJ2n0bJ0TBNKnzFJPYGBdDz1aUdeZdgUrZVoh_NWS0IhYc3GzaRAHEkJuB-wgEy0zPLbtIBbga167FHSgy4WKgVtc8M0F9htq51l9YGRhB01IvvfA',
+          'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&w=800&q=80',
       variant: 'Túi 10 cái',
     ),
   ];
@@ -20,10 +21,24 @@ class CartProvider extends ChangeNotifier {
   bool _useFurniCoins = false;
   final List<VoucherModel> _vouchers = getMockVouchers();
 
-  List<CartItemModel> get items => _items;
+  CartProvider() {
+    loadVouchersFromSupabase();
+  }
+
+  Future<void> loadVouchersFromSupabase() async {
+    if (!SupabaseService.isConfigured) return;
+    final remote = await SupabaseService.fetchVouchers();
+    if (remote != null && remote.isNotEmpty) {
+      _vouchers.clear();
+      _vouchers.addAll(remote);
+      notifyListeners();
+    }
+  }
+
+  List<CartItemModel> get items => List.unmodifiable(_items);
   VoucherModel? get appliedVoucher => _appliedVoucher;
   bool get useFurniCoins => _useFurniCoins;
-  List<VoucherModel> get vouchers => _vouchers;
+  List<VoucherModel> get vouchers => List.unmodifiable(_vouchers);
 
   int get itemCount => _items.fold(0, (sum, item) => sum + item.quantity);
 
@@ -136,6 +151,51 @@ class CartProvider extends ChangeNotifier {
 
   void setUseFurniCoins(bool value) {
     _useFurniCoins = value;
+    notifyListeners();
+  }
+
+  // QUẢN LÝ MÃ KHUYẾN MÃI
+  void addVoucher(VoucherModel voucher) {
+    _vouchers.insert(0, voucher);
+    notifyListeners();
+    if (SupabaseService.isConfigured) {
+      SupabaseService.upsertVoucher(voucher);
+    }
+  }
+
+  void updateVoucher(VoucherModel updated) {
+    final index = _vouchers.indexWhere((v) => v.code == updated.code);
+    if (index != -1) {
+      _vouchers[index] = updated;
+      if (_appliedVoucher?.code == updated.code) {
+        _appliedVoucher = updated;
+      }
+      notifyListeners();
+      if (SupabaseService.isConfigured) {
+        SupabaseService.upsertVoucher(updated);
+      }
+    }
+  }
+
+  void toggleVoucher(String code) {
+    final index = _vouchers.indexWhere((v) => v.code == code);
+    if (index != -1) {
+      _vouchers[index].isActive = !_vouchers[index].isActive;
+      if (!_vouchers[index].isActive && _appliedVoucher?.code == code) {
+        _appliedVoucher = null;
+      }
+      notifyListeners();
+      if (SupabaseService.isConfigured) {
+        SupabaseService.upsertVoucher(_vouchers[index]);
+      }
+    }
+  }
+
+  void deleteVoucher(String code) {
+    _vouchers.removeWhere((v) => v.code == code);
+    if (_appliedVoucher?.code == code) {
+      _appliedVoucher = null;
+    }
     notifyListeners();
   }
 }

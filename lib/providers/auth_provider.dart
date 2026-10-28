@@ -1,3 +1,4 @@
+import '../services/supabase_service.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,14 +8,59 @@ import '../data/mock_data.dart';
 class AuthProvider extends ChangeNotifier {
   UserModel? _currentUser;
   bool _isLoading = false;
+  final List<UserModel> _users = [];
 
   UserModel? get currentUser => _currentUser;
   bool get isLoggedIn => _currentUser != null;
   bool get isAdmin => _currentUser?.isAdmin ?? false;
   bool get isLoading => _isLoading;
+  List<UserModel> get allUsers => List.unmodifiable(_users);
 
   AuthProvider() {
+    _initSampleUsers();
     _loadUserFromStorage();
+  }
+
+  void _initSampleUsers() {
+    _users.addAll([
+      getInitialUser(),
+      UserModel(
+        id: 'usr-admin-01',
+        name: 'Quản Trị Viên Sofa so good',
+        email: 'admin@furni3d.vn',
+        phone: '1900 8383',
+        avatar:
+            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+        furniCoins: 9999,
+        savedAddress: 'Trụ sở Sofa so good, Tầng 32 Landmark 81, TP. Hồ Chí Minh',
+        role: 'admin',
+        isActive: true,
+      ),
+      UserModel(
+        id: 'usr-cust-02',
+        name: 'Nguyễn Văn An',
+        email: 'an.nguyen@gmail.com',
+        phone: '0912 345 678',
+        avatar:
+            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+        furniCoins: 350,
+        savedAddress: 'Số 45 Lê Duẩn, Quận 1, TP. Hồ Chí Minh',
+        role: 'customer',
+        isActive: true,
+      ),
+      UserModel(
+        id: 'usr-cust-03',
+        name: 'Trần Thị Mai',
+        email: 'mai.tran@gmail.com',
+        phone: '0977 889 900',
+        avatar:
+            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+        furniCoins: 500,
+        savedAddress: 'Căn hộ Masteri Thảo Điền, TP. Thủ Đức, TP. Hồ Chí Minh',
+        role: 'customer',
+        isActive: true,
+      ),
+    ]);
   }
 
   Future<void> _loadUserFromStorage() async {
@@ -24,7 +70,6 @@ class AuthProvider extends ChangeNotifier {
       if (userStr != null) {
         _currentUser = UserModel.fromJson(jsonDecode(userStr));
       } else {
-        // Default demo customer for initial experience
         _currentUser = getInitialUser();
       }
     } catch (_) {
@@ -51,23 +96,40 @@ class AuthProvider extends ChangeNotifier {
 
     await Future.delayed(const Duration(milliseconds: 600));
 
-    final isAdmin = email.toLowerCase().contains('admin');
-    _currentUser = UserModel(
-      id: 'usr-${DateTime.now().millisecondsSinceEpoch}',
-      name: isAdmin
-          ? 'Quản Trị Viên Furni3D'
-          : (email.toLowerCase() == 'customer@furni3d.vn' ? 'Đặng Thảo Vy' : email.split('@')[0]),
-      email: email,
-      phone: isAdmin ? '1900 8383' : '0983 838 311',
-      avatar: isAdmin
-          ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
-          : kUserAvatar,
-      furniCoins: isAdmin ? 9999 : 150,
-      savedAddress: isAdmin
-          ? 'Trụ sở Furni3D, Tầng 32 Landmark 81, TP. Hồ Chí Minh'
-          : 'Tòa nhà Landmark 81, P. 22, Q. Bình Thạnh, TP. Hồ Chí Minh',
-      role: isAdmin ? 'admin' : 'customer',
-    );
+    final existingIndex = _users.indexWhere(
+        (u) => u.email.toLowerCase() == email.toLowerCase().trim());
+    if (existingIndex != -1) {
+      final user = _users[existingIndex];
+      if (!user.isActive) {
+        _isLoading = false;
+        notifyListeners();
+        throw Exception(
+            'Tài khoản này đã bị vô hiệu hóa bởi Quản trị viên. Vui lòng liên hệ bộ phận hỗ trợ.');
+      }
+      _currentUser = user;
+    } else {
+      final isAdmin = email.toLowerCase().contains('admin');
+      _currentUser = UserModel(
+        id: 'usr-${DateTime.now().millisecondsSinceEpoch}',
+        name: isAdmin
+            ? 'Quản Trị Viên Sofa so good'
+            : (email.toLowerCase() == 'customer@furni3d.vn'
+                ? 'Đặng Thảo Vy'
+                : email.split('@')[0]),
+        email: email.trim(),
+        phone: isAdmin ? '1900 8383' : '0983 838 311',
+        avatar: isAdmin
+            ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
+            : kUserAvatar,
+        furniCoins: isAdmin ? 9999 : 150,
+        savedAddress: isAdmin
+            ? 'Trụ sở Sofa so good, Tầng 32 Landmark 81, TP. Hồ Chí Minh'
+            : 'Tòa nhà Landmark 81, P. 22, Q. Bình Thạnh, TP. Hồ Chí Minh',
+        role: isAdmin ? 'admin' : 'customer',
+        isActive: true,
+      );
+      _users.add(_currentUser!);
+    }
 
     _isLoading = false;
     await _saveUserToStorage();
@@ -83,7 +145,7 @@ class AuthProvider extends ChangeNotifier {
 
     _currentUser = UserModel(
       id: 'google-${DateTime.now().millisecondsSinceEpoch}',
-      name: 'Google User Demo',
+      name: 'Đặng Thảo Vy',
       email: 'customer@furni3d.vn',
       phone: '0983 838 311',
       avatar:
@@ -91,6 +153,7 @@ class AuthProvider extends ChangeNotifier {
       furniCoins: 200,
       savedAddress: 'Tòa nhà Landmark 81, P. 22, Q. Bình Thạnh, TP. Hồ Chí Minh',
       role: 'customer',
+      isActive: true,
     );
 
     _isLoading = false;
@@ -110,19 +173,37 @@ class AuthProvider extends ChangeNotifier {
 
     await Future.delayed(const Duration(milliseconds: 700));
 
+    final normalizedEmail = email.trim().toLowerCase();
+    if (_users.any((u) => u.email.trim().toLowerCase() == normalizedEmail)) {
+      _isLoading = false;
+      notifyListeners();
+      throw Exception('Email này đã được sử dụng. Vui lòng đăng nhập hoặc dùng email khác.');
+    }
+
     _currentUser = UserModel(
       id: 'reg-${DateTime.now().millisecondsSinceEpoch}',
-      name: name,
-      email: email,
-      phone: phone,
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
       avatar:
           'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-      furniCoins: 100, // Tặng ngay 100 Xu chào mừng
+      furniCoins: 100, // Chào mừng thành viên mới
       savedAddress: address?.isNotEmpty == true
-          ? address!
+          ? address!.trim()
           : 'Chưa thiết lập địa chỉ mặc định',
       role: 'customer',
+      isActive: true,
     );
+
+    _users.insert(0, _currentUser!);
+
+    // Đồng bộ nếu có Supabase Cloud
+    try {
+      final client = SupabaseService.client;
+      if (client != null) {
+        await client.auth.signUp(email: email.trim(), password: password);
+      }
+    } catch (_) {}
 
     _isLoading = false;
     await _saveUserToStorage();
@@ -144,17 +225,42 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateFullProfile({
+    required String name,
+    required String email,
+    required String phone,
+    required String address,
+    String? avatar,
+  }) {
+    if (_currentUser == null) return;
+    _currentUser!.name = name;
+    _currentUser!.email = email;
+    _currentUser!.phone = phone;
+    _currentUser!.savedAddress = address;
+    if (avatar != null && avatar.trim().isNotEmpty) {
+      _currentUser!.avatar = avatar.trim();
+    }
+    final idx = _users.indexWhere((u) => u.id == _currentUser!.id);
+    if (idx != -1) {
+      _users[idx] = _currentUser!;
+    }
+    _saveUserToStorage();
+    notifyListeners();
+  }
+
   void updateProfile({
     required String name,
     required String phone,
     required String address,
   }) {
     if (_currentUser == null) return;
-    _currentUser!.name = name;
-    _currentUser!.phone = phone;
-    _currentUser!.savedAddress = address;
-    _saveUserToStorage();
-    notifyListeners();
+    updateFullProfile(
+      name: name,
+      email: _currentUser!.email,
+      phone: phone,
+      address: address,
+      avatar: _currentUser!.avatar,
+    );
   }
 
   void deductCoins(int coins) {
@@ -170,5 +276,47 @@ class AuthProvider extends ChangeNotifier {
     _currentUser!.furniCoins += coins;
     _saveUserToStorage();
     notifyListeners();
+  }
+
+  // Quản Lý Tài Khoản Người Dùng (Admin & Profile)
+  void toggleUserRole(String userId) {
+    final index = _users.indexWhere((u) => u.id == userId);
+    if (index != -1) {
+      _users[index].role =
+          _users[index].role == 'customer' ? 'admin' : 'customer';
+      if (_currentUser?.id == userId) {
+        _currentUser!.role = _users[index].role;
+        _saveUserToStorage();
+      }
+      notifyListeners();
+    }
+  }
+
+  void toggleUserActive(String userId) {
+    final index = _users.indexWhere((u) => u.id == userId);
+    if (index != -1) {
+      _users[index].isActive = !_users[index].isActive;
+      if (_currentUser?.id == userId) {
+        _currentUser!.isActive = _users[index].isActive;
+        _saveUserToStorage();
+      }
+      notifyListeners();
+    }
+  }
+
+  void deleteUser(String userId) {
+    _users.removeWhere((u) => u.id == userId);
+    if (_currentUser?.id == userId) {
+      logout();
+    } else {
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteMyAccount() async {
+    if (_currentUser == null) return;
+    final currentId = _currentUser!.id;
+    _users.removeWhere((u) => u.id == currentId);
+    await logout();
   }
 }

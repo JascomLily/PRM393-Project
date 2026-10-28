@@ -33,6 +33,42 @@ class ProductModel {
     required this.modelCode,
   });
 
+  ProductModel copyWith({
+    String? id,
+    String? name,
+    String? subtitle,
+    String? material,
+    int? price,
+    int? originalPrice,
+    double? rating,
+    int? reviewCount,
+    String? image,
+    String? badge,
+    String? category,
+    int? assemblyTimeMinutes,
+    String? description,
+    bool? is3dReady,
+    String? modelCode,
+  }) {
+    return ProductModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      subtitle: subtitle ?? this.subtitle,
+      material: material ?? this.material,
+      price: price ?? this.price,
+      originalPrice: originalPrice ?? this.originalPrice,
+      rating: rating ?? this.rating,
+      reviewCount: reviewCount ?? this.reviewCount,
+      image: image ?? this.image,
+      badge: badge ?? this.badge,
+      category: category ?? this.category,
+      assemblyTimeMinutes: assemblyTimeMinutes ?? this.assemblyTimeMinutes,
+      description: description ?? this.description,
+      is3dReady: is3dReady ?? this.is3dReady,
+      modelCode: modelCode ?? this.modelCode,
+    );
+  }
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,

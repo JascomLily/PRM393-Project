@@ -10,7 +10,7 @@
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
-        android:label="furni3d_mobile"
+        android:label="Sofa so good"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

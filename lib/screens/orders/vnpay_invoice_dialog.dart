@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../theme/app_theme.dart';
 import '../../models/order_model.dart';
 
 class VnpayInvoiceDialog extends StatelessWidget {
@@ -12,9 +13,15 @@ class VnpayInvoiceDialog extends StatelessWidget {
     final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      child: Container(
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: AppTheme.softShadow,
+        ),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -30,7 +37,7 @@ class VnpayInvoiceDialog extends StatelessWidget {
                       SizedBox(width: 8),
                       Text(
                         'Hóa đơn điện tử VNPAY',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
                       ),
                     ],
                   ),
@@ -45,14 +52,14 @@ class VnpayInvoiceDialog extends StatelessWidget {
 
               // Company Info
               const Text(
-                'CÔNG TY TNHH NỘI THẤT FURNI3D VIỆT NAM',
+                'CÔNG TY TNHH NỘI THẤT SOFA SO GOOD',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
               ),
               const Text(
                 'MST: 0317894211 • Hotline: 1900 8383\nTầng 32, Landmark 81, TP. Hồ Chí Minh',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 10, color: Color(0xFF717973), height: 1.3),
+                style: TextStyle(fontSize: 10, color: AppTheme.textMuted, height: 1.3),
               ),
               const SizedBox(height: 14),
 
@@ -67,7 +74,7 @@ class VnpayInvoiceDialog extends StatelessWidget {
               const Divider(height: 20),
 
               // Items table
-              const Text('CHI TIẾT SẢN PHẨM & DỊCH VỤ:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF717973))),
+              const Text('CHI TIẾT SẢN PHẨM & DỊCH VỤ:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textMuted)),
               const SizedBox(height: 8),
               ...order.items.map((item) => Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
@@ -94,67 +101,47 @@ class VnpayInvoiceDialog extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('TỔNG THANH TOÁN:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  const Text('TỔNG THANH TOÁN:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                   Text(
                     currencyFormatter.format(order.totalAmount),
-                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Color(0xFF2D5A46)),
+                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppTheme.primary),
                   ),
                 ],
               ),
               const SizedBox(height: 14),
 
-              // Verified Badge
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFBCEED3).withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.verified, size: 16, color: Color(0xFF134230)),
-                    SizedBox(width: 6),
-                    Text(
-                      'GIAO DỊCH ĐÃ ĐỐI SOÁT & XÁC NHẬN BỞI VNPAY',
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF134230)),
+              // Paid Stamp
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppTheme.primary, width: 2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'ĐÃ ĐỐI SOÁT & THANH TOÁN VNPAY',
+                    style: TextStyle(
+                      color: AppTheme.primary,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 10,
+                      letterSpacing: 1.1,
                     ),
-                  ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
-              // Action buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.download, size: 16),
-                      label: const Text('Lưu PDF', style: TextStyle(fontSize: 12)),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Đã xuất file hóa đơn điện tử #${order.code}.pdf')),
-                        );
-                      },
+              ElevatedButton.icon(
+                icon: const Icon(Icons.print_outlined, size: 16),
+                label: const Text('In / Lưu hóa đơn PDF'),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      backgroundColor: AppTheme.primary,
+                      content: Text('Đang trích xuất hóa đơn điện tử VNPAY sang file PDF...'),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2D5A46),
-                        foregroundColor: Colors.white,
-                      ),
-                      icon: const Icon(Icons.print, size: 16),
-                      label: const Text('In hóa đơn', style: TextStyle(fontSize: 12)),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Đang kết nối máy in không dây...')),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+                  );
+                },
               ),
             ],
           ),
@@ -168,18 +155,21 @@ class VnpayInvoiceDialog extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 2.5),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF717973))),
-          const SizedBox(width: 8),
-          Flexible(
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+            ),
+          ),
+          Expanded(
             child: Text(
               value,
-              textAlign: TextAlign.right,
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
-                color: color ?? const Color(0xFF161B28),
+                color: color ?? AppTheme.textPrimary,
               ),
             ),
           ),

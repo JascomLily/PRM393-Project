@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../theme/app_theme.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/auth_provider.dart';
-import '../auth/login_screen.dart';
 import '../checkout/checkout_screen.dart';
 
 class CartScreen extends StatefulWidget {
@@ -22,6 +22,90 @@ class _CartScreenState extends State<CartScreen> {
     super.dispose();
   }
 
+  void _showVoucherPicker(BuildContext context, CartProvider cart) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Mã Giảm Giá Khả Dụng',
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 20),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ...cart.vouchers.where((v) => v.isActive).map((v) {
+                final isApplied = cart.appliedVoucher?.code == v.code;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: isApplied ? AppTheme.primaryMint : AppTheme.surfaceAlt,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isApplied ? AppTheme.primary : AppTheme.border,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            v.code,
+                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                          ),
+                          Text(
+                            v.title,
+                            style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                          ),
+                        ],
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isApplied ? AppTheme.primaryLight : AppTheme.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        onPressed: () {
+                          if (isApplied) {
+                            cart.removeVoucher();
+                          } else {
+                            cart.applyVoucher(v.code);
+                          }
+                          Navigator.pop(ctx);
+                        },
+                        child: Text(isApplied ? 'Đang dùng' : 'Áp dụng', style: const TextStyle(fontSize: 11)),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
@@ -30,24 +114,17 @@ class _CartScreenState extends State<CartScreen> {
     final userCoins = auth.currentUser?.furniCoins ?? 0;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF8FF),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
         title: Text(
-          'Giỏ hàng (${cart.itemCount})',
-          style: const TextStyle(
-            color: Color(0xFF161B28),
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
+          'Giỏ Hàng (${cart.itemCount})',
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
         ),
-        centerTitle: true,
         actions: [
           if (cart.items.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.delete_sweep_outlined, color: Colors.red),
-              tooltip: 'Xóa giỏ hàng',
+              icon: const Icon(Icons.delete_sweep_outlined, color: AppTheme.error),
+              tooltip: 'Dọn sạch giỏ',
               onPressed: () {
                 cart.clearCart();
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -63,38 +140,28 @@ class _CartScreenState extends State<CartScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF2F3FF),
-                      borderRadius: BorderRadius.circular(40),
+                    width: 72,
+                    height: 72,
+                    decoration: const BoxDecoration(
+                      color: AppTheme.surfaceAlt,
+                      shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.remove_shopping_cart_outlined,
-                      size: 40,
-                      color: Color(0xFFC0C9C2),
-                    ),
+                    child: const Icon(Icons.shopping_bag_outlined, size: 36, color: AppTheme.textMuted),
                   ),
                   const SizedBox(height: 16),
                   const Text(
                     'Giỏ hàng của bạn đang trống',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   const Text(
-                    'Khám phá các sản phẩm nội thất 3D và linh kiện chính hãng',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF717973)),
+                    'Khám phá các sản phẩm nội thất Scandinavian và linh kiện lẻ',
+                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2D5A46),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    ),
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Tiếp tục mua sắm'),
+                    child: const Text('Tiếp tục xem sản phẩm'),
                   ),
                 ],
               ),
@@ -109,19 +176,14 @@ class _CartScreenState extends State<CartScreen> {
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       final item = cart.items[index];
+
                       return Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.black.withOpacity(0.04)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.02),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+                          color: AppTheme.surface,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(color: AppTheme.border),
+                          boxShadow: AppTheme.cardShadow,
                         ),
                         child: Row(
                           children: [
@@ -129,18 +191,18 @@ class _CartScreenState extends State<CartScreen> {
                               borderRadius: BorderRadius.circular(12),
                               child: Image.network(
                                 item.image,
-                                width: 64,
-                                height: 64,
+                                width: 68,
+                                height: 68,
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, __, ___) => Container(
-                                  width: 64,
-                                  height: 64,
-                                  color: const Color(0xFFF2F3FF),
-                                  child: const Icon(Icons.chair, color: Colors.grey),
+                                  width: 68,
+                                  height: 68,
+                                  color: AppTheme.surfaceAlt,
+                                  child: const Icon(Icons.chair, color: AppTheme.textMuted),
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 14),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,31 +211,32 @@ class _CartScreenState extends State<CartScreen> {
                                     item.name,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppTheme.textPrimary),
                                   ),
                                   if (item.variant != null)
                                     Text(
                                       item.variant!,
-                                      style: const TextStyle(fontSize: 11, color: Color(0xFF717973)),
+                                      style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                                     ),
                                   const SizedBox(height: 4),
                                   Text(
                                     currencyFormatter.format(item.price),
                                     style: const TextStyle(
                                       fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF2D5A46),
+                                      fontWeight: FontWeight.w800,
+                                      color: AppTheme.primary,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
 
-                            // Quantity Controls
+                            // Quantity Adjuster
                             Container(
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF2F3FF),
-                                borderRadius: BorderRadius.circular(8),
+                                color: AppTheme.surfaceAlt,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: AppTheme.border),
                               ),
                               child: Row(
                                 children: [
@@ -184,9 +247,12 @@ class _CartScreenState extends State<CartScreen> {
                                       child: Icon(Icons.remove, size: 14),
                                     ),
                                   ),
-                                  Text(
-                                    '${item.quantity}',
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                                    child: Text(
+                                      '${item.quantity}',
+                                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+                                    ),
                                   ),
                                   InkWell(
                                     onTap: () => cart.updateQuantity(item.id, 1),
@@ -198,9 +264,9 @@ class _CartScreenState extends State<CartScreen> {
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 6),
+
                             IconButton(
-                              icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                              icon: const Icon(Icons.delete_outline, size: 18, color: AppTheme.error),
                               onPressed: () => cart.removeItem(item.id),
                             ),
                           ],
@@ -210,225 +276,151 @@ class _CartScreenState extends State<CartScreen> {
                   ),
                 ),
 
-                // Bottom Checkout & Discount Area
+                // Bottom Checkout Area
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppTheme.surface,
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.06),
-                        blurRadius: 16,
-                        offset: const Offset(0, -4),
-                      ),
-                    ],
+                    border: const Border(top: BorderSide(color: AppTheme.border)),
+                    boxShadow: AppTheme.softShadow,
                   ),
                   child: SafeArea(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Vouchers Row
-                        Row(
-                          children: [
-                            Expanded(
-                              child: SizedBox(
-                                height: 38,
-                                child: TextField(
-                                  controller: _voucherController,
-                                  decoration: InputDecoration(
-                                    hintText: 'Nhập mã (VD: JAPANDI2025)',
-                                    hintStyle: const TextStyle(fontSize: 11),
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                                    filled: true,
-                                    fillColor: const Color(0xFFF2F3FF),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                      borderSide: BorderSide.none,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF2D5A46),
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                              ),
-                              onPressed: () {
-                                final code = _voucherController.text.trim();
-                                final ok = cart.applyVoucher(code);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(ok
-                                        ? 'Đã áp dụng mã $code'
-                                        : 'Mã không hợp lệ hoặc đơn chưa đạt tối thiểu'),
-                                  ),
-                                );
-                              },
-                              child: const Text('Áp dụng', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                            ),
-                          ],
-                        ),
-
-                        // Quick vouchers chips
-                        const SizedBox(height: 8),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: cart.vouchers.map((v) {
-                              final isSelected = cart.appliedVoucher?.code == v.code;
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 6),
-                                child: InkWell(
-                                  onTap: () {
-                                    cart.applyVoucher(v.code);
-                                    _voucherController.text = v.code;
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: isSelected ? const Color(0xFF2D5A46) : const Color(0xFFE9EDFF),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      '🏷️ ${v.code}',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        color: isSelected ? Colors.white : const Color(0xFF2D5A46),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-
-                        // FurniCoins Checkbox (From Doc: "Xu để dùng cho khuyến mãi")
-                        if (auth.isLoggedIn && userCoins > 0)
-                          Container(
-                            padding: const EdgeInsets.all(10),
+                        // Voucher picker trigger
+                        InkWell(
+                          onTap: () => _showVoucherPicker(context, cart),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFEC38D).withOpacity(0.25),
+                              color: cart.appliedVoucher != null ? AppTheme.primaryMint : AppTheme.surfaceAlt,
                               borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: cart.appliedVoucher != null ? AppTheme.primary : AppTheme.border),
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.monetization_on, color: Color(0xFF805528), size: 20),
-                                const SizedBox(width: 8),
+                                const Icon(Icons.local_offer_outlined, color: AppTheme.primary, size: 18),
+                                const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
-                                    'Dùng ${cart.getCoinsUsed(userCoins)} Xu giảm -${currencyFormatter.format(cart.getCoinsDiscount(userCoins))} (Số dư: $userCoins Xu)',
-                                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF805528)),
+                                    cart.appliedVoucher != null
+                                        ? 'Đang áp mã: ${cart.appliedVoucher!.code} (-${currencyFormatter.format(cart.voucherDiscount)})'
+                                        : 'Chọn hoặc xem mã ưu đãi giảm giá',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: cart.appliedVoucher != null ? AppTheme.primary : AppTheme.textSecondary,
+                                    ),
                                   ),
                                 ),
-                                Checkbox(
+                                const Icon(Icons.chevron_right, size: 18, color: AppTheme.textSecondary),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        // FurniCoins Points Toggle
+                        if (userCoins > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppTheme.woodLight,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppTheme.wood.withOpacity(0.2)),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(Icons.monetization_on, color: AppTheme.woodDark, size: 18),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Dùng $userCoins Xu (Tiết kiệm ${currencyFormatter.format(cart.getCoinsDiscount(userCoins))})',
+                                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.woodDark),
+                                    ),
+                                  ],
+                                ),
+                                Switch(
                                   value: cart.useFurniCoins,
-                                  activeColor: const Color(0xFF805528),
-                                  onChanged: (val) {
-                                    cart.setUseFurniCoins(val ?? false);
-                                  },
+                                  activeColor: AppTheme.wood,
+                                  onChanged: (val) => cart.setUseFurniCoins(val),
                                 ),
                               ],
                             ),
                           ),
+
                         const SizedBox(height: 12),
 
-                        // Financial Breakdown
+                        // Subtotal & Shipping calculation
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Tạm tính:', style: TextStyle(fontSize: 12, color: Color(0xFF717973))),
-                            Text(currencyFormatter.format(cart.subtotal), style: const TextStyle(fontSize: 12)),
+                            const Text('Tạm tính:', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                            Text(currencyFormatter.format(cart.subtotal), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                           ],
                         ),
-                        if (cart.voucherDiscount > 0)
+                        if (cart.voucherDiscount > 0) ...[
+                          const SizedBox(height: 4),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Voucher (${cart.appliedVoucher?.code}):',
-                                  style: const TextStyle(fontSize: 12, color: Color(0xFF2D5A46))),
+                              const Text('Giảm giá voucher:', style: TextStyle(fontSize: 12, color: AppTheme.primary)),
                               Text('-${currencyFormatter.format(cart.voucherDiscount)}',
-                                  style: const TextStyle(fontSize: 12, color: Color(0xFF2D5A46), fontWeight: FontWeight.bold)),
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.primary)),
                             ],
                           ),
-                        if (cart.getCoinsDiscount(userCoins) > 0)
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Giảm trừ ví Xu:', style: TextStyle(fontSize: 12, color: Color(0xFF805528))),
-                              Text('-${currencyFormatter.format(cart.getCoinsDiscount(userCoins))}',
-                                  style: const TextStyle(fontSize: 12, color: Color(0xFF805528), fontWeight: FontWeight.bold)),
-                            ],
-                          ),
+                        ],
+                        const SizedBox(height: 4),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Phí vận chuyển:', style: TextStyle(fontSize: 12, color: Color(0xFF717973))),
+                            const Text('Phí vận chuyển:', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
                             Text(
                               cart.getShippingFee() == 0 ? 'Miễn phí' : currencyFormatter.format(cart.getShippingFee()),
                               style: TextStyle(
                                 fontSize: 12,
-                                color: cart.getShippingFee() == 0 ? Colors.green : Colors.black87,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w600,
+                                color: cart.getShippingFee() == 0 ? AppTheme.success : AppTheme.textPrimary,
                               ),
                             ),
                           ],
                         ),
-                        const Divider(height: 16),
+                        const SizedBox(height: 10),
+                        const Divider(),
+                        const SizedBox(height: 6),
+
+                        // Final Total and Checkout
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Tổng thanh toán:', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-                            Text(
-                              currencyFormatter.format(cart.getFinalTotal(userCoins)),
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF2D5A46)),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Tổng thanh toán:', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                                Text(
+                                  currencyFormatter.format(cart.getFinalTotal(userCoins)),
+                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppTheme.primary),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-
-                        // Proceed Checkout Button
-                        SizedBox(
-                          width: double.infinity,
-                          height: 48,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF2D5A46),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                              elevation: 2,
-                            ),
-                            onPressed: () {
-                              if (!auth.isLoggedIn) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Vui lòng đăng nhập để tiếp tục thanh toán')),
-                                );
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                              ),
+                              onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                                  MaterialPageRoute(builder: (_) => const CheckoutScreen()),
                                 );
-                                return;
-                              }
-
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => CheckoutScreen(
-                                    amount: cart.getFinalTotal(userCoins),
-                                    coinsUsed: cart.getCoinsUsed(userCoins),
-                                  ),
-                                ),
-                              );
-                            },
-                            child: const Text('Tiến hành thanh toán', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-                          ),
+                              },
+                              child: const Text('Thanh toán ngay'),
+                            ),
+                          ],
                         ),
                       ],
                     ),
