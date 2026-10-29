@@ -7,8 +7,15 @@ import '../../providers/cart_provider.dart';
 import '../../providers/missing_report_provider.dart';
 import 'report_missing_dialog.dart';
 
-class PartsScreen extends StatelessWidget {
+class PartsScreen extends StatefulWidget {
   const PartsScreen({super.key});
+
+  @override
+  State<PartsScreen> createState() => _PartsScreenState();
+}
+
+class _PartsScreenState extends State<PartsScreen> {
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
@@ -211,7 +218,32 @@ class PartsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            ...productProv.spareParts.map((part) {
+            TextField(
+              onChanged: (value) => setState(() => _searchQuery = value.trim().toLowerCase()),
+              decoration: InputDecoration(
+                hintText: 'Tìm theo mã hoặc tên linh kiện',
+                prefixIcon: const Icon(Icons.search, size: 20),
+                filled: true,
+                fillColor: AppTheme.surface,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(color: AppTheme.border),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(color: AppTheme.border),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            ...productProv.spareParts.where((part) {
+              if (_searchQuery.isEmpty) return true;
+              return part.name.toLowerCase().contains(_searchQuery) ||
+                  part.code.toLowerCase().contains(_searchQuery);
+            }).map((part) {
+              final stock = part.stock ?? 0;
+              final isOutOfStock = stock == 0;
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(14),
@@ -269,27 +301,41 @@ class PartsScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 6),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                currencyFormatter.format(part.price),
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.primary,
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      currencyFormatter.format(part.price),
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppTheme.primary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      isOutOfStock ? 'Hết hàng' : 'Còn $stock sản phẩm',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: isOutOfStock ? AppTheme.error : AppTheme.success,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               ElevatedButton.icon(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppTheme.primaryMint,
-                                  foregroundColor: AppTheme.primary,
+                                  backgroundColor: isOutOfStock ? AppTheme.surfaceAlt : AppTheme.primaryMint,
+                                  foregroundColor: isOutOfStock ? AppTheme.textMuted : AppTheme.primary,
                                   elevation: 0,
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                 ),
                                 icon: const Icon(Icons.add_shopping_cart, size: 14),
                                 label: const Text('Thêm vào giỏ', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                                onPressed: () {
+                                onPressed: isOutOfStock ? null : () {
                                   cart.addItem(
                                     id: part.id,
                                     name: part.name,
