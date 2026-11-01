@@ -8,6 +8,7 @@ class SparePartModel {
   final String name;
   final String code;
   final int price;
+  final int? stock;
   final String image;
   final String description;
   final String compatibleProduct;
@@ -17,6 +18,7 @@ class SparePartModel {
     required this.name,
     required this.code,
     required this.price,
+    this.stock,
     required this.image,
     required this.description,
     required this.compatibleProduct,
@@ -50,7 +52,10 @@ class ProductProvider extends ChangeNotifier {
   }
 
   List<ProductModel> get products => List.unmodifiable(_products);
-  List<SparePartModel> get spareParts => List.unmodifiable(_spareParts);
+  List<SparePartModel> get spareParts {
+    _initSpareParts();
+    return List.unmodifiable(_spareParts);
+  }
 
   void _initSpareParts() {
     _spareParts = [
@@ -59,6 +64,7 @@ class ProductProvider extends ChangeNotifier {
         name: 'Bộ ốc khóa chốt cam M6x35',
         code: 'PART-CAM-10',
         price: 25000,
+        stock: 24,
         image:
             'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&w=800&q=80',
         description: 'Túi 10 cái chốt cam thép mạ kẽm chống rỉ, dùng cho liên kết mộng âm dương.',
@@ -69,6 +75,7 @@ class ProductProvider extends ChangeNotifier {
         name: 'Bản lề giảm chấn cánh tủ inox 304',
         code: 'PART-HINGE-02',
         price: 45000,
+        stock: 8,
         image:
             'https://images.unsplash.com/photo-1532372320572-cda25653a26d?auto=format&fit=crop&w=800&q=80',
         description: 'Khớp bản lề đóng mở êm ái chống kẹt tay, chuẩn công nghệ giảm chấn Châu Âu.',
@@ -79,6 +86,7 @@ class ProductProvider extends ChangeNotifier {
         name: 'Miếng đệm cao su bọc chân bàn ghế',
         code: 'PART-PAD-04',
         price: 15000,
+        stock: 35,
         image:
             'https://images.unsplash.com/photo-1580481077111-9a7f34083049?auto=format&fit=crop&w=800&q=80',
         description: 'Bộ 4 đệm chống trầy xước sàn gỗ, giảm rung lắc và triệt tiêu tiếng ồn.',
@@ -89,6 +97,7 @@ class ProductProvider extends ChangeNotifier {
         name: 'Tay nắm đồng thau chải xước Nordic',
         code: 'PART-HANDLE-BRASS',
         price: 35000,
+        stock: 15,
         image:
             'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=800&q=80',
         description: 'Núm kéo tủ bằng đồng thau nguyên khối phủ lớp chống oxy hóa cao cấp.',
