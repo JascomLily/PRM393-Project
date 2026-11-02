@@ -49,6 +49,7 @@ struct AssemblyDetail_t175FCE577F5A50EFEF80215A64B95E216F6796C2;
 struct AssemblyManager_tE1D118B98389763192B5C8D198FDB4AB3F9EF2AA;
 struct AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7;
 struct AssemblyStep_t0DCF116B9F815DE631B4B46E9CA17F2B6DEB8C20;
+struct Camera_tA92CC927D7439999BC82DBEDC0AA45B470F9E184;
 struct CancellationTokenSource_tAAE1E0033BCFC233801F8CB4CED5C852B350CB7B;
 struct Component_t39FBE53E5EFCF4409111FB22C15FF73717632EC3;
 struct EaseFunction_t0F945D9D726B0915C5FBF30862E987EC3AC12A04;
@@ -58,6 +59,8 @@ struct IDisposable_t030E0496B4E0E4E4F086825007979AF51F7248C5;
 struct IEnumerator_t7B609C2FFA6EB5167D9C62A0C32A21DE2F666DAA;
 struct MonoBehaviour_t532A11E69716D348D8AA7F854AFCBFCB8AD17F71;
 struct Object_tC12DECB6760A7F2CBF65D9DCF18D044C2D97152C;
+struct ObjectRotator_t01C1E6B39EFE87B7EC66C546EF87AFFD968D4BA8;
+struct ObjectViewerController_tB01A622BFC6CCBC0CE8B84311CA8533A554F356D;
 struct Readme_tE17B99201D0F52BD5727638AD3F41072A65B3BBB;
 struct ScriptableObject_tB3BFDB921A1B1795B38A5417D3B97A89A140436A;
 struct SendToFlutter_tF164F5BAA326A51AB7CB75D39F7073DDDBE61698;
@@ -68,6 +71,7 @@ struct Transform_tB27202C6F4E36D225EE28A13E4D662BF99785DB1;
 struct TweenCallback_t7C8B8A38E7B30905FF1B83C943256EF23617BB24;
 struct Type_t;
 struct Void_t4861ACF8F4594C3437BB48B6E56783494B843915;
+struct CameraCallback_t844E527BFE37BC0495E7F67993E43C07642DA9DD;
 struct Section_t50C894D0A717C2368EBAAE5477D4E8626D0B5401;
 
 IL2CPP_EXTERN_C RuntimeClass* AndroidJavaClass_tE6296B30CC4BF84434A9B765267F3FD0DD8DDB03_il2cpp_TypeInfo_var;
@@ -222,6 +226,11 @@ struct Single_t4530F2FF86FCB0DC29F35385CA1BD21BE294761C
 {
 	float ___m_value;
 };
+struct Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 
+{
+	float ___x;
+	float ___y;
+};
 struct Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2 
 {
 	float ___x;
@@ -272,7 +281,19 @@ struct Object_tC12DECB6760A7F2CBF65D9DCF18D044C2D97152C_marshaled_com
 {
 	intptr_t ___m_CachedPtr;
 };
+struct Space_tF043E93E06B702DD05199C28C6F779049B38A969 
+{
+	int32_t ___value__;
+};
 struct SpecialStartupMode_t872762964D80B3C1F6CE4024236A20D3D889AC44 
+{
+	int32_t ___value__;
+};
+struct TouchPhase_t54E0A1AF80465997849420A72317B733E1D49A9E 
+{
+	int32_t ___value__;
+};
+struct TouchType_t84F82C73BC1A6012141735AD84DA67AA7F7AB43F 
 {
 	int32_t ___value__;
 };
@@ -305,6 +326,23 @@ struct ScriptableObject_tB3BFDB921A1B1795B38A5417D3B97A89A140436A_marshaled_pinv
 };
 struct ScriptableObject_tB3BFDB921A1B1795B38A5417D3B97A89A140436A_marshaled_com : public Object_tC12DECB6760A7F2CBF65D9DCF18D044C2D97152C_marshaled_com
 {
+};
+struct Touch_t03E51455ED508492B3F278903A0114FA0E87B417 
+{
+	int32_t ___m_FingerId;
+	Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___m_Position;
+	Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___m_RawPosition;
+	Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___m_PositionDelta;
+	float ___m_TimeDelta;
+	int32_t ___m_TapCount;
+	int32_t ___m_Phase;
+	int32_t ___m_Type;
+	float ___m_Pressure;
+	float ___m_maximumPossiblePressure;
+	float ___m_Radius;
+	float ___m_RadiusVariance;
+	float ___m_AltitudeAngle;
+	float ___m_AzimuthAngle;
 };
 struct VectorOptions_t2814CC842518C92C9DFC5DE6F7A73824758D3EF9 
 {
@@ -392,6 +430,10 @@ struct Tween_t8CB06EBC48A5B6F5065C490E4F4909C18CE7983C  : public ABSSequentiable
 	bool ___delayComplete;
 	int32_t ___miscInt;
 };
+struct Camera_tA92CC927D7439999BC82DBEDC0AA45B470F9E184  : public Behaviour_t01970CFBBA658497AE30F311C447DB0440BAB7FA
+{
+	uint32_t ___m_NonSerializedVersion;
+};
 struct MonoBehaviour_t532A11E69716D348D8AA7F854AFCBFCB8AD17F71  : public Behaviour_t01970CFBBA658497AE30F311C447DB0440BAB7FA
 {
 	CancellationTokenSource_tAAE1E0033BCFC233801F8CB4CED5C852B350CB7B* ___m_CancellationTokenSource;
@@ -440,6 +482,26 @@ struct AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7  : public MonoBe
 	int32_t ___animationEase;
 	int32_t ___currentStepIndex;
 };
+struct ObjectRotator_t01C1E6B39EFE87B7EC66C546EF87AFFD968D4BA8  : public MonoBehaviour_t532A11E69716D348D8AA7F854AFCBFCB8AD17F71
+{
+	float ___rotationSpeed;
+	float ___minVerticalAngle;
+	float ___maxVerticalAngle;
+	Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___previousPosition;
+	float ___currentVerticalAngle;
+};
+struct ObjectViewerController_tB01A622BFC6CCBC0CE8B84311CA8533A554F356D  : public MonoBehaviour_t532A11E69716D348D8AA7F854AFCBFCB8AD17F71
+{
+	float ___rotationSpeed;
+	float ___minVerticalAngle;
+	float ___maxVerticalAngle;
+	Camera_tA92CC927D7439999BC82DBEDC0AA45B470F9E184* ___targetCamera;
+	float ___zoomSpeed;
+	float ___minFOV;
+	float ___maxFOV;
+	Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___previousPosition;
+	float ___currentVerticalAngle;
+};
 struct List_1_t2B1809BFB417328866AD0F070197BEAB5DBCDDED_StaticFields
 {
 	AssemblyStepU5BU5D_tBFED11D136F383080288B93E2F8409D32231ECB0* ___s_emptyArray;
@@ -465,6 +527,17 @@ struct Quaternion_tDA59F214EF07D7700B26E40E562F267AF7306974_StaticFields
 {
 	Quaternion_tDA59F214EF07D7700B26E40E562F267AF7306974 ___identityQuaternion;
 };
+struct Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7_StaticFields
+{
+	Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___zeroVector;
+	Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___oneVector;
+	Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___upVector;
+	Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___downVector;
+	Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___leftVector;
+	Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___rightVector;
+	Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___positiveInfinityVector;
+	Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___negativeInfinityVector;
+};
 struct Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2_StaticFields
 {
 	Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2 ___zeroVector;
@@ -481,6 +554,12 @@ struct Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2_StaticFields
 struct Object_tC12DECB6760A7F2CBF65D9DCF18D044C2D97152C_StaticFields
 {
 	int32_t ___OffsetOfInstanceIDInCPlusPlusObject;
+};
+struct Camera_tA92CC927D7439999BC82DBEDC0AA45B470F9E184_StaticFields
+{
+	CameraCallback_t844E527BFE37BC0495E7F67993E43C07642DA9DD* ___onPreCull;
+	CameraCallback_t844E527BFE37BC0495E7F67993E43C07642DA9DD* ___onPreRender;
+	CameraCallback_t844E527BFE37BC0495E7F67993E43C07642DA9DD* ___onPostRender;
 };
 #ifdef __clang__
 #pragma clang diagnostic pop
@@ -575,6 +654,8 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool String_op_Equality_m030E1B219352228970A0
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void ScriptableObject__ctor_mD037FDB0B487295EA47F79A4DB1BF1846C9087FF (ScriptableObject_tB3BFDB921A1B1795B38A5417D3B97A89A140436A* __this, const RuntimeMethod* method) ;
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyObject_OnNextClicked_m9420FA1112AFC8E8992F01DEB8C29D66830F039A (AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7* __this, const RuntimeMethod* method) ;
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyObject_OnBackClicked_m4931A9F9DC8C2438E4BC5EF37C2B20496C94E77C (AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7* __this, const RuntimeMethod* method) ;
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR Camera_tA92CC927D7439999BC82DBEDC0AA45B470F9E184* Camera_get_main_m52C992F18E05355ABB9EEB64A4BF2215E12762DF (const RuntimeMethod* method) ;
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void Camera_set_fieldOfView_m5AA9EED4D1603A1DEDBF883D9C42814B2BDEB777 (Camera_tA92CC927D7439999BC82DBEDC0AA45B470F9E184* __this, float ___0_value, const RuntimeMethod* method) ;
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyManager_SpawnProduct_m80F16C7007A6B4CD7B547FFD8EAC9B4D7A78855C (AssemblyManager_tE1D118B98389763192B5C8D198FDB4AB3F9EF2AA* __this, const RuntimeMethod* method) ;
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7* AssemblyConfig_GetAssemblyObjectById_mAC8603FDAFA3A85D1FC47CC7C0A977BD4304BFF1 (AssemblyConfig_t822EC76556436CE7A791435D997528EE53149262* __this, String_t* ___0_id, const RuntimeMethod* method) ;
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool Object_op_Inequality_mD0BE578448EAA61948F25C32F8DD55AB1F778602 (Object_tC12DECB6760A7F2CBF65D9DCF18D044C2D97152C* ___0_x, Object_tC12DECB6760A7F2CBF65D9DCF18D044C2D97152C* ___1_y, const RuntimeMethod* method) ;
@@ -642,6 +723,21 @@ inline void List_1__ctor_m60D2BD92A5DBD277250697F316B7605D4B3DDEEF (List_1_t2B18
 {
 	((  void (*) (List_1_t2B1809BFB417328866AD0F070197BEAB5DBCDDED*, const RuntimeMethod*))List_1__ctor_m7F078BB342729BDF11327FD89D7872265328F690_gshared)(__this, method);
 }
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2 Transform_get_eulerAngles_mCAAF48EFCF628F1ED91C2FFE75A4FD19C039DD6A (Transform_tB27202C6F4E36D225EE28A13E4D662BF99785DB1* __this, const RuntimeMethod* method) ;
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR int32_t Input_get_touchCount_m057388BFC67A0F4CA53764B1022867ED81D01E39 (const RuntimeMethod* method) ;
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR Touch_t03E51455ED508492B3F278903A0114FA0E87B417 Input_GetTouch_m75D99FE801A94279874FA8DC6B6ADAD35F5123B1 (int32_t ___0_index, const RuntimeMethod* method) ;
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR int32_t Touch_get_phase_mB82409FB2BE1C32ABDBA6A72E52A099D28AB70B0 (Touch_t03E51455ED508492B3F278903A0114FA0E87B417* __this, const RuntimeMethod* method) ;
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 Touch_get_position_m41B9EB0F3F3E1BE98CEB388253A9E31979CB964A (Touch_t03E51455ED508492B3F278903A0114FA0E87B417* __this, const RuntimeMethod* method) ;
+IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 Vector2_op_Subtraction_m44475FCDAD2DA2F98D78A6625EC2DCDFE8803837_inline (Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___0_a, Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___1_b, const RuntimeMethod* method) ;
+IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR float Mathf_Clamp_mEB9AEA827D27D20FCC787F7375156AF46BB12BBF_inline (float ___0_value, float ___1_min, float ___2_max, const RuntimeMethod* method) ;
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void Transform_Rotate_m683E67853797040312868B69E963D0E97F433EEB (Transform_tB27202C6F4E36D225EE28A13E4D662BF99785DB1* __this, Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2 ___0_axis, float ___1_angle, int32_t ___2_relativeTo, const RuntimeMethod* method) ;
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void Transform_set_eulerAngles_m9F0BC484A7915A51FAB87230644229B75BACA004 (Transform_tB27202C6F4E36D225EE28A13E4D662BF99785DB1* __this, Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2 ___0_value, const RuntimeMethod* method) ;
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR bool Object_op_Equality_mB6120F782D83091EF56A198FCEBCF066DB4A9605 (Object_tC12DECB6760A7F2CBF65D9DCF18D044C2D97152C* ___0_x, Object_tC12DECB6760A7F2CBF65D9DCF18D044C2D97152C* ___1_y, const RuntimeMethod* method) ;
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void ObjectViewerController_HandleRotation_mF6AA7AF991E08EDABE3F3D7BCEDE0A1AC61E01F0 (ObjectViewerController_tB01A622BFC6CCBC0CE8B84311CA8533A554F356D* __this, const RuntimeMethod* method) ;
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void ObjectViewerController_HandleZoom_mE6C944273B78256577260F5EE43EABE7EDF095AC (ObjectViewerController_tB01A622BFC6CCBC0CE8B84311CA8533A554F356D* __this, const RuntimeMethod* method) ;
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 Touch_get_deltaPosition_m2D51F960B74C94821ED0F6A09E44C80FD796D299 (Touch_t03E51455ED508492B3F278903A0114FA0E87B417* __this, const RuntimeMethod* method) ;
+IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR float Vector2_Distance_mBACBB1609E1894D68F882D86A93519E311810C89_inline (Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___0_a, Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___1_b, const RuntimeMethod* method) ;
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR float Camera_get_fieldOfView_m9A93F17BBF89F496AE231C21817AFD1C1E833FBB (Camera_tA92CC927D7439999BC82DBEDC0AA45B470F9E184* __this, const RuntimeMethod* method) ;
 IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2 Vector3_Normalize_m1DE89849FE2019B6AA0031306896F3B800849399_inline (Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2* ___0_value, const RuntimeMethod* method) ;
 inline void List_1_AddWithResize_m79A9BF770BEF9C06BE40D5401E55E375F2726CC4 (List_1_tA239CB83DE5615F348BB0507E45F490F4F7C9A8D* __this, RuntimeObject* ___0_item, const RuntimeMethod* method)
 {
@@ -661,7 +757,7 @@ IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR float Vector3_get_magnitude_mF0D6
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 #pragma clang diagnostic ignored "-Wunused-variable"
 #endif
-// Method Definition Index: 69160
+// Method Definition Index: 69144
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void SendToFlutter_Send_mC3EEBDA79530F83C75829EFC506B20AF3C9B16AE (String_t* ___0_data, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -733,7 +829,7 @@ IL_002c:
 		return;
 	}
 }
-// Method Definition Index: 69161
+// Method Definition Index: 69145
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void SendToFlutter__ctor_mC1E72A3BCF91ABFED2B53D4D12E5D43091965061 (SendToFlutter_tF164F5BAA326A51AB7CB75D39F7073DDDBE61698* __this, const RuntimeMethod* method) 
 {
 	//<source_info:<no-source>:1>
@@ -750,7 +846,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void SendToFlutter__ctor_mC1E72A3BCF91ABFED2B
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 #pragma clang diagnostic ignored "-Wunused-variable"
 #endif
-// Method Definition Index: 69162
+// Method Definition Index: 69146
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7* AssemblyConfig_GetAssemblyObjectById_mAC8603FDAFA3A85D1FC47CC7C0A977BD4304BFF1 (AssemblyConfig_t822EC76556436CE7A791435D997528EE53149262* __this, String_t* ___0_id, const RuntimeMethod* method) 
 {
 	AssemblyDetailU5BU5D_t7E1FA328B7023B6F7F71B46E5BEFCDF0637A5372* V_0 = NULL;
@@ -821,7 +917,7 @@ IL_0032:
 		return (AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7*)NULL;
 	}
 }
-// Method Definition Index: 69163
+// Method Definition Index: 69147
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyConfig__ctor_mFC61880FBAEBA84F9F3645434028D442FB5FF53C (AssemblyConfig_t822EC76556436CE7A791435D997528EE53149262* __this, const RuntimeMethod* method) 
 {
 	//<source_info:<no-source>:1>
@@ -838,7 +934,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyConfig__ctor_mFC61880FBAEBA84F9F
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 #pragma clang diagnostic ignored "-Wunused-variable"
 #endif
-// Method Definition Index: 69164
+// Method Definition Index: 69148
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyDetail__ctor_m63885E1D221379D4C49F4740E00914C0E37B0984 (AssemblyDetail_t175FCE577F5A50EFEF80215A64B95E216F6796C2* __this, const RuntimeMethod* method) 
 {
 	//<source_info:<no-source>:1>
@@ -855,7 +951,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyDetail__ctor_m63885E1D221379D4C4
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 #pragma clang diagnostic ignored "-Wunused-variable"
 #endif
-// Method Definition Index: 69165
+// Method Definition Index: 69149
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyManager_OnNextClicked_mDB8A8334FEBFFEFBD180BFECC0304D98587ECDE8 (AssemblyManager_tE1D118B98389763192B5C8D198FDB4AB3F9EF2AA* __this, const RuntimeMethod* method) 
 {
 	AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7* G_B2_0 = NULL;
@@ -883,7 +979,7 @@ IL_000b:
 		return;
 	}
 }
-// Method Definition Index: 69166
+// Method Definition Index: 69150
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyManager_OnBackClicked_m2F26DDC62D1F1D8FC2BA1AC708532AD8DAF572AD (AssemblyManager_tE1D118B98389763192B5C8D198FDB4AB3F9EF2AA* __this, const RuntimeMethod* method) 
 {
 	AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7* G_B2_0 = NULL;
@@ -911,7 +1007,7 @@ IL_000b:
 		return;
 	}
 }
-// Method Definition Index: 69167
+// Method Definition Index: 69151
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyManager_SetId_mDC692B005732EB0A5A80E192D568C676ED2A7E10 (AssemblyManager_tE1D118B98389763192B5C8D198FDB4AB3F9EF2AA* __this, String_t* ___0_id, const RuntimeMethod* method) 
 {
 	{
@@ -920,12 +1016,17 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyManager_SetId_mDC692B005732EB0A5
 		__this->___productId = L_0;
 		Il2CppCodeGenWriteBarrier((void**)(&__this->___productId), (void*)L_0);
 		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/AssemblyManager.cs:45>
-		AssemblyManager_SpawnProduct_m80F16C7007A6B4CD7B547FFD8EAC9B4D7A78855C(__this, NULL);
+		Camera_tA92CC927D7439999BC82DBEDC0AA45B470F9E184* L_1;
+		L_1 = Camera_get_main_m52C992F18E05355ABB9EEB64A4BF2215E12762DF(NULL);
+		NullCheck(L_1);
+		Camera_set_fieldOfView_m5AA9EED4D1603A1DEDBF883D9C42814B2BDEB777(L_1, (15.0f), NULL);
 		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/AssemblyManager.cs:46>
+		AssemblyManager_SpawnProduct_m80F16C7007A6B4CD7B547FFD8EAC9B4D7A78855C(__this, NULL);
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/AssemblyManager.cs:47>
 		return;
 	}
 }
-// Method Definition Index: 69168
+// Method Definition Index: 69152
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyManager_SpawnProduct_m80F16C7007A6B4CD7B547FFD8EAC9B4D7A78855C (AssemblyManager_tE1D118B98389763192B5C8D198FDB4AB3F9EF2AA* __this, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -940,14 +1041,14 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyManager_SpawnProduct_m80F16C7007
 	}
 	AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7* V_0 = NULL;
 	{
-		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/AssemblyManager.cs:50>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/AssemblyManager.cs:51>
 		AssemblyConfig_t822EC76556436CE7A791435D997528EE53149262* L_0 = __this->___assemblyConfig;
 		String_t* L_1 = __this->___productId;
 		NullCheck(L_0);
 		AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7* L_2;
 		L_2 = AssemblyConfig_GetAssemblyObjectById_mAC8603FDAFA3A85D1FC47CC7C0A977BD4304BFF1(L_0, L_1, NULL);
 		V_0 = L_2;
-		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/AssemblyManager.cs:51>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/AssemblyManager.cs:52>
 		AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7* L_3 = V_0;
 		il2cpp_codegen_runtime_class_init_inline(Object_tC12DECB6760A7F2CBF65D9DCF18D044C2D97152C_il2cpp_TypeInfo_var);
 		bool L_4;
@@ -958,7 +1059,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyManager_SpawnProduct_m80F16C7007
 		}
 	}
 	{
-		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/AssemblyManager.cs:53>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/AssemblyManager.cs:54>
 		AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7* L_5 = __this->___current;
 		il2cpp_codegen_runtime_class_init_inline(Object_tC12DECB6760A7F2CBF65D9DCF18D044C2D97152C_il2cpp_TypeInfo_var);
 		bool L_6;
@@ -969,7 +1070,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyManager_SpawnProduct_m80F16C7007
 		}
 	}
 	{
-		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/AssemblyManager.cs:55>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/AssemblyManager.cs:56>
 		AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7* L_7 = __this->___current;
 		NullCheck(L_7);
 		GameObject_t76FEDD663AB33C991A9C9A23129337651094216F* L_8;
@@ -980,7 +1081,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyManager_SpawnProduct_m80F16C7007
 
 IL_0039:
 	{
-		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/AssemblyManager.cs:57>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/AssemblyManager.cs:58>
 		AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7* L_9 = V_0;
 		Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2 L_10;
 		memset((&L_10), 0, sizeof(L_10));
@@ -997,7 +1098,7 @@ IL_0039:
 		L_14 = Object_Instantiate_TisAssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7_mFDE812F08BDCFFD8259D6EE1BB3754877BC91543(L_9, L_10, L_13, Object_Instantiate_TisAssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7_mFDE812F08BDCFFD8259D6EE1BB3754877BC91543_RuntimeMethod_var);
 		__this->___current = L_14;
 		Il2CppCodeGenWriteBarrier((void**)(&__this->___current), (void*)L_14);
-		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/AssemblyManager.cs:58>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/AssemblyManager.cs:59>
 		AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7* L_15 = __this->___current;
 		NullCheck(L_15);
 		AssemblyObject_Init_mAA37B6B31210E201621B3BCCA6DD9895D849EAC4(L_15, NULL);
@@ -1006,17 +1107,17 @@ IL_0039:
 
 IL_0070:
 	{
-		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/AssemblyManager.cs:62>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/AssemblyManager.cs:63>
 		String_t* L_16 = __this->___productId;
 		String_t* L_17;
 		L_17 = String_Concat_m8855A6DE10F84DA7F4EC113CADDB59873A25573B(_stringLiteral297E4AE347FF4ACF98C38DC9B97C2DA3804D6BB8, L_16, _stringLiteral102C5B2789B16C2CDB632672856B4ECB14D37401, NULL);
 		il2cpp_codegen_runtime_class_init_inline(Debug_t8394C7EEAECA3689C2C9B9DE9C7166D73596276F_il2cpp_TypeInfo_var);
 		Debug_LogError_mB00B2B4468EF3CAF041B038D840820FB84C924B2(L_17, NULL);
-		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/AssemblyManager.cs:64>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/AssemblyManager.cs:65>
 		return;
 	}
 }
-// Method Definition Index: 69169
+// Method Definition Index: 69153
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyManager__ctor_m7678E3FA50D5ACA222A61A5CF268846A770C94C6 (AssemblyManager_tE1D118B98389763192B5C8D198FDB4AB3F9EF2AA* __this, const RuntimeMethod* method) 
 {
 	//<source_info:<no-source>:1>
@@ -1033,7 +1134,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyManager__ctor_m7678E3FA50D5ACA22
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 #pragma clang diagnostic ignored "-Wunused-variable"
 #endif
-// Method Definition Index: 69170
+// Method Definition Index: 69154
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyStep__ctor_mF8F508D345E7895DCB110E0419B91D4B1EB4073B (AssemblyStep_t0DCF116B9F815DE631B4B46E9CA17F2B6DEB8C20* __this, const RuntimeMethod* method) 
 {
 	{
@@ -1055,7 +1156,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyStep__ctor_mF8F508D345E7895DCB11
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 #pragma clang diagnostic ignored "-Wunused-variable"
 #endif
-// Method Definition Index: 69171
+// Method Definition Index: 69155
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyObject_InitSteps_m1925F2340B4A99973540DA0D9B394E42E3734473 (AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7* __this, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -1182,7 +1283,7 @@ IL_0057:
 		return;
 	}
 }
-// Method Definition Index: 69172
+// Method Definition Index: 69156
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyObject_Init_mAA37B6B31210E201621B3BCCA6DD9895D849EAC4 (AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7* __this, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -1370,7 +1471,7 @@ IL_00c2:
 		return;
 	}
 }
-// Method Definition Index: 69173
+// Method Definition Index: 69157
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyObject_OnNextClicked_m9420FA1112AFC8E8992F01DEB8C29D66830F039A (AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7* __this, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -1446,7 +1547,7 @@ IL_0089:
 		return;
 	}
 }
-// Method Definition Index: 69174
+// Method Definition Index: 69158
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyObject_OnBackClicked_m4931A9F9DC8C2438E4BC5EF37C2B20496C94E77C (AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7* __this, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -1503,7 +1604,7 @@ IL_005a:
 		return;
 	}
 }
-// Method Definition Index: 69175
+// Method Definition Index: 69159
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyObject__ctor_m4AA2BD9200A890A9A9AE2D11ABE0F7DDFD58FE30 (AssemblyObject_tAE906AA03A4B8499AD7E06E25903879AF661C3B7* __this, const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -1544,7 +1645,516 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void AssemblyObject__ctor_m4AA2BD9200A890A9A9
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 #pragma clang diagnostic ignored "-Wunused-variable"
 #endif
-// Method Definition Index: 69176
+// Method Definition Index: 69160
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void ObjectRotator_Start_m40A9D19CDDEC205B5522BB41541F595390C4CA35 (ObjectRotator_t01C1E6B39EFE87B7EC66C546EF87AFFD968D4BA8* __this, const RuntimeMethod* method) 
+{
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:17>
+		Transform_tB27202C6F4E36D225EE28A13E4D662BF99785DB1* L_0;
+		L_0 = Component_get_transform_m2919A1D81931E6932C7F06D4C2F0AB8DDA9A5371(__this, NULL);
+		NullCheck(L_0);
+		Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2 L_1;
+		L_1 = Transform_get_eulerAngles_mCAAF48EFCF628F1ED91C2FFE75A4FD19C039DD6A(L_0, NULL);
+		float L_2 = L_1.___x;
+		__this->___currentVerticalAngle = L_2;
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:19>
+		float L_3 = __this->___currentVerticalAngle;
+		if ((!(((float)L_3) > ((float)(180.0f)))))
+		{
+			goto IL_0035;
+		}
+	}
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:20>
+		float L_4 = __this->___currentVerticalAngle;
+		__this->___currentVerticalAngle = ((float)il2cpp_codegen_subtract(L_4, (360.0f)));
+	}
+
+IL_0035:
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:21>
+		return;
+	}
+}
+// Method Definition Index: 69161
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void ObjectRotator_Update_m75ACC59FC603D29495E61A05F845B7F709E6D4AC (ObjectRotator_t01C1E6B39EFE87B7EC66C546EF87AFFD968D4BA8* __this, const RuntimeMethod* method) 
+{
+	Touch_t03E51455ED508492B3F278903A0114FA0E87B417 V_0;
+	memset((&V_0), 0, sizeof(V_0));
+	float V_1 = 0.0f;
+	float V_2 = 0.0f;
+	Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2 V_3;
+	memset((&V_3), 0, sizeof(V_3));
+	int32_t V_4 = 0;
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:25>
+		int32_t L_0;
+		L_0 = Input_get_touchCount_m057388BFC67A0F4CA53764B1022867ED81D01E39(NULL);
+		if ((((int32_t)L_0) > ((int32_t)0)))
+		{
+			goto IL_0009;
+		}
+	}
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:25>
+		return;
+	}
+
+IL_0009:
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:27>
+		Touch_t03E51455ED508492B3F278903A0114FA0E87B417 L_1;
+		L_1 = Input_GetTouch_m75D99FE801A94279874FA8DC6B6ADAD35F5123B1(0, NULL);
+		V_0 = L_1;
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:29>
+		int32_t L_2;
+		L_2 = Touch_get_phase_mB82409FB2BE1C32ABDBA6A72E52A099D28AB70B0((&V_0), NULL);
+		V_4 = L_2;
+		int32_t L_3 = V_4;
+		if (!L_3)
+		{
+			goto IL_0023;
+		}
+	}
+	{
+		int32_t L_4 = V_4;
+		if ((((int32_t)L_4) == ((int32_t)1)))
+		{
+			goto IL_0031;
+		}
+	}
+	{
+		return;
+	}
+
+IL_0023:
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:32>
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_5;
+		L_5 = Touch_get_position_m41B9EB0F3F3E1BE98CEB388253A9E31979CB964A((&V_0), NULL);
+		__this->___previousPosition = L_5;
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:33>
+		return;
+	}
+
+IL_0031:
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:36>
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_6;
+		L_6 = Touch_get_position_m41B9EB0F3F3E1BE98CEB388253A9E31979CB964A((&V_0), NULL);
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_7 = __this->___previousPosition;
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_8;
+		L_8 = Vector2_op_Subtraction_m44475FCDAD2DA2F98D78A6625EC2DCDFE8803837_inline(L_6, L_7, NULL);
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:39>
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_9 = L_8;
+		float L_10 = L_9.___x;
+		float L_11 = __this->___rotationSpeed;
+		V_1 = ((float)il2cpp_codegen_multiply(((-L_10)), L_11));
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:42>
+		float L_12 = L_9.___y;
+		float L_13 = __this->___rotationSpeed;
+		V_2 = ((float)il2cpp_codegen_multiply(L_12, L_13));
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:44>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:45>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:46>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:47>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:48>
+		float L_14 = __this->___currentVerticalAngle;
+		float L_15 = V_2;
+		float L_16 = __this->___minVerticalAngle;
+		float L_17 = __this->___maxVerticalAngle;
+		float L_18;
+		L_18 = Mathf_Clamp_mEB9AEA827D27D20FCC787F7375156AF46BB12BBF_inline(((float)il2cpp_codegen_add(L_14, L_15)), L_16, L_17, NULL);
+		__this->___currentVerticalAngle = L_18;
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:50>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:51>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:52>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:53>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:54>
+		Transform_tB27202C6F4E36D225EE28A13E4D662BF99785DB1* L_19;
+		L_19 = Component_get_transform_m2919A1D81931E6932C7F06D4C2F0AB8DDA9A5371(__this, NULL);
+		Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2 L_20;
+		L_20 = Vector3_get_up_m128AF3FDC820BF59D5DE86D973E7DE3F20C3AEBA_inline(NULL);
+		float L_21 = V_1;
+		NullCheck(L_19);
+		Transform_Rotate_m683E67853797040312868B69E963D0E97F433EEB(L_19, L_20, L_21, 0, NULL);
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:56>
+		Transform_tB27202C6F4E36D225EE28A13E4D662BF99785DB1* L_22;
+		L_22 = Component_get_transform_m2919A1D81931E6932C7F06D4C2F0AB8DDA9A5371(__this, NULL);
+		NullCheck(L_22);
+		Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2 L_23;
+		L_23 = Transform_get_eulerAngles_mCAAF48EFCF628F1ED91C2FFE75A4FD19C039DD6A(L_22, NULL);
+		V_3 = L_23;
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:57>
+		float L_24 = __this->___currentVerticalAngle;
+		(&V_3)->___x = L_24;
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:59>
+		Transform_tB27202C6F4E36D225EE28A13E4D662BF99785DB1* L_25;
+		L_25 = Component_get_transform_m2919A1D81931E6932C7F06D4C2F0AB8DDA9A5371(__this, NULL);
+		Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2 L_26 = V_3;
+		NullCheck(L_25);
+		Transform_set_eulerAngles_m9F0BC484A7915A51FAB87230644229B75BACA004(L_25, L_26, NULL);
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:61>
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_27;
+		L_27 = Touch_get_position_m41B9EB0F3F3E1BE98CEB388253A9E31979CB964A((&V_0), NULL);
+		__this->___previousPosition = L_27;
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:64>
+		return;
+	}
+}
+// Method Definition Index: 69162
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void ObjectRotator__ctor_m33F1D1662A9EB685182D96E4A8FB0876075EC29B (ObjectRotator_t01C1E6B39EFE87B7EC66C546EF87AFFD968D4BA8* __this, const RuntimeMethod* method) 
+{
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:6>
+		__this->___rotationSpeed = (0.300000012f);
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:8>
+		__this->___minVerticalAngle = (-80.0f);
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectRotator.cs:9>
+		__this->___maxVerticalAngle = (80.0f);
+		MonoBehaviour__ctor_m592DB0105CA0BC97AA1C5F4AD27B12D68A3B7C1E(__this, NULL);
+		return;
+	}
+}
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winvalid-offsetof"
+#pragma clang diagnostic ignored "-Wunused-variable"
+#endif
+// Method Definition Index: 69163
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void ObjectViewerController_Start_m24A2B4750E82CB63FEA2E75BAA217437C2C9566B (ObjectViewerController_tB01A622BFC6CCBC0CE8B84311CA8533A554F356D* __this, const RuntimeMethod* method) 
+{
+	static bool s_Il2CppMethodInitialized;
+	if (!s_Il2CppMethodInitialized)
+	{
+		il2cpp_codegen_initialize_runtime_metadata((uintptr_t*)&Object_tC12DECB6760A7F2CBF65D9DCF18D044C2D97152C_il2cpp_TypeInfo_var);
+		s_Il2CppMethodInitialized = true;
+	}
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:21>
+		Transform_tB27202C6F4E36D225EE28A13E4D662BF99785DB1* L_0;
+		L_0 = Component_get_transform_m2919A1D81931E6932C7F06D4C2F0AB8DDA9A5371(__this, NULL);
+		NullCheck(L_0);
+		Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2 L_1;
+		L_1 = Transform_get_eulerAngles_mCAAF48EFCF628F1ED91C2FFE75A4FD19C039DD6A(L_0, NULL);
+		float L_2 = L_1.___x;
+		__this->___currentVerticalAngle = L_2;
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:23>
+		float L_3 = __this->___currentVerticalAngle;
+		if ((!(((float)L_3) > ((float)(180.0f)))))
+		{
+			goto IL_0035;
+		}
+	}
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:24>
+		float L_4 = __this->___currentVerticalAngle;
+		__this->___currentVerticalAngle = ((float)il2cpp_codegen_subtract(L_4, (360.0f)));
+	}
+
+IL_0035:
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:26>
+		Camera_tA92CC927D7439999BC82DBEDC0AA45B470F9E184* L_5 = __this->___targetCamera;
+		il2cpp_codegen_runtime_class_init_inline(Object_tC12DECB6760A7F2CBF65D9DCF18D044C2D97152C_il2cpp_TypeInfo_var);
+		bool L_6;
+		L_6 = Object_op_Equality_mB6120F782D83091EF56A198FCEBCF066DB4A9605(L_5, (Object_tC12DECB6760A7F2CBF65D9DCF18D044C2D97152C*)NULL, NULL);
+		if (!L_6)
+		{
+			goto IL_004e;
+		}
+	}
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:27>
+		Camera_tA92CC927D7439999BC82DBEDC0AA45B470F9E184* L_7;
+		L_7 = Camera_get_main_m52C992F18E05355ABB9EEB64A4BF2215E12762DF(NULL);
+		__this->___targetCamera = L_7;
+		Il2CppCodeGenWriteBarrier((void**)(&__this->___targetCamera), (void*)L_7);
+	}
+
+IL_004e:
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:28>
+		return;
+	}
+}
+// Method Definition Index: 69164
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void ObjectViewerController_Update_m178DBC2632D3C0ADD5D879047098F7E4A851B1FF (ObjectViewerController_tB01A622BFC6CCBC0CE8B84311CA8533A554F356D* __this, const RuntimeMethod* method) 
+{
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:32>
+		int32_t L_0;
+		L_0 = Input_get_touchCount_m057388BFC67A0F4CA53764B1022867ED81D01E39(NULL);
+		if ((!(((uint32_t)L_0) == ((uint32_t)1))))
+		{
+			goto IL_000f;
+		}
+	}
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:34>
+		ObjectViewerController_HandleRotation_mF6AA7AF991E08EDABE3F3D7BCEDE0A1AC61E01F0(__this, NULL);
+		return;
+	}
+
+IL_000f:
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:36>
+		int32_t L_1;
+		L_1 = Input_get_touchCount_m057388BFC67A0F4CA53764B1022867ED81D01E39(NULL);
+		if ((!(((uint32_t)L_1) == ((uint32_t)2))))
+		{
+			goto IL_001d;
+		}
+	}
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:38>
+		ObjectViewerController_HandleZoom_mE6C944273B78256577260F5EE43EABE7EDF095AC(__this, NULL);
+	}
+
+IL_001d:
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:40>
+		return;
+	}
+}
+// Method Definition Index: 69165
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void ObjectViewerController_HandleRotation_mF6AA7AF991E08EDABE3F3D7BCEDE0A1AC61E01F0 (ObjectViewerController_tB01A622BFC6CCBC0CE8B84311CA8533A554F356D* __this, const RuntimeMethod* method) 
+{
+	Touch_t03E51455ED508492B3F278903A0114FA0E87B417 V_0;
+	memset((&V_0), 0, sizeof(V_0));
+	float V_1 = 0.0f;
+	float V_2 = 0.0f;
+	Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2 V_3;
+	memset((&V_3), 0, sizeof(V_3));
+	int32_t V_4 = 0;
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:44>
+		Touch_t03E51455ED508492B3F278903A0114FA0E87B417 L_0;
+		L_0 = Input_GetTouch_m75D99FE801A94279874FA8DC6B6ADAD35F5123B1(0, NULL);
+		V_0 = L_0;
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:46>
+		int32_t L_1;
+		L_1 = Touch_get_phase_mB82409FB2BE1C32ABDBA6A72E52A099D28AB70B0((&V_0), NULL);
+		V_4 = L_1;
+		int32_t L_2 = V_4;
+		if (!L_2)
+		{
+			goto IL_001a;
+		}
+	}
+	{
+		int32_t L_3 = V_4;
+		if ((((int32_t)L_3) == ((int32_t)1)))
+		{
+			goto IL_0028;
+		}
+	}
+	{
+		return;
+	}
+
+IL_001a:
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:49>
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_4;
+		L_4 = Touch_get_position_m41B9EB0F3F3E1BE98CEB388253A9E31979CB964A((&V_0), NULL);
+		__this->___previousPosition = L_4;
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:50>
+		return;
+	}
+
+IL_0028:
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:53>
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_5;
+		L_5 = Touch_get_position_m41B9EB0F3F3E1BE98CEB388253A9E31979CB964A((&V_0), NULL);
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_6 = __this->___previousPosition;
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_7;
+		L_7 = Vector2_op_Subtraction_m44475FCDAD2DA2F98D78A6625EC2DCDFE8803837_inline(L_5, L_6, NULL);
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:56>
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_8 = L_7;
+		float L_9 = L_8.___x;
+		float L_10 = __this->___rotationSpeed;
+		V_1 = ((float)il2cpp_codegen_multiply(((-L_9)), L_10));
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:59>
+		float L_11 = L_8.___y;
+		float L_12 = __this->___rotationSpeed;
+		V_2 = ((float)il2cpp_codegen_multiply(L_11, L_12));
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:61>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:62>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:63>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:64>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:65>
+		float L_13 = __this->___currentVerticalAngle;
+		float L_14 = V_2;
+		float L_15 = __this->___minVerticalAngle;
+		float L_16 = __this->___maxVerticalAngle;
+		float L_17;
+		L_17 = Mathf_Clamp_mEB9AEA827D27D20FCC787F7375156AF46BB12BBF_inline(((float)il2cpp_codegen_add(L_13, L_14)), L_15, L_16, NULL);
+		__this->___currentVerticalAngle = L_17;
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:67>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:68>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:69>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:70>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:71>
+		Transform_tB27202C6F4E36D225EE28A13E4D662BF99785DB1* L_18;
+		L_18 = Component_get_transform_m2919A1D81931E6932C7F06D4C2F0AB8DDA9A5371(__this, NULL);
+		Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2 L_19;
+		L_19 = Vector3_get_up_m128AF3FDC820BF59D5DE86D973E7DE3F20C3AEBA_inline(NULL);
+		float L_20 = V_1;
+		NullCheck(L_18);
+		Transform_Rotate_m683E67853797040312868B69E963D0E97F433EEB(L_18, L_19, L_20, 0, NULL);
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:73>
+		Transform_tB27202C6F4E36D225EE28A13E4D662BF99785DB1* L_21;
+		L_21 = Component_get_transform_m2919A1D81931E6932C7F06D4C2F0AB8DDA9A5371(__this, NULL);
+		NullCheck(L_21);
+		Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2 L_22;
+		L_22 = Transform_get_eulerAngles_mCAAF48EFCF628F1ED91C2FFE75A4FD19C039DD6A(L_21, NULL);
+		V_3 = L_22;
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:74>
+		float L_23 = __this->___currentVerticalAngle;
+		(&V_3)->___x = L_23;
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:75>
+		Transform_tB27202C6F4E36D225EE28A13E4D662BF99785DB1* L_24;
+		L_24 = Component_get_transform_m2919A1D81931E6932C7F06D4C2F0AB8DDA9A5371(__this, NULL);
+		Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2 L_25 = V_3;
+		NullCheck(L_24);
+		Transform_set_eulerAngles_m9F0BC484A7915A51FAB87230644229B75BACA004(L_24, L_25, NULL);
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:77>
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_26;
+		L_26 = Touch_get_position_m41B9EB0F3F3E1BE98CEB388253A9E31979CB964A((&V_0), NULL);
+		__this->___previousPosition = L_26;
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:80>
+		return;
+	}
+}
+// Method Definition Index: 69166
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void ObjectViewerController_HandleZoom_mE6C944273B78256577260F5EE43EABE7EDF095AC (ObjectViewerController_tB01A622BFC6CCBC0CE8B84311CA8533A554F356D* __this, const RuntimeMethod* method) 
+{
+	static bool s_Il2CppMethodInitialized;
+	if (!s_Il2CppMethodInitialized)
+	{
+		il2cpp_codegen_initialize_runtime_metadata((uintptr_t*)&Object_tC12DECB6760A7F2CBF65D9DCF18D044C2D97152C_il2cpp_TypeInfo_var);
+		s_Il2CppMethodInitialized = true;
+	}
+	Touch_t03E51455ED508492B3F278903A0114FA0E87B417 V_0;
+	memset((&V_0), 0, sizeof(V_0));
+	Touch_t03E51455ED508492B3F278903A0114FA0E87B417 V_1;
+	memset((&V_1), 0, sizeof(V_1));
+	Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 V_2;
+	memset((&V_2), 0, sizeof(V_2));
+	float V_3 = 0.0f;
+	float V_4 = 0.0f;
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:84>
+		Touch_t03E51455ED508492B3F278903A0114FA0E87B417 L_0;
+		L_0 = Input_GetTouch_m75D99FE801A94279874FA8DC6B6ADAD35F5123B1(0, NULL);
+		V_0 = L_0;
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:85>
+		Touch_t03E51455ED508492B3F278903A0114FA0E87B417 L_1;
+		L_1 = Input_GetTouch_m75D99FE801A94279874FA8DC6B6ADAD35F5123B1(1, NULL);
+		V_1 = L_1;
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:87>
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_2;
+		L_2 = Touch_get_position_m41B9EB0F3F3E1BE98CEB388253A9E31979CB964A((&V_0), NULL);
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_3;
+		L_3 = Touch_get_deltaPosition_m2D51F960B74C94821ED0F6A09E44C80FD796D299((&V_0), NULL);
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_4;
+		L_4 = Vector2_op_Subtraction_m44475FCDAD2DA2F98D78A6625EC2DCDFE8803837_inline(L_2, L_3, NULL);
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:89>
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_5;
+		L_5 = Touch_get_position_m41B9EB0F3F3E1BE98CEB388253A9E31979CB964A((&V_1), NULL);
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_6;
+		L_6 = Touch_get_deltaPosition_m2D51F960B74C94821ED0F6A09E44C80FD796D299((&V_1), NULL);
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_7;
+		L_7 = Vector2_op_Subtraction_m44475FCDAD2DA2F98D78A6625EC2DCDFE8803837_inline(L_5, L_6, NULL);
+		V_2 = L_7;
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:91>
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_8 = V_2;
+		float L_9;
+		L_9 = Vector2_Distance_mBACBB1609E1894D68F882D86A93519E311810C89_inline(L_4, L_8, NULL);
+		V_3 = L_9;
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:93>
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_10;
+		L_10 = Touch_get_position_m41B9EB0F3F3E1BE98CEB388253A9E31979CB964A((&V_0), NULL);
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_11;
+		L_11 = Touch_get_position_m41B9EB0F3F3E1BE98CEB388253A9E31979CB964A((&V_1), NULL);
+		float L_12;
+		L_12 = Vector2_Distance_mBACBB1609E1894D68F882D86A93519E311810C89_inline(L_10, L_11, NULL);
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:95>
+		float L_13 = V_3;
+		V_4 = ((float)il2cpp_codegen_subtract(L_12, L_13));
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:97>
+		Camera_tA92CC927D7439999BC82DBEDC0AA45B470F9E184* L_14 = __this->___targetCamera;
+		il2cpp_codegen_runtime_class_init_inline(Object_tC12DECB6760A7F2CBF65D9DCF18D044C2D97152C_il2cpp_TypeInfo_var);
+		bool L_15;
+		L_15 = Object_op_Equality_mB6120F782D83091EF56A198FCEBCF066DB4A9605(L_14, (Object_tC12DECB6760A7F2CBF65D9DCF18D044C2D97152C*)NULL, NULL);
+		if (!L_15)
+		{
+			goto IL_0062;
+		}
+	}
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:97>
+		return;
+	}
+
+IL_0062:
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:99>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:100>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:101>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:102>
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:103>
+		Camera_tA92CC927D7439999BC82DBEDC0AA45B470F9E184* L_16 = __this->___targetCamera;
+		Camera_tA92CC927D7439999BC82DBEDC0AA45B470F9E184* L_17 = __this->___targetCamera;
+		NullCheck(L_17);
+		float L_18;
+		L_18 = Camera_get_fieldOfView_m9A93F17BBF89F496AE231C21817AFD1C1E833FBB(L_17, NULL);
+		float L_19 = V_4;
+		float L_20 = __this->___zoomSpeed;
+		float L_21 = __this->___minFOV;
+		float L_22 = __this->___maxFOV;
+		float L_23;
+		L_23 = Mathf_Clamp_mEB9AEA827D27D20FCC787F7375156AF46BB12BBF_inline(((float)il2cpp_codegen_subtract(L_18, ((float)il2cpp_codegen_multiply(L_19, L_20)))), L_21, L_22, NULL);
+		NullCheck(L_16);
+		Camera_set_fieldOfView_m5AA9EED4D1603A1DEDBF883D9C42814B2BDEB777(L_16, L_23, NULL);
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:104>
+		return;
+	}
+}
+// Method Definition Index: 69167
+IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void ObjectViewerController__ctor_m4858565A07ADDBD37A31D496B6885CC288775C79 (ObjectViewerController_tB01A622BFC6CCBC0CE8B84311CA8533A554F356D* __this, const RuntimeMethod* method) 
+{
+	{
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:6>
+		__this->___rotationSpeed = (0.300000012f);
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:7>
+		__this->___minVerticalAngle = (-80.0f);
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:8>
+		__this->___maxVerticalAngle = (80.0f);
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:12>
+		__this->___zoomSpeed = (0.100000001f);
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:13>
+		__this->___minFOV = (10.0f);
+		//<source_info:D:/PERSONAL/FPT Course/SE 8/PRM393/flutter_unity_test/my_unity_project/Assets/Scripts/ObjectViewerController.cs:14>
+		__this->___maxFOV = (20.0f);
+		MonoBehaviour__ctor_m592DB0105CA0BC97AA1C5F4AD27B12D68A3B7C1E(__this, NULL);
+		return;
+	}
+}
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winvalid-offsetof"
+#pragma clang diagnostic ignored "-Wunused-variable"
+#endif
+// Method Definition Index: 69168
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void Readme__ctor_m69C325C4C171DCB0312B646A9034AA91EA8C39C6 (Readme_tE17B99201D0F52BD5727638AD3F41072A65B3BBB* __this, const RuntimeMethod* method) 
 {
 	//<source_info:<no-source>:1>
@@ -1561,7 +2171,7 @@ IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void Readme__ctor_m69C325C4C171DCB0312B646A90
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 #pragma clang diagnostic ignored "-Wunused-variable"
 #endif
-// Method Definition Index: 69177
+// Method Definition Index: 69169
 IL2CPP_EXTERN_C IL2CPP_METHOD_ATTR void Section__ctor_m5F732533E4DFC0167D965E5F5DB332E46055399B (Section_t50C894D0A717C2368EBAAE5477D4E8626D0B5401* __this, const RuntimeMethod* method) 
 {
 	//<source_info:<no-source>:1>
@@ -1664,6 +2274,129 @@ IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR Vector3_t24C512C7B96BBABAD472002D
 		(&V_0)->___z = ((float)il2cpp_codegen_add(L_9, L_11));
 		Vector3_t24C512C7B96BBABAD472002D0BA2BDA40A5A80B2 L_12 = V_0;
 		return L_12;
+	}
+}
+// Method Definition Index: 35557
+IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 Vector2_op_Subtraction_m44475FCDAD2DA2F98D78A6625EC2DCDFE8803837_inline (Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___0_a, Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___1_b, const RuntimeMethod* method) 
+{
+	Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 V_0;
+	memset((&V_0), 0, sizeof(V_0));
+	{
+		//<source_info:/home/bokken/build/output/unity/unity/Runtime/Export/Math/Vector2.cs:561>
+		il2cpp_codegen_initobj((&V_0), sizeof(Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7));
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_0 = ___0_a;
+		float L_1 = L_0.___x;
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_2 = ___1_b;
+		float L_3 = L_2.___x;
+		(&V_0)->___x = ((float)il2cpp_codegen_subtract(L_1, L_3));
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_4 = ___0_a;
+		float L_5 = L_4.___y;
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_6 = ___1_b;
+		float L_7 = L_6.___y;
+		(&V_0)->___y = ((float)il2cpp_codegen_subtract(L_5, L_7));
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_8 = V_0;
+		return L_8;
+	}
+}
+// Method Definition Index: 35513
+IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR float Mathf_Clamp_mEB9AEA827D27D20FCC787F7375156AF46BB12BBF_inline (float ___0_value, float ___1_min, float ___2_max, const RuntimeMethod* method) 
+{
+	bool V_0 = false;
+	bool V_1 = false;
+	float V_2 = 0.0f;
+	{
+		//<source_info:/home/bokken/build/output/unity/unity/Runtime/Export/Math/Mathf.cs:289>
+		float L_0 = ___0_value;
+		float L_1 = ___1_min;
+		V_0 = (bool)((((float)L_0) < ((float)L_1))? 1 : 0);
+		bool L_2 = V_0;
+		if (!L_2)
+		{
+			goto IL_000e;
+		}
+	}
+	{
+		//<source_info:/home/bokken/build/output/unity/unity/Runtime/Export/Math/Mathf.cs:290>
+		float L_3 = ___1_min;
+		___0_value = L_3;
+		goto IL_0019;
+	}
+
+IL_000e:
+	{
+		//<source_info:/home/bokken/build/output/unity/unity/Runtime/Export/Math/Mathf.cs:291>
+		float L_4 = ___0_value;
+		float L_5 = ___2_max;
+		V_1 = (bool)((((float)L_4) > ((float)L_5))? 1 : 0);
+		bool L_6 = V_1;
+		if (!L_6)
+		{
+			goto IL_0019;
+		}
+	}
+	{
+		//<source_info:/home/bokken/build/output/unity/unity/Runtime/Export/Math/Mathf.cs:292>
+		float L_7 = ___2_max;
+		___0_value = L_7;
+	}
+
+IL_0019:
+	{
+		//<source_info:/home/bokken/build/output/unity/unity/Runtime/Export/Math/Mathf.cs:293>
+		float L_8 = ___0_value;
+		V_2 = L_8;
+		goto IL_001d;
+	}
+
+IL_001d:
+	{
+		//<source_info:/home/bokken/build/output/unity/unity/Runtime/Export/Math/Mathf.cs:294>
+		float L_9 = V_2;
+		return L_9;
+	}
+}
+// Method Definition Index: 35552
+IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR float Vector2_Distance_mBACBB1609E1894D68F882D86A93519E311810C89_inline (Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___0_a, Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 ___1_b, const RuntimeMethod* method) 
+{
+	static bool s_Il2CppMethodInitialized;
+	if (!s_Il2CppMethodInitialized)
+	{
+		il2cpp_codegen_initialize_runtime_metadata((uintptr_t*)&Math_tEB65DE7CA8B083C412C969C92981C030865486CE_il2cpp_TypeInfo_var);
+		s_Il2CppMethodInitialized = true;
+	}
+	float V_0 = 0.0f;
+	float V_1 = 0.0f;
+	float V_2 = 0.0f;
+	{
+		//<source_info:/home/bokken/build/output/unity/unity/Runtime/Export/Math/Vector2.cs:336>
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_0 = ___0_a;
+		float L_1 = L_0.___x;
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_2 = ___1_b;
+		float L_3 = L_2.___x;
+		V_0 = ((float)il2cpp_codegen_subtract(L_1, L_3));
+		//<source_info:/home/bokken/build/output/unity/unity/Runtime/Export/Math/Vector2.cs:337>
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_4 = ___0_a;
+		float L_5 = L_4.___y;
+		Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 L_6 = ___1_b;
+		float L_7 = L_6.___y;
+		V_1 = ((float)il2cpp_codegen_subtract(L_5, L_7));
+		//<source_info:/home/bokken/build/output/unity/unity/Runtime/Export/Math/Vector2.cs:338>
+		float L_8 = V_0;
+		float L_9 = V_0;
+		float L_10 = V_1;
+		float L_11 = V_1;
+		il2cpp_codegen_runtime_class_init_inline(Math_tEB65DE7CA8B083C412C969C92981C030865486CE_il2cpp_TypeInfo_var);
+		double L_12;
+		L_12 = sqrt(((double)((float)il2cpp_codegen_add(((float)il2cpp_codegen_multiply(L_8, L_9)), ((float)il2cpp_codegen_multiply(L_10, L_11))))));
+		V_2 = ((float)L_12);
+		goto IL_002e;
+	}
+
+IL_002e:
+	{
+		//<source_info:/home/bokken/build/output/unity/unity/Runtime/Export/Math/Vector2.cs:339>
+		float L_13 = V_2;
+		return L_13;
 	}
 }
 // Method Definition Index: 21075

@@ -23,9 +23,17 @@ extern void AssemblyObject_Init_mAA37B6B31210E201621B3BCCA6DD9895D849EAC4 (void)
 extern void AssemblyObject_OnNextClicked_m9420FA1112AFC8E8992F01DEB8C29D66830F039A (void);
 extern void AssemblyObject_OnBackClicked_m4931A9F9DC8C2438E4BC5EF37C2B20496C94E77C (void);
 extern void AssemblyObject__ctor_m4AA2BD9200A890A9A9AE2D11ABE0F7DDFD58FE30 (void);
+extern void ObjectRotator_Start_m40A9D19CDDEC205B5522BB41541F595390C4CA35 (void);
+extern void ObjectRotator_Update_m75ACC59FC603D29495E61A05F845B7F709E6D4AC (void);
+extern void ObjectRotator__ctor_m33F1D1662A9EB685182D96E4A8FB0876075EC29B (void);
+extern void ObjectViewerController_Start_m24A2B4750E82CB63FEA2E75BAA217437C2C9566B (void);
+extern void ObjectViewerController_Update_m178DBC2632D3C0ADD5D879047098F7E4A851B1FF (void);
+extern void ObjectViewerController_HandleRotation_mF6AA7AF991E08EDABE3F3D7BCEDE0A1AC61E01F0 (void);
+extern void ObjectViewerController_HandleZoom_mE6C944273B78256577260F5EE43EABE7EDF095AC (void);
+extern void ObjectViewerController__ctor_m4858565A07ADDBD37A31D496B6885CC288775C79 (void);
 extern void Readme__ctor_m69C325C4C171DCB0312B646A9034AA91EA8C39C6 (void);
 extern void Section__ctor_m5F732533E4DFC0167D965E5F5DB332E46055399B (void);
-static Il2CppMethodPointer s_methodPointers[18] = 
+static Il2CppMethodPointer s_methodPointers[26] = 
 {
 	SendToFlutter_Send_mC3EEBDA79530F83C75829EFC506B20AF3C9B16AE,
 	SendToFlutter__ctor_mC1E72A3BCF91ABFED2B53D4D12E5D43091965061,
@@ -43,35 +51,51 @@ static Il2CppMethodPointer s_methodPointers[18] =
 	AssemblyObject_OnNextClicked_m9420FA1112AFC8E8992F01DEB8C29D66830F039A,
 	AssemblyObject_OnBackClicked_m4931A9F9DC8C2438E4BC5EF37C2B20496C94E77C,
 	AssemblyObject__ctor_m4AA2BD9200A890A9A9AE2D11ABE0F7DDFD58FE30,
+	ObjectRotator_Start_m40A9D19CDDEC205B5522BB41541F595390C4CA35,
+	ObjectRotator_Update_m75ACC59FC603D29495E61A05F845B7F709E6D4AC,
+	ObjectRotator__ctor_m33F1D1662A9EB685182D96E4A8FB0876075EC29B,
+	ObjectViewerController_Start_m24A2B4750E82CB63FEA2E75BAA217437C2C9566B,
+	ObjectViewerController_Update_m178DBC2632D3C0ADD5D879047098F7E4A851B1FF,
+	ObjectViewerController_HandleRotation_mF6AA7AF991E08EDABE3F3D7BCEDE0A1AC61E01F0,
+	ObjectViewerController_HandleZoom_mE6C944273B78256577260F5EE43EABE7EDF095AC,
+	ObjectViewerController__ctor_m4858565A07ADDBD37A31D496B6885CC288775C79,
 	Readme__ctor_m69C325C4C171DCB0312B646A9034AA91EA8C39C6,
 	Section__ctor_m5F732533E4DFC0167D965E5F5DB332E46055399B,
 };
-static const int32_t s_InvokerIndices[18] = 
+static const int32_t s_InvokerIndices[26] = 
 {
-	23050,
-	13755,
-	8938,
-	13755,
-	13755,
-	13755,
-	13755,
-	10446,
-	13755,
-	13755,
-	13755,
-	13755,
-	13755,
-	13755,
-	13755,
-	13755,
-	13755,
-	13755,
+	23052,
+	13756,
+	8939,
+	13756,
+	13756,
+	13756,
+	13756,
+	10447,
+	13756,
+	13756,
+	13756,
+	13756,
+	13756,
+	13756,
+	13756,
+	13756,
+	13756,
+	13756,
+	13756,
+	13756,
+	13756,
+	13756,
+	13756,
+	13756,
+	13756,
+	13756,
 };
 IL2CPP_EXTERN_C const Il2CppCodeGenModule g_AssemblyU2DCSharp_CodeGenModule;
 const Il2CppCodeGenModule g_AssemblyU2DCSharp_CodeGenModule = 
 {
 	"Assembly-CSharp.dll",
-	18,
+	26,
 	s_methodPointers,
 	0,
 	NULL,
