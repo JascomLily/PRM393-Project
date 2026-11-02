@@ -21,6 +21,46 @@ class AuthProvider extends ChangeNotifier {
   AuthProvider() {
     _initSampleUsers();
     _loadUserFromStorage();
+    _listenToAuthChanges();
+  }
+
+  void _listenToAuthChanges() {
+    try {
+      final client = SupabaseService.client;
+      if (client == null) return;
+      client.auth.onAuthStateChange.listen((data) async {
+        final AuthChangeEvent event = data.event;
+        final Session? session = data.session;
+        if (event == AuthChangeEvent.signedIn && session?.user != null) {
+          final sbUser = session!.user;
+          final email = sbUser.email ?? 'google.user@gmail.com';
+          final name = sbUser.userMetadata?['full_name'] ??
+              sbUser.userMetadata?['name'] ??
+              email.split('@').first;
+          final avatar = sbUser.userMetadata?['avatar_url'] ??
+              sbUser.userMetadata?['picture'] ??
+              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
+
+          _currentUser = UserModel(
+            id: sbUser.id,
+            name: name,
+            email: email,
+            phone: (sbUser.phone ?? '').isNotEmpty ? sbUser.phone! : '0983 838 311',
+            avatar: avatar,
+            furniCoins: 200,
+            savedAddress: 'Tòa nhà Landmark 81, P. 22, Q. Bình Thạnh, TP. Hồ Chí Minh',
+            role: 'customer',
+            isActive: true,
+          );
+          _isLoading = false;
+          await SupabaseService.upsertProfile(_currentUser!);
+          await _saveUserToStorage();
+          notifyListeners();
+        }
+      });
+    } catch (e) {
+      debugPrint('[AuthProvider] _listenToAuthChanges error: ');
+    }
   }
 
   void _initSampleUsers() {
