@@ -176,7 +176,16 @@ class _OrdersScreenState extends State<OrdersScreen> {
     final orderProvider = Provider.of<OrderProvider>(context);
     final auth = Provider.of<AuthProvider>(context);
 
-    final filteredOrders = orderProvider.orders.where((o) {
+    final myOrders = orderProvider.orders.where((o) {
+      if (auth.isAdmin) return true;
+      if (auth.currentUser == null) return false;
+      final uPhone = auth.currentUser!.phone.replaceAll(' ', '');
+      final oPhone = o.receiverPhone.replaceAll(' ', '');
+      return (uPhone.isNotEmpty && uPhone == oPhone) ||
+          o.receiverName.toLowerCase() == auth.currentUser!.name.toLowerCase();
+    }).toList();
+
+    final filteredOrders = myOrders.where((o) {
       if (_filter == 'shipping') return o.status == 'shipping';
       if (_filter == 'completed') return o.status == 'completed';
       return true;
@@ -204,22 +213,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                _filterChip('Tất cả', 'all', orderProvider.orders.length),
+                _filterChip('Tất cả', 'all', myOrders.length),
                 const SizedBox(width: 8),
                 _filterChip(
                   'Đang giao',
                   'shipping',
-                  orderProvider.orders
-                      .where((o) => o.status == 'shipping')
-                      .length,
+                  myOrders.where((o) => o.status == 'shipping').length,
                 ),
                 const SizedBox(width: 8),
                 _filterChip(
                   'Đã hoàn thành',
                   'completed',
-                  orderProvider.orders
-                      .where((o) => o.status == 'completed')
-                      .length,
+                  myOrders.where((o) => o.status == 'completed').length,
                 ),
               ],
             ),

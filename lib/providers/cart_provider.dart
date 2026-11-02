@@ -1,28 +1,46 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/cart_item_model.dart';
 import '../models/voucher_model.dart';
 import '../data/mock_data.dart';
 import '../services/supabase_service.dart';
 
 class CartProvider extends ChangeNotifier {
-  final List<CartItemModel> _items = [
-    CartItemModel(
-      id: 'part-cam-set',
-      name: 'Bộ ốc khóa chốt cam M6x35',
-      price: 25000,
-      quantity: 2,
-      image:
-          'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&w=800&q=80',
-      variant: 'Túi 10 cái',
-    ),
-  ];
+  final List<CartItemModel> _items = [];
 
   VoucherModel? _appliedVoucher;
   bool _useFurniCoins = false;
   final List<VoucherModel> _vouchers = getMockVouchers();
 
   CartProvider() {
+    _loadFromStorage();
     loadVouchersFromSupabase();
+  }
+
+  Future<void> _loadFromStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final str = prefs.getString('saved_cart_items');
+      if (str != null && str.isNotEmpty) {
+        final List list = jsonDecode(str);
+        _items.clear();
+        _items.addAll(list.map((m) => CartItemModel.fromJson(m)));
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[CartProvider] load storage error: ');
+    }
+  }
+
+  Future<void> _saveToStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final list = _items.map((i) => i.toJson()).toList();
+      await prefs.setString('saved_cart_items', jsonEncode(list));
+    } catch (e) {
+      debugPrint('[CartProvider] save storage error: ');
+    }
   }
 
   Future<void> loadVouchersFromSupabase() async {
@@ -97,6 +115,7 @@ class CartProvider extends ChangeNotifier {
         variant: variant,
       ));
     }
+    _saveToStorage();
     notifyListeners();
   }
 
@@ -107,12 +126,14 @@ class CartProvider extends ChangeNotifier {
       if (_items[index].quantity <= 0) {
         _items.removeAt(index);
       }
+      _saveToStorage();
       notifyListeners();
     }
   }
 
   void removeItem(String id) {
     _items.removeWhere((item) => item.id == id);
+    _saveToStorage();
     notifyListeners();
   }
 
@@ -120,6 +141,7 @@ class CartProvider extends ChangeNotifier {
     _items.clear();
     _appliedVoucher = null;
     _useFurniCoins = false;
+    _saveToStorage();
     notifyListeners();
   }
 
