@@ -276,6 +276,27 @@ class SupabaseService {
     }
   }
 
+  static Future<String?> uploadProductImage({
+    required Uint8List bytes,
+    required String fileName,
+  }) async {
+    final c = client;
+    if (c == null) return null;
+    try {
+      const bucketName = 'furniture-media';
+      final path = 'products/_';
+      await c.storage.from(bucketName).uploadBinary(
+        path,
+        bytes,
+        fileOptions: const FileOptions(contentType: 'image/jpeg', upsert: true),
+      );
+      return c.storage.from(bucketName).getPublicUrl(path);
+    } catch (e) {
+      debugPrint('[SupabaseService] uploadProductImage error: ');
+      return null;
+    }
+  }
+
   static Future<String?> uploadAvatar({
     required Uint8List bytes,
     required String fileName,
