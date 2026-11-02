@@ -3,6 +3,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../data/mock_data.dart';
 import '../../models/product_model.dart';
+import '../../theme/app_theme.dart';
 import '../model3d/model3d_screen.dart';
 
 class QrScannerScreen extends StatefulWidget {
@@ -58,11 +59,11 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
   void _onDetect(BarcodeCapture capture) {
     if (_hasScanned) return;
 
-    final barcodes = capture.barcodes;
-    if (barcodes.isEmpty) return;
+    final barcode = capture.barcodes.firstOrNull;
+    if (barcode == null || barcode.rawValue == null) return;
 
-    final String? rawValue = barcodes.first.rawValue;
-    if (rawValue == null || rawValue.isEmpty) return;
+    final rawValue = barcode.rawValue!.trim();
+    if (rawValue.isEmpty) return;
 
     setState(() => _hasScanned = true);
     _controller.stop();
@@ -71,28 +72,30 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
   }
 
   void _processQRCode(String code) {
-    final productId = _extractProductId(code);
+    final candidateId = _extractProductId(code);
     final products = getMockProducts();
-    ProductModel? product;
+    ProductModel? matchedProduct;
 
-    if (productId != null) {
+    if (candidateId != null && candidateId.isNotEmpty) {
+      final normalized = candidateId.trim().toLowerCase();
       for (final candidate in products) {
-        if (candidate.id == productId) {
-          product = candidate;
+        if (candidate.id.toLowerCase() == normalized ||
+            candidate.modelCode.toLowerCase() == normalized) {
+          matchedProduct = candidate;
           break;
         }
       }
     }
 
-    if (product != null) {
-      final matchedProduct = product;
+    if (matchedProduct != null) {
+      final targetProduct = matchedProduct;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '✅ Nhận dạng: ${matchedProduct.name} — Đang mở hướng dẫn 3D...',
+              'Nhận dạng: ${targetProduct.name} - Đang mở mô hình 3D...',
             ),
-            backgroundColor: const Color(0xFF2D5A46),
+            backgroundColor: AppTheme.primary,
             duration: const Duration(seconds: 2),
           ),
         );
@@ -102,14 +105,13 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (_) => Model3DScreen(initialProduct: matchedProduct),
+                builder: (_) => Model3DScreen(initialProduct: targetProduct),
               ),
             );
           }
         });
       }
     } else {
-      // Mã không hợp lệ
       if (mounted) {
         showDialog(
           context: context,
@@ -124,10 +126,10 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.error_outline, size: 48, color: Colors.orange),
+                const Icon(Icons.error_outline, size: 48, color: AppTheme.warning),
                 const SizedBox(height: 12),
                 Text(
-                  'Link "$code" không chứa ID sản phẩm Furni3D hợp lệ.\n\nVui lòng quét link QR trên vỏ thùng hàng chính hãng Furni3D.',
+                  'Mã "$code" không khớp với danh mục nội thất hỗ trợ 3D.\n\nVui lòng quét mã QR Sofa so good trên vỏ kiện hàng (VD: https://sofasogood.com/products/Chair01 hoặc mã sản phẩm).',
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 13),
                 ),
@@ -136,7 +138,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
             actions: [
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2D5A46),
+                  backgroundColor: AppTheme.primary,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -158,18 +160,21 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
 
   String? _extractProductId(String rawCode) {
     final value = rawCode.trim();
-    final uri = Uri.tryParse(value);
+    if (value.isEmpty) return null;
 
-    if (uri == null ||
-        (uri.scheme != 'http' && uri.scheme != 'https') ||
-        uri.pathSegments.isEmpty) {
-      return null;
+    final uri = Uri.tryParse(value);
+    if (uri != null &&
+        (uri.scheme == 'http' || uri.scheme == 'https') &&
+        uri.pathSegments.isNotEmpty) {
+      final nonEmptySegments = uri.pathSegments
+          .where((segment) => segment.isNotEmpty)
+          .toList();
+      if (nonEmptySegments.isNotEmpty) {
+        return nonEmptySegments.last;
+      }
     }
 
-    final nonEmptySegments = uri.pathSegments
-        .where((segment) => segment.isNotEmpty)
-        .toList();
-    return nonEmptySegments.isEmpty ? null : nonEmptySegments.last;
+    return value;
   }
 
   @override
@@ -233,7 +238,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Text(
-                    'Đặt mã QR vào khung quét\nTrên hộp hàng',
+                    'Đặt mã QR vào khung quét\nTrên hộp hàng Sofa so good',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
@@ -254,11 +259,11 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
             child: Container(
               color: Colors.black87,
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 36),
-              child: Column(
+              child: const Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Hỗ trợ: QR Code, Data Matrix, Barcode\nTương thích tất cả mã Furni3D chính hãng',
+                  Text(
+                    'Hỗ trợ: QR Code, Barcode\nTương thích danh mục nội thất Sofa so good',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.white54, fontSize: 11),
                   ),
@@ -275,7 +280,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(color: Color(0xFF2D5A46)),
+                    CircularProgressIndicator(color: AppTheme.wood),
                     SizedBox(height: 16),
                     Text(
                       'Đang xử lý mã QR...',
@@ -325,7 +330,7 @@ class _ScanOverlayPainter extends CustomPainter {
     );
 
     final cornerPaint = Paint()
-      ..color = const Color(0xFF2D5A46)
+      ..color = AppTheme.wood
       ..strokeWidth = 4
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;

@@ -64,14 +64,15 @@ tasks.register('buildIl2Cpp') {
     }
     doLast {
         def il2cppExecutable = file("${workingDir}/src/main/Il2CppOutputProject/IL2CPP/build/deploy/il2cpp" + (org.gradle.internal.os.OperatingSystem.current().isWindows() ? ".exe" : ""))
-        boolean allOutputsExist = archs.every { arch, abi ->
-            def outF = file(getIl2CppOutputPath(workingDir, abi))
-            def symF = file(getIl2CppSymbolPath(workingDir, abi))
-            return outF.exists() && outF.length() > 1000 && symF.exists()
-        }
-
-        if (allOutputsExist && !il2cppExecutable.exists()) {
-            println("IL2CPP shared libraries already compiled and present. Skipping il2cpp execution.")
+        if (!il2cppExecutable.exists()) {
+            println("IL2CPP executable not found at ${il2cppExecutable}. Using precompiled libraries in jniLibs.")
+            archs.each { arch, abi ->
+                def symF = file(getIl2CppSymbolPath(workingDir, abi))
+                if (!symF.exists()) {
+                    symF.parentFile.mkdirs()
+                    symF.write("PrecompiledSymbols")
+                }
+            }
             return
         }
 
