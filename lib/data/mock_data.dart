@@ -22,7 +22,7 @@ UserModel getInitialUser() => UserModel(
 
 List<ProductModel> getMockProducts() => [
       ProductModel(
-        id: 'nordic-desk',
+        id: 'Chair01',
         name: 'Nordic Oak Desk',
         subtitle: 'Gỗ sồi Bắc Âu tự nhiên',
         material: 'Gỗ sồi trắng nhập khẩu & phụ kiện mạ kẽm',
@@ -41,7 +41,7 @@ List<ProductModel> getMockProducts() => [
         modelCode: 'MODEL ND-2024',
       ),
       ProductModel(
-        id: 'poang-chair',
+        id: 'Chair18',
         name: 'Poäng Scandi Chair',
         subtitle: 'Ghế thư giãn uốn nhiệt',
         material: 'Gỗ bạch dương ép nhiệt & đệm vải Linen tự nhiên',
@@ -60,7 +60,7 @@ List<ProductModel> getMockProducts() => [
         modelCode: 'MODEL PC-108',
       ),
       ProductModel(
-        id: 'billy-shelf',
+        id: 'Chair34',
         name: 'Billy Minimalist',
         subtitle: 'Khớp nối nhanh không keo',
         material: 'Gỗ tần bì cao cấp phủ sáp ong thực vật',
@@ -79,7 +79,7 @@ List<ProductModel> getMockProducts() => [
         modelCode: 'MODEL BM-402',
       ),
       ProductModel(
-        id: 'hemnes-table',
+        id: 'Closet01',
         name: 'Hemnes Wood Table',
         subtitle: 'Tủ cạnh giường gỗ tự nhiên',
         material: 'Gỗ thông nguyên khối & núm đồng thau chải xước',
@@ -98,7 +98,7 @@ List<ProductModel> getMockProducts() => [
         modelCode: 'MODEL HW-12',
       ),
       ProductModel(
-        id: 'part-cam-set',
+        id: 'Drawer30',
         name: 'Bộ ốc khóa chốt cam M6x35',
         subtitle: 'Phụ kiện linh kiện thay thế',
         material: 'Thép mạ kẽm chống rỉ',
