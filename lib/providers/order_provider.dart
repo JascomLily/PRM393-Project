@@ -138,6 +138,12 @@ class OrderProvider extends ChangeNotifier {
     return newOrder;
   }
 
+  void addOrder(OrderModel order) {
+    _orders.insert(0, order);
+    _activeInvoiceOrder = order;
+    notifyListeners();
+  }
+
   void updateOrderStatus(String orderId, String newStatus) {
     final index = _orders.indexWhere((o) => o.id == orderId);
     if (index >= 0) {

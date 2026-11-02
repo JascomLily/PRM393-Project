@@ -92,7 +92,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
               // Simulated Camera upload button (Requirement from doc: "Camera chụp ảnh đánh giá sản phẩm")
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Color(0xFF2D5A46)),
+                  side: const BorderSide(color: Color(0xFF2C1810)),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -100,17 +100,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 icon: const Icon(
                   Icons.camera_alt_outlined,
                   size: 18,
-                  color: Color(0xFF2D5A46),
+                  color: Color(0xFF2C1810),
                 ),
                 label: const Text(
                   'Chụp ảnh thực tế sản phẩm (Camera)',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF2D5A46)),
+                  style: TextStyle(fontSize: 11, color: Color(0xFF2C1810)),
                 ),
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text(
-                        '📷 Đã chụp ảnh nghiệm thu sản phẩm thành công!',
+                        'Đã chụp ảnh nghiệm thu sản phẩm thành công!',
                       ),
                     ),
                   );
@@ -140,7 +140,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2D5A46),
+                backgroundColor: const Color(0xFF2C1810),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -153,9 +153,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text(
-                      '🎉 Cảm ơn bạn! Đã nhận +50 Xu thưởng FurniCoins!',
+                      'Cảm ơn bạn! Đã nhận +50 Xu thưởng FurniCoins!',
                     ),
-                    backgroundColor: Color(0xFF2D5A46),
+                    backgroundColor: Color(0xFF2C1810),
                   ),
                 );
               },
@@ -293,7 +293,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                     color: isShipping
                                         ? const Color(0xFFFEC38D)
                                               .withOpacity(0.35)
-                                        : const Color(0xFFBCEED3)
+                                        : const Color(0xFFF7EFE7)
                                               .withOpacity(0.5),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
@@ -306,7 +306,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                       fontWeight: FontWeight.bold,
                                       color: isShipping
                                           ? const Color(0xFF805528)
-                                          : const Color(0xFF134230),
+                                          : const Color(0xFF2C1810),
                                     ),
                                   ),
                                 ),
@@ -402,7 +402,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                   style: const TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w900,
-                                    color: Color(0xFF2D5A46),
+                                    color: Color(0xFF2C1810),
                                   ),
                                 ),
                               ],
@@ -417,7 +417,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                     child: ElevatedButton.icon(
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: const Color(
-                                          0xFF2D5A46,
+                                          0xFF2C1810,
                                         ),
                                         foregroundColor: Colors.white,
                                         shape: RoundedRectangleBorder(
@@ -452,7 +452,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                             content: Text(
                                               'Đơn hàng đã được chuyển sang Đã hoàn thành.',
                                             ),
-                                            backgroundColor: Color(0xFF2D5A46),
+                                            backgroundColor: Color(0xFF2C1810),
                                           ),
                                         );
                                       },
@@ -549,8 +549,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
     return ChoiceChip(
       label: Text('$title ($count)'),
       selected: isSelected,
-      selectedColor: const Color(0xFF2D5A46),
-      backgroundColor: const Color(0xFFE9EDFF),
+      selectedColor: const Color(0xFF2C1810),
+      backgroundColor: const Color(0xFFF4ECE4),
       labelStyle: TextStyle(
         fontSize: 11,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,

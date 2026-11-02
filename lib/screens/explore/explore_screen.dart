@@ -4,13 +4,20 @@ import 'package:provider/provider.dart';
 
 import '../../models/product_model.dart';
 import '../../providers/cart_provider.dart';
-import '../../data/mock_data.dart';
+import '../../providers/product_provider.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/voice_search_dialog.dart';
 import 'product_detail_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
   final String? initialCategory;
+  final String? initialSearchQuery;
 
-  const ExploreScreen({super.key, this.initialCategory});
+  const ExploreScreen({
+    super.key,
+    this.initialCategory,
+    this.initialSearchQuery,
+  });
 
   @override
   State<ExploreScreen> createState() => _ExploreScreenState();
@@ -24,8 +31,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
   int? _maxPrice;
   final _searchController = TextEditingController();
 
-  final List<ProductModel> _allProducts = getMockProducts();
-
   final List<Map<String, dynamic>> _categories = [
     {'id': 'all', 'label': 'Tất cả', 'icon': Icons.tune},
     {
@@ -34,7 +39,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       'icon': Icons.table_restaurant_outlined,
     },
     {'id': 'chair', 'label': 'Ghế thư giãn', 'icon': Icons.chair_outlined},
-    {'id': 'shelf', 'label': 'Tủ sách', 'icon': Icons.shelves},
+    {'id': 'shelf', 'label': 'Tủ & Kệ', 'icon': Icons.shelves},
     {'id': 'parts', 'label': 'Linh kiện', 'icon': Icons.handyman_outlined},
   ];
 
@@ -49,6 +54,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
   void initState() {
     super.initState();
     _selectedCategory = widget.initialCategory ?? 'all';
+    if (widget.initialSearchQuery != null &&
+        widget.initialSearchQuery!.trim().isNotEmpty) {
+      _searchController.text = widget.initialSearchQuery!.trim();
+      _searchQuery = widget.initialSearchQuery!.trim();
+    }
   }
 
   @override
@@ -58,14 +68,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   void _showFilterSheet() {
-    int? tempMin = _minPrice;
-    int? tempMax = _maxPrice;
-    final minCtrl = TextEditingController(text: tempMin?.toString() ?? '');
-    final maxCtrl = TextEditingController(text: tempMax?.toString() ?? '');
+    final minCtrl = TextEditingController(text: _minPrice?.toString() ?? '');
+    final maxCtrl = TextEditingController(text: _maxPrice?.toString() ?? '');
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: AppTheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -83,7 +92,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
             children: [
               const Text(
                 'Bộ lọc & Sắp xếp',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimary,
+                ),
               ),
               const SizedBox(height: 16),
 
@@ -93,7 +106,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF717973),
+                  color: AppTheme.textSecondary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -104,16 +117,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   return ChoiceChip(
                     label: Text(opt['label'] as String),
                     selected: isSelected,
-                    selectedColor: const Color(0xFF2D5A46),
-                    backgroundColor: const Color(0xFFE9EDFF),
+                    selectedColor: AppTheme.primary,
+                    backgroundColor: AppTheme.surfaceAlt,
                     labelStyle: TextStyle(
                       fontSize: 12,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      color: isSelected
-                          ? Colors.white
-                          : const Color(0xFF414944),
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected ? Colors.white : AppTheme.textPrimary,
                     ),
                     side: BorderSide.none,
                     onSelected: (val) {
@@ -130,7 +140,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF717973),
+                  color: AppTheme.textSecondary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -144,7 +154,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         hintText: 'Tối thiểu',
                         hintStyle: const TextStyle(fontSize: 12),
                         filled: true,
-                        fillColor: const Color(0xFFF2F3FF),
+                        fillColor: AppTheme.surfaceAlt,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide.none,
@@ -160,7 +170,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     padding: EdgeInsets.symmetric(horizontal: 8),
                     child: Text(
                       '—',
-                      style: TextStyle(fontSize: 16, color: Color(0xFF717973)),
+                      style: TextStyle(fontSize: 16, color: AppTheme.textMuted),
                     ),
                   ),
                   Expanded(
@@ -171,7 +181,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         hintText: 'Tối đa',
                         hintStyle: const TextStyle(fontSize: 12),
                         filled: true,
-                        fillColor: const Color(0xFFF2F3FF),
+                        fillColor: AppTheme.surfaceAlt,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide.none,
@@ -199,7 +209,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         Navigator.pop(ctx);
                       },
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFF717973)),
+                        side: const BorderSide(color: AppTheme.border),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -207,7 +217,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       ),
                       child: const Text(
                         'Xóa bộ lọc',
-                        style: TextStyle(color: Color(0xFF717973)),
+                        style: TextStyle(color: AppTheme.textSecondary),
                       ),
                     ),
                   ),
@@ -216,23 +226,20 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     child: ElevatedButton(
                       onPressed: () {
                         setState(() {
-                          _minPrice = int.tryParse(minCtrl.text);
-                          _maxPrice = int.tryParse(maxCtrl.text);
+                          _minPrice = int.tryParse(minCtrl.text.trim());
+                          _maxPrice = int.tryParse(maxCtrl.text.trim());
                         });
                         Navigator.pop(ctx);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2D5A46),
+                        backgroundColor: AppTheme.primary,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
-                      child: const Text(
-                        'Áp dụng',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                      child: const Text('Áp dụng'),
                     ),
                   ),
                 ],
@@ -246,20 +253,20 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currencyFormatter = NumberFormat.currency(
-      locale: 'vi_VN',
-      symbol: '₫',
-    );
-    final cart = Provider.of<CartProvider>(context, listen: false);
+    final currencyFormatter =
+        NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
+    final cart = Provider.of<CartProvider>(context);
+    final productProvider = Provider.of<ProductProvider>(context);
+    final allProducts = productProvider.products;
 
     // Filter products
-    var filteredProducts = _allProducts.where((p) {
+    List<ProductModel> filteredProducts = allProducts.where((p) {
       final matchesCategory =
           _selectedCategory == 'all' || p.category == _selectedCategory;
-      final matchesQuery =
-          _searchQuery.isEmpty ||
+      final matchesQuery = _searchQuery.isEmpty ||
           p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           p.subtitle.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          p.id.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           p.modelCode.toLowerCase().contains(_searchQuery.toLowerCase());
       final matchesMin = _minPrice == null || p.price >= _minPrice!;
       final matchesMax = _maxPrice == null || p.price <= _maxPrice!;
@@ -278,18 +285,19 @@ class _ExploreScreenState extends State<ExploreScreen> {
         filteredProducts.sort((a, b) => b.rating.compareTo(a.rating));
         break;
       default: // popular
-        filteredProducts.sort((a, b) => b.reviewCount.compareTo(a.reviewCount));
+        filteredProducts
+            .sort((a, b) => b.reviewCount.compareTo(a.reviewCount));
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF8FF),
+      backgroundColor: AppTheme.background,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
             // Search and Filter Bar
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                 child: Column(
                   children: [
                     // Search Bar
@@ -301,20 +309,20 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             onChanged: (val) =>
                                 setState(() => _searchQuery = val.trim()),
                             decoration: InputDecoration(
-                              hintText: 'Tìm kiếm bàn, ghế, phụ kiện...',
+                              hintText: 'Tìm kiếm bàn, ghế, tủ, phụ kiện...',
                               hintStyle: const TextStyle(
                                 fontSize: 13,
-                                color: Color(0xFF717973),
+                                color: AppTheme.textMuted,
                               ),
                               prefixIcon: const Icon(
                                 Icons.search,
-                                color: Color(0xFF414944),
+                                color: AppTheme.textSecondary,
                               ),
                               suffixIcon: _searchQuery.isNotEmpty
                                   ? IconButton(
                                       icon: const Icon(
                                         Icons.clear,
-                                        color: Color(0xFF717973),
+                                        color: AppTheme.textSecondary,
                                       ),
                                       onPressed: () {
                                         _searchController.clear();
@@ -324,29 +332,36 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                   : IconButton(
                                       icon: const Icon(
                                         Icons.mic_outlined,
-                                        color: Color(0xFF2D5A46),
+                                        color: AppTheme.primary,
                                       ),
-                                      onPressed: () {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                  '🎤 Đang lắng nghe...',
-                                                ),
-                                                duration: Duration(seconds: 2),
-                                              ),
-                                            );
+                                      onPressed: () async {
+                                        final result =
+                                            await VoiceSearchDialog.show(
+                                                context);
+                                        if (result != null &&
+                                            result.trim().isNotEmpty) {
+                                          setState(() {
+                                            _searchController.text =
+                                                result.trim();
+                                            _searchQuery = result.trim();
+                                          });
+                                        }
                                       },
                                     ),
                               filled: true,
-                              fillColor: const Color(0xFFE9EDFF)
-                                  .withOpacity(0.8),
+                              fillColor: AppTheme.surface,
                               contentPadding: const EdgeInsets.symmetric(
                                 vertical: 12,
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide.none,
+                                borderSide:
+                                    const BorderSide(color: AppTheme.border),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide:
+                                    const BorderSide(color: AppTheme.border),
                               ),
                             ),
                           ),
@@ -359,22 +374,27 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             width: 44,
                             height: 44,
                             decoration: BoxDecoration(
-                              color:
-                                  (_minPrice != null ||
+                              color: (_minPrice != null ||
                                       _maxPrice != null ||
                                       _sortBy != 'popular')
-                                  ? const Color(0xFF805528)
-                                  : const Color(0xFFE9EDFF),
-                              borderRadius: BorderRadius.circular(12),
+                                  ? AppTheme.primary
+                                  : AppTheme.surface,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: (_minPrice != null ||
+                                        _maxPrice != null ||
+                                        _sortBy != 'popular')
+                                    ? AppTheme.primary
+                                    : AppTheme.border,
+                              ),
                             ),
                             child: Icon(
                               Icons.tune,
-                              color:
-                                  (_minPrice != null ||
+                              color: (_minPrice != null ||
                                       _maxPrice != null ||
                                       _sortBy != 'popular')
                                   ? Colors.white
-                                  : const Color(0xFF414944),
+                                  : AppTheme.textPrimary,
                               size: 20,
                             ),
                           ),
@@ -399,12 +419,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               size: 16,
                               color: isSelected
                                   ? Colors.white
-                                  : const Color(0xFF414944),
+                                  : AppTheme.textSecondary,
                             ),
                             label: Text(cat['label'] as String),
                             selected: isSelected,
-                            selectedColor: const Color(0xFF2D5A46),
-                            backgroundColor: const Color(0xFFE9EDFF),
+                            selectedColor: AppTheme.primary,
+                            backgroundColor: AppTheme.surface,
                             labelStyle: TextStyle(
                               fontSize: 12,
                               fontWeight: isSelected
@@ -412,17 +432,23 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                   : FontWeight.w500,
                               color: isSelected
                                   ? Colors.white
-                                  : const Color(0xFF414944),
+                                  : AppTheme.textPrimary,
                             ),
-                            side: BorderSide.none,
+                            side: BorderSide(
+                              color: isSelected
+                                  ? AppTheme.primary
+                                  : AppTheme.border,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                             ),
                             onSelected: (val) {
-                              if (val)
+                              if (val) {
                                 setState(
-                                  () => _selectedCategory = cat['id'] as String,
+                                  () =>
+                                      _selectedCategory = cat['id'] as String,
                                 );
+                              }
                             },
                           );
                         },
@@ -443,17 +469,17 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       const Icon(
                         Icons.filter_list,
                         size: 14,
-                        color: Color(0xFF805528),
+                        color: AppTheme.woodDark,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'Đang lọc: ${_sortOptions.firstWhere((s) => s['id'] == _sortBy)['label']}'
-                        '${_minPrice != null ? ' · Từ ${NumberFormat.compact(locale: 'vi_VN').format(_minPrice)}₫' : ''}'
-                        '${_maxPrice != null ? ' · Đến ${NumberFormat.compact(locale: 'vi_VN').format(_maxPrice)}₫' : ''}',
+                        '${_minPrice != null ? ' • Từ ${currencyFormatter.format(_minPrice)}' : ''}'
+                        '${_maxPrice != null ? ' • Đến ${currencyFormatter.format(_maxPrice)}' : ''}',
                         style: const TextStyle(
                           fontSize: 11,
-                          color: Color(0xFF805528),
-                          fontWeight: FontWeight.bold,
+                          color: AppTheme.woodDark,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -461,10 +487,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 ),
               ),
 
-            // Section Header
+            // Product Count Header
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -473,7 +499,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF161B28),
+                        color: AppTheme.textPrimary,
                       ),
                     ),
                     GestureDetector(
@@ -483,7 +509,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF2D5A46),
+                          color: AppTheme.primaryLight,
                         ),
                       ),
                     ),
@@ -502,7 +528,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           const Icon(
                             Icons.search_off,
                             size: 48,
-                            color: Color(0xFFC0C9C2),
+                            color: AppTheme.border,
                           ),
                           const SizedBox(height: 12),
                           const Text(
@@ -510,7 +536,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF717973),
+                              color: AppTheme.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -526,7 +552,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               });
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF2D5A46),
+                              backgroundColor: AppTheme.primary,
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
@@ -546,11 +572,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     sliver: SliverGrid(
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.68,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                          ),
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.58, // Tối ưu chiều cao, triệt tiêu 100% tràn viền
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                      ),
                       delegate: SliverChildBuilderDelegate((context, index) {
                         final product = filteredProducts[index];
                         return GestureDetector(
@@ -568,15 +594,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(18),
                               border: Border.all(
-                                color: Colors.black.withOpacity(0.04),
+                                color: AppTheme.border,
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.03),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
+                              boxShadow: AppTheme.cardShadow,
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -589,21 +609,21 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                         top: Radius.circular(18),
                                       ),
                                       child: AspectRatio(
-                                        aspectRatio: 1.1,
+                                        aspectRatio: 1.2,
                                         child: Image.network(
                                           product.image,
                                           fit: BoxFit.cover,
                                           errorBuilder: (_, __, ___) =>
                                               Container(
-                                                color: const Color(0xFFF2F3FF),
-                                                child: const Center(
-                                                  child: Icon(
-                                                    Icons.chair,
-                                                    color: Colors.grey,
-                                                    size: 36,
-                                                  ),
-                                                ),
+                                            color: AppTheme.surfaceAlt,
+                                            child: const Center(
+                                              child: Icon(
+                                                Icons.chair,
+                                                color: AppTheme.wood,
+                                                size: 36,
                                               ),
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -617,19 +637,17 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                             vertical: 2,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: Colors.white.withOpacity(
-                                              0.92,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
+                                            color:
+                                                Colors.white.withOpacity(0.92),
+                                            borderRadius:
+                                                BorderRadius.circular(6),
                                           ),
                                           child: Text(
                                             product.badge!,
                                             style: const TextStyle(
                                               fontSize: 9,
                                               fontWeight: FontWeight.bold,
-                                              color: Color(0xFF2D5A46),
+                                              color: AppTheme.woodDark,
                                             ),
                                           ),
                                         ),
@@ -644,10 +662,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                             vertical: 2,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: Colors.red,
-                                            borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
+                                            color: AppTheme.error,
+                                            borderRadius:
+                                                BorderRadius.circular(6),
                                           ),
                                           child: Text(
                                             '-${((1 - product.price / product.originalPrice!) * 100).toInt()}%',
@@ -688,7 +705,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                             ' (${product.reviewCount})',
                                             style: const TextStyle(
                                               fontSize: 10,
-                                              color: Color(0xFF717973),
+                                              color: AppTheme.textSecondary,
                                             ),
                                           ),
                                         ],
@@ -701,7 +718,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 13,
-                                          color: Color(0xFF161B28),
+                                          color: AppTheme.textPrimary,
                                         ),
                                       ),
                                       Text(
@@ -710,7 +727,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                         overflow: TextOverflow.ellipsis,
                                         style: const TextStyle(
                                           fontSize: 10,
-                                          color: Color(0xFF717973),
+                                          color: AppTheme.textSecondary,
                                         ),
                                       ),
                                       const SizedBox(height: 8),
@@ -729,8 +746,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                   ),
                                                   style: const TextStyle(
                                                     fontSize: 13,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Color(0xFF2D5A46),
+                                                    fontWeight:
+                                                        FontWeight.bold,
+                                                    color: AppTheme.primary,
                                                   ),
                                                   overflow:
                                                       TextOverflow.ellipsis,
@@ -765,6 +783,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                 context,
                                               ).showSnackBar(
                                                 SnackBar(
+                                                  backgroundColor:
+                                                      AppTheme.primary,
                                                   content: Text(
                                                     'Đã thêm ${product.name} vào giỏ hàng',
                                                   ),
@@ -777,14 +797,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                             child: Container(
                                               padding: const EdgeInsets.all(6),
                                               decoration: BoxDecoration(
-                                                color: const Color(0xFFE9EDFF),
+                                                color: AppTheme.woodLight,
                                                 borderRadius:
                                                     BorderRadius.circular(8),
                                               ),
                                               child: const Icon(
                                                 Icons.add_shopping_cart,
                                                 size: 16,
-                                                color: Color(0xFF2D5A46),
+                                                color: AppTheme.woodDark,
                                               ),
                                             ),
                                           ),

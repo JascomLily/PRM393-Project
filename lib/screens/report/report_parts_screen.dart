@@ -136,10 +136,10 @@ class _ReportPartsScreenState extends State<ReportPartsScreen> {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: const Color(0xFF2D5A46).withOpacity(0.1),
+              color: const Color(0xFF2C1810).withOpacity(0.1),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(icon, color: const Color(0xFF2D5A46), size: 28),
+            child: Icon(icon, color: const Color(0xFF2C1810), size: 28),
           ),
           const SizedBox(height: 8),
           Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
@@ -243,10 +243,10 @@ class _ReportPartsScreenState extends State<ReportPartsScreen> {
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF2D5A46).withOpacity(0.1) : Colors.white,
+                      color: isSelected ? const Color(0xFF2C1810).withOpacity(0.1) : Colors.white,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: isSelected ? const Color(0xFF2D5A46) : Colors.black.withOpacity(0.08),
+                        color: isSelected ? const Color(0xFF2C1810) : Colors.black.withOpacity(0.08),
                         width: isSelected ? 1.5 : 1,
                       ),
                     ),
@@ -255,7 +255,7 @@ class _ReportPartsScreenState extends State<ReportPartsScreen> {
                         Radio<String>(
                           value: order.id,
                           groupValue: _selectedOrder?.id,
-                          activeColor: const Color(0xFF2D5A46),
+                          activeColor: const Color(0xFF2C1810),
                           onChanged: (_) => setState(() => _selectedOrder = order),
                         ),
                         const SizedBox(width: 4),
@@ -368,18 +368,18 @@ class _ReportPartsScreenState extends State<ReportPartsScreen> {
                         color: const Color(0xFFF2F3FF),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: const Color(0xFF2D5A46).withOpacity(0.3),
+                          color: const Color(0xFF2C1810).withOpacity(0.3),
                           style: BorderStyle.solid,
                         ),
                       ),
                       child: const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.camera_alt_outlined, color: Color(0xFF2D5A46), size: 28),
+                          Icon(Icons.camera_alt_outlined, color: Color(0xFF2C1810), size: 28),
                           SizedBox(height: 4),
                           Text(
                             'Thêm ảnh',
-                            style: TextStyle(fontSize: 10, color: Color(0xFF2D5A46), fontWeight: FontWeight.w600),
+                            style: TextStyle(fontSize: 10, color: Color(0xFF2C1810), fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
@@ -446,7 +446,7 @@ class _ReportPartsScreenState extends State<ReportPartsScreen> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: Color(0xFF2D5A46)),
+                  borderSide: const BorderSide(color: Color(0xFF2C1810)),
                 ),
                 contentPadding: const EdgeInsets.all(14),
               ),
@@ -459,7 +459,7 @@ class _ReportPartsScreenState extends State<ReportPartsScreen> {
               height: 52,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2D5A46),
+                  backgroundColor: const Color(0xFF2C1810),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   elevation: 2,
@@ -508,17 +508,17 @@ class _ReportPartsScreenState extends State<ReportPartsScreen> {
                 width: 90,
                 height: 90,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFBCEED3),
+                  color: const Color(0xFFF7EFE7),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF2D5A46).withOpacity(0.2),
+                      color: const Color(0xFF2C1810).withOpacity(0.2),
                       blurRadius: 20,
                       offset: const Offset(0, 6),
                     ),
                   ],
                 ),
-                child: const Icon(Icons.check_circle_outline, size: 56, color: Color(0xFF134230)),
+                child: const Icon(Icons.check_circle_outline, size: 56, color: Color(0xFF2C1810)),
               ),
             ),
             const SizedBox(height: 24),
@@ -556,7 +556,7 @@ class _ReportPartsScreenState extends State<ReportPartsScreen> {
             const SizedBox(height: 32),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2D5A46),
+                backgroundColor: const Color(0xFF2C1810),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 padding: const EdgeInsets.symmetric(vertical: 14),

@@ -46,6 +46,7 @@ dependencies:
   flutter_embed_unity: ^2.0.0
   flutter_embed_unity_6000_0_android: ^2.0.0
   supabase_flutter: ^2.18.3
+  speech_to_text: ^7.5.0
 
 dev_dependencies:
   flutter_test:

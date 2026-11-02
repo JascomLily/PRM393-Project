@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/product_model.dart';
 import '../models/voucher_model.dart';
 import '../models/missing_report_model.dart';
+import '../models/user_model.dart';
 
 class SupabaseService {
   // Cấu hình Project URL và Publishable Key từ Supabase Dashboard:
@@ -166,6 +167,43 @@ class SupabaseService {
     }
   }
 
+  static Future<bool> deleteVoucher(String code) async {
+    final c = client;
+    if (c == null) return false;
+    try {
+      await c.from('vouchers').delete().eq('code', code);
+      return true;
+    } catch (e) {
+      debugPrint('[SupabaseService] deleteVoucher error: $e');
+      return false;
+    }
+  }
+
+  // ==========================================================================
+  // QUẢN LÝ HỒ SƠ NGƯỜI DÙNG (PROFILES)
+  // ==========================================================================
+  static Future<bool> upsertProfile(UserModel user) async {
+    final c = client;
+    if (c == null) return false;
+    try {
+      await c.from('profiles').upsert({
+        'id': user.id,
+        'name': user.name,
+        'email': user.email,
+        'phone': user.phone,
+        'avatar': user.avatar,
+        'furni_coins': user.furniCoins,
+        'saved_address': user.savedAddress,
+        'role': user.role,
+        'is_active': user.isActive,
+      });
+      return true;
+    } catch (e) {
+      debugPrint('[SupabaseService] upsertProfile error: $e');
+      return false;
+    }
+  }
+
   // ==========================================================================
   // MISSING PARTS & RETURNS
   // ==========================================================================
@@ -219,7 +257,7 @@ class SupabaseService {
   }
 
   // ==========================================================================
-  // STORAGE BUCKET: TẢI ẢNH CHỤP TỪ CAMERA LÊN SUPABASE
+  // STORAGE BUCKET: TẢI ẢNH CHỤP TỪ CAMERA / THƯ VIỆN LÊN SUPABASE
   // ==========================================================================
   static Future<String?> uploadCameraEvidence({
     required Uint8List bytes,
@@ -234,6 +272,27 @@ class SupabaseService {
       return c.storage.from(bucketName).getPublicUrl(path);
     } catch (e) {
       debugPrint('[SupabaseService] uploadCameraEvidence error: $e');
+      return null;
+    }
+  }
+
+  static Future<String?> uploadAvatar({
+    required Uint8List bytes,
+    required String fileName,
+  }) async {
+    final c = client;
+    if (c == null) return null;
+    try {
+      const bucketName = 'furniture-media';
+      final path = 'avatars/${DateTime.now().millisecondsSinceEpoch}_$fileName';
+      await c.storage.from(bucketName).uploadBinary(
+        path,
+        bytes,
+        fileOptions: const FileOptions(contentType: 'image/jpeg', upsert: true),
+      );
+      return c.storage.from(bucketName).getPublicUrl(path);
+    } catch (e) {
+      debugPrint('[SupabaseService] uploadAvatar error: $e');
       return null;
     }
   }

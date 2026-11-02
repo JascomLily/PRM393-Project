@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../models/order_model.dart';
 import '../orders/vnpay_invoice_dialog.dart';
+import '../main_navigation_screen.dart';
 
 class OrderSuccessScreen extends StatelessWidget {
   final OrderModel order;
@@ -118,12 +119,19 @@ class OrderSuccessScreen extends StatelessWidget {
               const SizedBox(height: 10),
 
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
                 onPressed: () {
-                  if (onGoToOrders != null) {
-                    onGoToOrders!();
-                  } else {
-                    Navigator.popUntil(context, (route) => route.isFirst);
-                  }
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (_) => const MainNavigationScreen(initialIndex: 0),
+                    ),
+                    (route) => false,
+                  );
                 },
                 child: const Text('Về trang chủ'),
               ),

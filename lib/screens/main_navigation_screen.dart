@@ -1,40 +1,74 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/auth_provider.dart';
 import '../providers/cart_provider.dart';
+import '../providers/auth_provider.dart';
+import '../theme/app_theme.dart';
 import 'home/home_screen.dart';
 import 'explore/explore_screen.dart';
+import 'qr_scanner/qr_scanner_screen.dart';
 import 'parts/parts_screen.dart';
 import 'orders/orders_screen.dart';
-import 'admin/admin_screen.dart';
 import 'cart/cart_screen.dart';
 import 'profile/profile_screen.dart';
+import 'admin/admin_screen.dart';
 import 'auth/login_screen.dart';
-import 'qr_scanner/qr_scanner_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({super.key});
+  final int initialIndex;
+
+  const MainNavigationScreen({super.key, this.initialIndex = 0});
 
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  int _currentIndex = 0;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
+
+  Widget _buildAvatarWidget(String avatarUrl) {
+    if (avatarUrl.startsWith('data:image')) {
+      final base64Str = avatarUrl.split(',').last;
+      return ClipOval(
+        child: Image.memory(
+          base64Decode(base64Str),
+          width: 32,
+          height: 32,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 20, color: AppTheme.wood),
+        ),
+      );
+    }
+    return ClipOval(
+      child: Image.network(
+        avatarUrl,
+        width: 32,
+        height: 32,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 20, color: AppTheme.wood),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
     final cart = Provider.of<CartProvider>(context);
+    final auth = Provider.of<AuthProvider>(context);
     final isAdmin = auth.isAdmin;
 
     final screens = <Widget>[
-      const HomeScreen(), // UI 02 - Home
-      const ExploreScreen(), // UI 03 - Product Catalog & Search
+      const HomeScreen(),
+      const ExploreScreen(),
       QrScannerScreen(embedded: true, active: _currentIndex == 2),
-      const PartsScreen(), // UI 11 - Replacement Parts Store
-      const OrdersScreen(), // UI 07 - My Orders & Order Detail
+      const PartsScreen(),
+      const OrdersScreen(),
       if (isAdmin) const AdminScreen(),
     ];
 
@@ -43,7 +77,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     }
 
     final titles = [
-      'Furni3D — Nội thất 3D',
+      'Sofa so good — Nội thất 3D',
       'Khám phá sản phẩm',
       'Quét mã QR sản phẩm',
       'Linh kiện thay thế',
@@ -52,16 +86,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF8FF),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFAF8FF),
+        backgroundColor: AppTheme.background,
         elevation: 0,
         title: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: const Color(0xFF2D5A46),
+                color: AppTheme.wood,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.chair, color: Colors.white, size: 18),
@@ -72,12 +106,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'FURNI3D MOBILE',
+                    'SOFA SO GOOD',
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.1,
-                      color: Color(0xFF805528),
+                      color: AppTheme.primaryLight,
                     ),
                   ),
                   Text(
@@ -85,7 +119,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF161B28),
+                      color: AppTheme.textPrimary,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -100,10 +134,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(
-                  Icons.shopping_bag_outlined,
-                  color: Color(0xFF161B28),
-                ),
+                icon: const Icon(Icons.shopping_bag_outlined, color: AppTheme.textPrimary),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -118,7 +149,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: const BoxDecoration(
-                      color: Color(0xFF805528),
+                      color: AppTheme.primary,
                       shape: BoxShape.circle,
                     ),
                     constraints: const BoxConstraints(
@@ -150,10 +181,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               },
               child: Padding(
                 padding: const EdgeInsets.only(right: 12, left: 4),
-                child: CircleAvatar(
-                  radius: 16,
-                  backgroundImage: NetworkImage(auth.currentUser!.avatar),
-                  backgroundColor: const Color(0xFFF2F3FF),
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppTheme.wood, width: 1.5),
+                  ),
+                  child: _buildAvatarWidget(auth.currentUser!.avatar),
                 ),
               ),
             )
@@ -162,7 +197,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               padding: const EdgeInsets.only(right: 12, left: 4),
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2D5A46),
+                  backgroundColor: AppTheme.primary,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -191,8 +226,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border(
-            top: BorderSide(color: Colors.black.withOpacity(0.06)),
+          border: const Border(
+            top: BorderSide(color: AppTheme.border),
           ),
           boxShadow: [
             BoxShadow(
@@ -206,8 +241,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           currentIndex: _currentIndex,
           backgroundColor: Colors.white,
           elevation: 0,
-          selectedItemColor: const Color(0xFF2D5A46),
-          unselectedItemColor: const Color(0xFF717973),
+          selectedItemColor: AppTheme.primary,
+          unselectedItemColor: AppTheme.textMuted,
           selectedLabelStyle: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 11,
@@ -236,8 +271,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               label: 'Quét QR',
             ),
             const BottomNavigationBarItem(
-              icon: Icon(Icons.handyman_outlined),
-              activeIcon: Icon(Icons.handyman),
+              icon: Icon(Icons.build_outlined),
+              activeIcon: Icon(Icons.build),
               label: 'Linh kiện',
             ),
             const BottomNavigationBarItem(

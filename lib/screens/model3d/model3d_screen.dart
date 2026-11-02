@@ -90,7 +90,7 @@ class _Model3DScreenState extends State<Model3DScreen> {
                       icon: const Icon(Icons.arrow_forward),
                       label: const Text('Tiếp theo'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2D5A46),
+                        backgroundColor: const Color(0xFF2C1810),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),

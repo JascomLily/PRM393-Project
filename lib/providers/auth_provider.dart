@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
+import '../models/address_model.dart';
 import '../data/mock_data.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -98,55 +99,69 @@ class AuthProvider extends ChangeNotifier {
 
     final existingIndex = _users.indexWhere(
         (u) => u.email.toLowerCase() == email.toLowerCase().trim());
+
     if (existingIndex != -1) {
-      final user = _users[existingIndex];
-      if (!user.isActive) {
+      if (!_users[existingIndex].isActive) {
         _isLoading = false;
         notifyListeners();
         throw Exception(
-            'Tài khoản này đã bị vô hiệu hóa bởi Quản trị viên. Vui lòng liên hệ bộ phận hỗ trợ.');
+            'Tài khoản này đã bị vô hiệu hóa bởi Quản trị viên. Vui lòng liên hệ hỗ trợ.');
       }
-      _currentUser = user;
-    } else {
-      final isAdmin = email.toLowerCase().contains('admin');
-      _currentUser = UserModel(
-        id: 'usr-${DateTime.now().millisecondsSinceEpoch}',
-        name: isAdmin
-            ? 'Quản Trị Viên Sofa so good'
-            : (email.toLowerCase() == 'customer@furni3d.vn'
-                ? 'Đặng Thảo Vy'
-                : email.split('@')[0]),
-        email: email.trim(),
-        phone: isAdmin ? '1900 8383' : '0983 838 311',
-        avatar: isAdmin
-            ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
-            : kUserAvatar,
-        furniCoins: isAdmin ? 9999 : 150,
-        savedAddress: isAdmin
-            ? 'Trụ sở Sofa so good, Tầng 32 Landmark 81, TP. Hồ Chí Minh'
-            : 'Tòa nhà Landmark 81, P. 22, Q. Bình Thạnh, TP. Hồ Chí Minh',
-        role: isAdmin ? 'admin' : 'customer',
-        isActive: true,
-      );
-      _users.add(_currentUser!);
+      _currentUser = _users[existingIndex];
+      _isLoading = false;
+      await _saveUserToStorage();
+      notifyListeners();
+      return true;
     }
 
+    // Tài khoản mặc định cho demo
+    if (email.contains('admin')) {
+      _currentUser = UserModel(
+        id: 'usr-admin-demo',
+        name: 'Quản Trị Viên Sofa so good',
+        email: email,
+        phone: '1900 8383',
+        avatar:
+            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+        furniCoins: 9999,
+        savedAddress: 'Trụ sở Sofa so good, Landmark 81, TP. HCM',
+        role: 'admin',
+        isActive: true,
+      );
+    } else {
+      _currentUser = UserModel(
+        id: 'usr-demo-${DateTime.now().millisecondsSinceEpoch}',
+        name: 'Đặng Thảo Vy',
+        email: email,
+        phone: '0983 838 311',
+        avatar:
+            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+        furniCoins: 150,
+        savedAddress: 'Tòa nhà Landmark 81, P. 22, Q. Bình Thạnh, TP. Hồ Chí Minh',
+        role: 'customer',
+        isActive: true,
+      );
+    }
+
+    _users.insert(0, _currentUser!);
     _isLoading = false;
     await _saveUserToStorage();
     notifyListeners();
     return true;
   }
 
-  Future<void> loginWithGoogle() async {
+  Future<void> loginWithGoogle() => signInWithGoogle();
+
+  Future<void> signInWithGoogle() async {
     _isLoading = true;
     notifyListeners();
 
     await Future.delayed(const Duration(milliseconds: 800));
 
     _currentUser = UserModel(
-      id: 'google-${DateTime.now().millisecondsSinceEpoch}',
-      name: 'Đặng Thảo Vy',
-      email: 'customer@furni3d.vn',
+      id: 'usr-google-${DateTime.now().millisecondsSinceEpoch}',
+      name: 'Khách hàng Google',
+      email: 'user.google@gmail.com',
       phone: '0983 838 311',
       avatar:
           'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
@@ -203,6 +218,7 @@ class AuthProvider extends ChangeNotifier {
       if (client != null) {
         await client.auth.signUp(email: email.trim(), password: password);
       }
+      SupabaseService.upsertProfile(_currentUser!);
     } catch (_) {}
 
     _isLoading = false;
@@ -221,8 +237,7 @@ class AuthProvider extends ChangeNotifier {
     if (_currentUser == null) return;
     _currentUser!.role =
         _currentUser!.role == 'customer' ? 'admin' : 'customer';
-    _saveUserToStorage();
-    notifyListeners();
+    _syncUser();
   }
 
   void updateFullProfile({
@@ -240,12 +255,18 @@ class AuthProvider extends ChangeNotifier {
     if (avatar != null && avatar.trim().isNotEmpty) {
       _currentUser!.avatar = avatar.trim();
     }
-    final idx = _users.indexWhere((u) => u.id == _currentUser!.id);
-    if (idx != -1) {
-      _users[idx] = _currentUser!;
+    // Update default address if exists
+    if (_currentUser!.addresses.isNotEmpty) {
+      final defIdx = _currentUser!.addresses.indexWhere((a) => a.isDefault);
+      if (defIdx != -1) {
+        _currentUser!.addresses[defIdx] = _currentUser!.addresses[defIdx].copyWith(
+          receiverName: name,
+          receiverPhone: phone,
+          address: address,
+        );
+      }
     }
-    _saveUserToStorage();
-    notifyListeners();
+    _syncUser();
   }
 
   void updateProfile({
@@ -263,22 +284,80 @@ class AuthProvider extends ChangeNotifier {
     );
   }
 
+  // Quản lý địa chỉ giao hàng
+  void addAddress(AddressModel newAddress) {
+    if (_currentUser == null) return;
+    if (newAddress.isDefault) {
+      _currentUser!.addresses =
+          _currentUser!.addresses.map((a) => a.copyWith(isDefault: false)).toList();
+      _currentUser!.savedAddress = newAddress.address;
+    }
+    _currentUser!.addresses.add(newAddress);
+    _syncUser();
+  }
+
+  void updateAddress(AddressModel updated) {
+    if (_currentUser == null) return;
+    final idx = _currentUser!.addresses.indexWhere((a) => a.id == updated.id);
+    if (idx != -1) {
+      if (updated.isDefault) {
+        _currentUser!.addresses =
+            _currentUser!.addresses.map((a) => a.copyWith(isDefault: false)).toList();
+        _currentUser!.savedAddress = updated.address;
+      }
+      _currentUser!.addresses[idx] = updated;
+      _syncUser();
+    }
+  }
+
+  void deleteAddress(String addressId) {
+    if (_currentUser == null) return;
+    _currentUser!.addresses.removeWhere((a) => a.id == addressId);
+    if (_currentUser!.addresses.isNotEmpty &&
+        !_currentUser!.addresses.any((a) => a.isDefault)) {
+      _currentUser!.addresses[0] =
+          _currentUser!.addresses[0].copyWith(isDefault: true);
+      _currentUser!.savedAddress = _currentUser!.addresses[0].address;
+    }
+    _syncUser();
+  }
+
+  void setDefaultAddress(String addressId) {
+    if (_currentUser == null) return;
+    _currentUser!.addresses = _currentUser!.addresses.map((a) {
+      final isDef = a.id == addressId;
+      if (isDef) {
+        _currentUser!.savedAddress = a.address;
+      }
+      return a.copyWith(isDefault: isDef);
+    }).toList();
+    _syncUser();
+  }
+
+  void _syncUser() {
+    final idx = _users.indexWhere((u) => u.id == _currentUser!.id);
+    if (idx != -1) {
+      _users[idx] = _currentUser!;
+    }
+    _saveUserToStorage();
+    SupabaseService.upsertProfile(_currentUser!);
+    notifyListeners();
+  }
+
   void deductCoins(int coins) {
     if (_currentUser == null) return;
     _currentUser!.furniCoins =
         (_currentUser!.furniCoins - coins).clamp(0, 999999);
-    _saveUserToStorage();
-    notifyListeners();
+    _syncUser();
   }
 
   void addCoins(int coins) {
     if (_currentUser == null) return;
     _currentUser!.furniCoins += coins;
-    _saveUserToStorage();
-    notifyListeners();
+    _syncUser();
   }
 
-  // Quản Lý Tài Khoản Người Dùng (Admin & Profile)
+  // Quản Lý Tài Khoản Người Dùng (Admin)
   void toggleUserRole(String userId) {
     final index = _users.indexWhere((u) => u.id == userId);
     if (index != -1) {

@@ -47,7 +47,7 @@ class AppTheme {
 
   static List<BoxShadow> get cardShadow => [
         BoxShadow(
-          color: const Color(0xFF1B4332).withOpacity(0.04),
+          color: const Color(0xFF2C1810).withOpacity(0.04),
           blurRadius: 12,
           offset: const Offset(0, 2),
         ),
