@@ -33,33 +33,42 @@ class AuthProvider extends ChangeNotifier {
         final Session? session = data.session;
         if (event == AuthChangeEvent.signedIn && session?.user != null) {
           final sbUser = session!.user;
-          final email = sbUser.email ?? 'google.user@gmail.com';
-          final name = sbUser.userMetadata?['full_name'] ??
-              sbUser.userMetadata?['name'] ??
-              email.split('@').first;
-          final avatar = sbUser.userMetadata?['avatar_url'] ??
-              sbUser.userMetadata?['picture'] ??
-              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
+          final existingProfile = await SupabaseService.fetchProfile(sbUser.id);
+          if (existingProfile != null) {
+            _currentUser = existingProfile;
+          } else {
+            final email = sbUser.email ?? 'google.user@gmail.com';
+            final name = sbUser.userMetadata?['full_name'] ??
+                sbUser.userMetadata?['name'] ??
+                email.split('@').first;
+            final avatar = sbUser.userMetadata?['avatar_url'] ??
+                sbUser.userMetadata?['picture'] ??
+                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
+            final phone = (sbUser.phone ?? '').isNotEmpty
+                ? sbUser.phone!
+                : (sbUser.userMetadata?['phone'] ?? '');
+            final savedAddress = sbUser.userMetadata?['address'] ?? '';
 
-          _currentUser = UserModel(
-            id: sbUser.id,
-            name: name,
-            email: email,
-            phone: (sbUser.phone ?? '').isNotEmpty ? sbUser.phone! : '0983 838 311',
-            avatar: avatar,
-            furniCoins: 200,
-            savedAddress: 'Tòa nhà Landmark 81, P. 22, Q. Bình Thạnh, TP. Hồ Chí Minh',
-            role: 'customer',
-            isActive: true,
-          );
+            _currentUser = UserModel(
+              id: sbUser.id,
+              name: name,
+              email: email,
+              phone: phone,
+              avatar: avatar,
+              furniCoins: 100,
+              savedAddress: savedAddress,
+              role: 'customer',
+              isActive: true,
+            );
+            await SupabaseService.upsertProfile(_currentUser!);
+          }
           _isLoading = false;
-          await SupabaseService.upsertProfile(_currentUser!);
           await _saveUserToStorage();
           notifyListeners();
         }
       });
     } catch (e) {
-      debugPrint('[AuthProvider] _listenToAuthChanges error: ');
+      debugPrint('[AuthProvider] _listenToAuthChanges error: $e');
     }
   }
 
@@ -112,10 +121,10 @@ class AuthProvider extends ChangeNotifier {
       if (userStr != null) {
         _currentUser = UserModel.fromJson(jsonDecode(userStr));
       } else {
-        _currentUser = getInitialUser();
+        _currentUser = null;
       }
     } catch (_) {
-      _currentUser = getInitialUser();
+      _currentUser = null;
     }
     notifyListeners();
   }
@@ -169,22 +178,32 @@ class AuthProvider extends ChangeNotifier {
         role: 'admin',
         isActive: true,
       );
-    } else {
-      _currentUser = UserModel(
-        id: 'usr-demo-${DateTime.now().millisecondsSinceEpoch}',
-        name: 'Đặng Thảo Vy',
-        email: email,
-        phone: '0983 838 311',
-        avatar:
-            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-        furniCoins: 150,
-        savedAddress: 'Tòa nhà Landmark 81, P. 22, Q. Bình Thạnh, TP. Hồ Chí Minh',
-        role: 'customer',
-        isActive: true,
+    } else if (email == 'customer@furni3d.vn') {
+      _currentUser = _users.firstWhere(
+        (u) => u.email == 'customer@furni3d.vn',
+        orElse: () => getInitialUser(),
       );
+    } else {
+      final existingUser = _users.where((u) => u.email.toLowerCase() == email.toLowerCase()).firstOrNull;
+      if (existingUser != null) {
+        _currentUser = existingUser;
+      } else {
+        final derivedName = email.split('@').first;
+        _currentUser = UserModel(
+          id: 'usr-${DateTime.now().millisecondsSinceEpoch}',
+          name: derivedName,
+          email: email,
+          phone: '',
+          avatar: '',
+          furniCoins: 100,
+          savedAddress: '',
+          role: email.toLowerCase().contains('admin') ? 'admin' : 'customer',
+          isActive: true,
+        );
+        _users.insert(0, _currentUser!);
+      }
     }
 
-    _users.insert(0, _currentUser!);
     _isLoading = false;
     await _saveUserToStorage();
     notifyListeners();
@@ -207,26 +226,35 @@ class AuthProvider extends ChangeNotifier {
 
         final sbUser = client.auth.currentUser;
         if (sbUser != null) {
-          final email = sbUser.email ?? 'google.user@furni3d.vn';
-          final name = sbUser.userMetadata?['full_name'] ??
-              sbUser.userMetadata?['name'] ??
-              'Khách hàng Google';
-          final avatar = sbUser.userMetadata?['avatar_url'] ??
-              sbUser.userMetadata?['picture'] ??
-              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
+          final existingProfile = await SupabaseService.fetchProfile(sbUser.id);
+          if (existingProfile != null) {
+            _currentUser = existingProfile;
+          } else {
+            final email = sbUser.email ?? 'google.user@furni3d.vn';
+            final name = sbUser.userMetadata?['full_name'] ??
+                sbUser.userMetadata?['name'] ??
+                email.split('@').first;
+            final avatar = sbUser.userMetadata?['avatar_url'] ??
+                sbUser.userMetadata?['picture'] ??
+                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
+            final phone = (sbUser.phone ?? '').isNotEmpty
+                ? sbUser.phone!
+                : (sbUser.userMetadata?['phone'] ?? '');
+            final savedAddress = sbUser.userMetadata?['address'] ?? '';
 
-          _currentUser = UserModel(
-            id: sbUser.id,
-            name: name,
-            email: email,
-            phone: '0983 838 311',
-            avatar: avatar,
-            furniCoins: 200,
-            savedAddress: 'Tòa nhà Landmark 81, P. 22, Q. Bình Thạnh, TP. Hồ Chí Minh',
-            role: 'customer',
-            isActive: true,
-          );
-          await SupabaseService.upsertProfile(_currentUser!);
+            _currentUser = UserModel(
+              id: sbUser.id,
+              name: name,
+              email: email,
+              phone: phone,
+              avatar: avatar,
+              furniCoins: 100,
+              savedAddress: savedAddress,
+              role: 'customer',
+              isActive: true,
+            );
+            await SupabaseService.upsertProfile(_currentUser!);
+          }
           _isLoading = false;
           await _saveUserToStorage();
           notifyListeners();
@@ -244,11 +272,11 @@ class AuthProvider extends ChangeNotifier {
       id: 'usr-google-${DateTime.now().millisecondsSinceEpoch}',
       name: 'Khách hàng Google',
       email: 'user.google@gmail.com',
-      phone: '0983 838 311',
+      phone: '',
       avatar:
           'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-      furniCoins: 200,
-      savedAddress: 'Tòa nhà Landmark 81, P. 22, Q. Bình Thạnh, TP. Hồ Chí Minh',
+      furniCoins: 100,
+      savedAddress: '',
       role: 'customer',
       isActive: true,
     );

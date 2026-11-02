@@ -4,6 +4,7 @@ import '../models/order_model.dart';
 import '../models/cart_item_model.dart';
 import '../models/return_request_model.dart';
 import '../data/mock_data.dart';
+import '../services/supabase_service.dart';
 
 class OrderProvider extends ChangeNotifier {
   final List<OrderModel> _orders = getMockOrders();
@@ -13,6 +14,17 @@ class OrderProvider extends ChangeNotifier {
 
   OrderProvider() {
     _initSampleReturns();
+    loadOrdersFromSupabase();
+  }
+
+  Future<void> loadOrdersFromSupabase() async {
+    if (!SupabaseService.isConfigured) return;
+    final remote = await SupabaseService.fetchOrders();
+    if (remote != null && remote.isNotEmpty) {
+      _orders.clear();
+      _orders.addAll(remote);
+      notifyListeners();
+    }
   }
 
   List<OrderModel> get orders => List.unmodifiable(_orders);
@@ -138,10 +150,13 @@ class OrderProvider extends ChangeNotifier {
     return newOrder;
   }
 
-  void addOrder(OrderModel order) {
+  void addOrder(OrderModel order, {String? userId}) {
     _orders.insert(0, order);
     _activeInvoiceOrder = order;
     notifyListeners();
+    if (SupabaseService.isConfigured) {
+      SupabaseService.insertOrder(order, userId: userId);
+    }
   }
 
   void updateOrderStatus(String orderId, String newStatus) {
@@ -152,6 +167,9 @@ class OrderProvider extends ChangeNotifier {
         _orders[index].paymentStatus = 'PAID';
       }
       notifyListeners();
+      if (SupabaseService.isConfigured) {
+        SupabaseService.updateOrderStatus(orderId, newStatus);
+      }
     }
   }
 
@@ -160,6 +178,9 @@ class OrderProvider extends ChangeNotifier {
     if (index >= 0) {
       _orders[index].status = 'cancelled';
       notifyListeners();
+      if (SupabaseService.isConfigured) {
+        SupabaseService.updateOrderStatus(orderId, 'cancelled');
+      }
     }
   }
 

@@ -325,7 +325,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ],
     );
 
-    orderProvider.addOrder(newOrder);
+    orderProvider.addOrder(newOrder, userId: auth.currentUser?.id);
 
     if (coinsDeducted > 0) {
       auth.deductCoins(coinsDeducted);

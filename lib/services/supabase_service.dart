@@ -4,6 +4,7 @@ import '../models/product_model.dart';
 import '../models/voucher_model.dart';
 import '../models/missing_report_model.dart';
 import '../models/user_model.dart';
+import '../models/order_model.dart';
 
 class SupabaseService {
   // Cấu hình Project URL và Publishable Key từ Supabase Dashboard:
@@ -200,6 +201,156 @@ class SupabaseService {
       return true;
     } catch (e) {
       debugPrint('[SupabaseService] upsertProfile error: $e');
+      return false;
+    }
+  }
+
+  static Future<UserModel?> fetchProfile(String userId) async {
+    final c = client;
+    if (c == null) return null;
+    try {
+      final res = await c.from('profiles').select().eq('id', userId).maybeSingle();
+      if (res == null) return null;
+      return UserModel(
+        id: res['id'] ?? userId,
+        name: res['name'] ?? '',
+        email: res['email'] ?? '',
+        phone: res['phone'] ?? '',
+        avatar: res['avatar'] ?? '',
+        furniCoins: (res['furni_coins'] as num?)?.toInt() ?? 100,
+        savedAddress: res['saved_address'] ?? '',
+        role: res['role'] ?? 'customer',
+        isActive: res['is_active'] ?? true,
+      );
+    } catch (e) {
+      debugPrint('[SupabaseService] fetchProfile error: $e');
+      return null;
+    }
+  }
+
+  // ==========================================================================
+  // ĐƠN HÀNG (ORDERS & ORDER_ITEMS)
+  // ==========================================================================
+  static Future<List<OrderModel>?> fetchOrders() async {
+    final c = client;
+    if (c == null) return null;
+    try {
+      final res = await c.from('orders').select('*, order_items(*)').order('created_at', ascending: false);
+      final list = res as List<dynamic>;
+      return list.map<OrderModel>((item) {
+        final itemsRaw = (item['order_items'] as List<dynamic>?) ?? [];
+        final items = itemsRaw.map((it) {
+          return OrderItemModel(
+            productId: it['product_id'] ?? '',
+            name: it['name'] ?? '',
+            price: (it['price'] as num?)?.toInt() ?? 0,
+            quantity: (it['quantity'] as num?)?.toInt() ?? 1,
+            image: it['image'] ?? '',
+            variant: it['variant'] ?? '',
+          );
+        }).toList();
+
+        final status = item['status'] ?? 'pending';
+        final timeline = [
+          TimelineStepModel(
+            id: 1,
+            title: 'Đặt hàng thành công',
+            time: item['date'] ?? 'Vừa xong',
+            description: 'Đơn hàng đã được ghi nhận trên hệ thống Supabase.',
+            status: 'completed',
+          ),
+          if (status == 'shipping' || status == 'completed')
+            TimelineStepModel(
+              id: 2,
+              title: 'Đang giao hàng',
+              time: 'Hôm nay',
+              description: 'Tài xế đang vận chuyển sản phẩm đến địa chỉ.',
+              status: status == 'completed' ? 'completed' : 'current',
+            ),
+          if (status == 'completed')
+            TimelineStepModel(
+              id: 3,
+              title: 'Giao hàng thành công',
+              time: 'Hoàn tất',
+              description: 'Đơn hàng đã giao thành công và hoàn tất thanh toán.',
+              status: 'completed',
+            ),
+        ];
+
+        return OrderModel(
+          id: item['id'] ?? '',
+          code: item['code'] ?? '',
+          date: item['date'] ?? '',
+          estimatedDelivery: item['estimated_delivery'] ?? 'Trong 2-3 ngày',
+          totalAmount: (item['total_amount'] as num?)?.toInt() ?? 0,
+          paymentMethod: item['payment_method'] ?? 'COD',
+          paymentStatus: item['payment_status'] ?? 'PENDING',
+          transactionId: item['transaction_id'] ?? '',
+          status: status,
+          receiverName: item['receiver_name'] ?? '',
+          receiverPhone: item['receiver_phone'] ?? '',
+          shippingAddress: item['shipping_address'] ?? '',
+          items: items,
+          timeline: timeline,
+          orderNote: item['order_note'],
+          reviewStars: (item['review_stars'] as num?)?.toInt(),
+          reviewComment: item['review_comment'],
+        );
+      }).toList();
+    } catch (e) {
+      debugPrint('[SupabaseService] fetchOrders error: $e');
+      return null;
+    }
+  }
+
+  static Future<bool> insertOrder(OrderModel order, {String? userId}) async {
+    final c = client;
+    if (c == null) return false;
+    try {
+      await c.from('orders').upsert({
+        'id': order.id,
+        'code': order.code,
+        'user_id': userId,
+        'date': order.date,
+        'estimated_delivery': order.estimatedDelivery,
+        'total_amount': order.totalAmount,
+        'payment_method': order.paymentMethod,
+        'payment_status': order.paymentStatus,
+        'transaction_id': order.transactionId,
+        'status': order.status,
+        'receiver_name': order.receiverName,
+        'receiver_phone': order.receiverPhone,
+        'shipping_address': order.shippingAddress,
+        'order_note': order.orderNote,
+      });
+
+      if (order.items.isNotEmpty) {
+        final itemsPayload = order.items.map((it) => {
+          'order_id': order.id,
+          'product_id': it.productId,
+          'name': it.name,
+          'price': it.price,
+          'quantity': it.quantity,
+          'image': it.image,
+          'variant': it.variant,
+        }).toList();
+        await c.from('order_items').insert(itemsPayload);
+      }
+      return true;
+    } catch (e) {
+      debugPrint('[SupabaseService] insertOrder error: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> updateOrderStatus(String orderId, String newStatus) async {
+    final c = client;
+    if (c == null) return false;
+    try {
+      await c.from('orders').update({'status': newStatus}).eq('id', orderId);
+      return true;
+    } catch (e) {
+      debugPrint('[SupabaseService] updateOrderStatus error: $e');
       return false;
     }
   }
