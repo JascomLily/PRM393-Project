@@ -5,6 +5,7 @@ import '../../theme/app_theme.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../checkout/checkout_screen.dart';
+import '../auth/login_screen.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -413,6 +414,36 @@ class _CartScreenState extends State<CartScreen> {
                                 padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
                               ),
                               onPressed: () {
+                                final auth = Provider.of<AuthProvider>(context, listen: false);
+                                if (!auth.isLoggedIn || auth.currentUser == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Vui lòng đăng nhập tài khoản để tiến hành thanh toán.'),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => LoginScreen(
+                                        onLoginSuccess: () {
+                                          Navigator.pop(context);
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => CheckoutScreen(
+                                                amount: cart.getFinalTotal(userCoins),
+                                                coinsUsed: cart.useFurniCoins ? (cart.getCoinsDiscount(userCoins) ~/ 1000) : 0,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
+
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(

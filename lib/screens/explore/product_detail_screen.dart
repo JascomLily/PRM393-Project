@@ -4,8 +4,10 @@ import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../models/product_model.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../model3d/model3d_screen.dart';
 import '../checkout/checkout_screen.dart';
+import '../auth/login_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final ProductModel product;
@@ -369,6 +371,39 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
                 onPressed: () {
+                  final auth = Provider.of<AuthProvider>(context, listen: false);
+                  if (!auth.isLoggedIn || auth.currentUser == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Vui lòng đăng nhập tài khoản trước khi mua hàng.'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => LoginScreen(
+                          onLoginSuccess: () {
+                            Navigator.pop(context);
+                            cart.addItem(
+                              id: widget.product.id,
+                              name: widget.product.name,
+                              price: widget.product.price,
+                              image: widget.product.image,
+                              variant: _selectedWood,
+                              quantity: _quantity,
+                            );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const CheckoutScreen()),
+                            );
+                          },
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+
                   cart.addItem(
                     id: widget.product.id,
                     name: widget.product.name,

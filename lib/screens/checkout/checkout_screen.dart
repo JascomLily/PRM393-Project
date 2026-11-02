@@ -12,6 +12,7 @@ import '../../services/location_service.dart';
 import '../main_navigation_screen.dart';
 import 'vnpay_gateway_screen.dart';
 import 'order_success_screen.dart';
+import '../auth/login_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final int? amount;
@@ -401,9 +402,105 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget build(BuildContext context) {
     final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
     final auth = Provider.of<AuthProvider>(context);
+    if (!auth.isLoggedIn || auth.currentUser == null) {
+      return Scaffold(
+        backgroundColor: AppTheme.background,
+        appBar: AppBar(
+          title: const Text('Thanh toán đơn hàng'),
+          centerTitle: true,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 90,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withOpacity(0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.lock_person_outlined,
+                    size: 48,
+                    color: AppTheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Yêu Cầu Đăng Nhập',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Để bảo vệ quyền lợi đơn hàng, tích lũy FurniCoins và kích hoạt bảo hành điện tử, bạn vui lòng đăng nhập trước khi tiếp tục.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppTheme.textSecondary,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 28),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      );
+                    },
+                    child: const Text(
+                      'Đăng nhập ngay',
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    'Quay lại',
+                    style: TextStyle(color: AppTheme.textSecondary),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     final cart = Provider.of<CartProvider>(context);
-    final user = auth.currentUser;
-    final savedAddresses = user?.addresses ?? [];
+    final user = auth.currentUser!;
+    if (_nameController.text.isEmpty && user.name.isNotEmpty) {
+      _nameController.text = user.name;
+    }
+    if (_phoneController.text.isEmpty && user.phone.isNotEmpty) {
+      _phoneController.text = user.phone;
+    }
+    if (_addressController.text.isEmpty && user.savedAddress.isNotEmpty) {
+      _addressController.text = user.savedAddress;
+    }
+    if (_selectedAddressId == null && user.addresses.isNotEmpty) {
+      _selectedAddressId = user.defaultAddress.id;
+    }
+    final savedAddresses = user.addresses;
 
     final userCoins = user?.furniCoins ?? 0;
     final subtotal = cart.subtotal;

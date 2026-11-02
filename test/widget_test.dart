@@ -243,4 +243,23 @@ void main() {
     expect(restored.address, 'Bitexco Financial Tower, Quan 1, TP. HCM');
     expect(restored.receiverName, 'Dang Thao Vy');
   });
+
+  test('AuthProvider isLoggedIn state and checkout authentication guard test', () async {
+    SharedPreferences.setMockInitialValues({});
+    final auth = AuthProvider();
+
+    // Initial state: guest is not logged in
+    expect(auth.isLoggedIn, false);
+    expect(auth.currentUser, isNull);
+
+    // After login with customer credentials
+    await auth.login('customer@furni3d.vn', '123456');
+    expect(auth.isLoggedIn, true);
+    expect(auth.currentUser?.email, 'customer@furni3d.vn');
+
+    // After logout
+    await auth.logout();
+    expect(auth.isLoggedIn, false);
+    expect(auth.currentUser, isNull);
+  });
 }
