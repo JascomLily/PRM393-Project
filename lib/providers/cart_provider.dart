@@ -123,7 +123,15 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool applyVoucher(String code) {
+  bool applyVoucher(dynamic voucherOrCode) {
+    if (voucherOrCode is VoucherModel) {
+      if (subtotal < voucherOrCode.minSpend) return false;
+      _appliedVoucher = voucherOrCode;
+      notifyListeners();
+      return true;
+    }
+
+    final code = voucherOrCode.toString();
     final match = _vouchers.firstWhere(
       (v) => v.code.toUpperCase() == code.toUpperCase().trim() && v.isActive,
       orElse: () => VoucherModel(
@@ -144,10 +152,14 @@ class CartProvider extends ChangeNotifier {
     return true;
   }
 
+  bool applyVoucherByCode(String code) => applyVoucher(code);
+
   void removeVoucher() {
     _appliedVoucher = null;
     notifyListeners();
   }
+
+  void toggleFurniCoins() { _useFurniCoins = !_useFurniCoins; notifyListeners(); }
 
   void setUseFurniCoins(bool value) {
     _useFurniCoins = value;

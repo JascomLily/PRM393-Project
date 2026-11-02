@@ -1,3 +1,7 @@
+import 'package:furni3d_mobile/models/address_model.dart';
+import 'package:furni3d_mobile/providers/cart_provider.dart';
+import 'package:furni3d_mobile/services/vnpay_service.dart';
+import 'package:furni3d_mobile/services/location_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:furni3d_mobile/providers/auth_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -159,5 +163,84 @@ void main() {
       ),
       throwsA(isA<Exception>()),
     );
+  });
+
+  test('VnpayService HMAC-SHA512 URL generation and response verification test', () {
+    // 1. URL Generation
+    final paymentUrl = VnpayService.createPaymentUrl(
+      orderId: 'TEST-ORD-12345',
+      amount: 1500000,
+      orderInfo: 'Thanh toan test PRM393',
+    );
+
+    expect(paymentUrl.contains('vnp_Amount=150000000'), true);
+    expect(paymentUrl.contains('vnp_TxnRef=TEST-ORD-12345'), true);
+    expect(paymentUrl.contains('vnp_SecureHash='), true);
+    expect(paymentUrl.contains('vnp_TmnCode='), true);
+
+    // 2. Response Verification
+    final uri = Uri.parse(paymentUrl);
+    final params = Map<String, String>.from(uri.queryParameters);
+    params['vnp_ResponseCode'] = '00';
+    params['vnp_TransactionNo'] = '14556677';
+    params['vnp_BankCode'] = 'NCB';
+
+    final returnResult = VnpayService.verifyPaymentResponse(params);
+    expect(returnResult.responseCode, '00');
+    expect(returnResult.orderId, 'TEST-ORD-12345');
+    expect(returnResult.bankCode, 'NCB');
+
+    // 3. Response code descriptions
+    expect(VnpayService.getResponseMessage('00'), 'Giao dịch thành công');
+    expect(VnpayService.getResponseMessage('24'), 'Giao dịch không thành công: Khách hàng hủy giao dịch.');
+  });
+
+  test('CartProvider and Checkout voucher calculation test', () {
+    final cart = CartProvider();
+    cart.clearCart();
+
+    cart.addItem(
+      id: 'prod-oak-desk',
+      name: 'Nordic Oak Desk',
+      price: 2450000,
+      image: '',
+      quantity: 1,
+    );
+
+    expect(cart.subtotal, 2450000);
+    expect(cart.getShippingFee(), 0);
+
+    // Apply percentage voucher
+    final applied = cart.applyVoucherByCode('JAPANDI2025');
+    expect(applied, true);
+    expect(cart.voucherDiscount, 245000);
+
+    // Final total calculation
+    final finalTotal = cart.getFinalTotal(0);
+    expect(finalTotal, 2205000);
+
+    // Remove voucher
+    cart.removeVoucher();
+    expect(cart.voucherDiscount, 0);
+    expect(cart.getFinalTotal(0), 2450000);
+  });
+
+  test('AddressModel serialization and default status test', () {
+    final addr = AddressModel(
+      id: 'addr-test-1',
+      label: 'Văn phòng',
+      receiverName: 'Dang Thao Vy',
+      receiverPhone: '0983838311',
+      address: 'Bitexco Financial Tower, Quan 1, TP. HCM',
+      isDefault: false,
+    );
+
+    final json = addr.toJson();
+    expect(json['label'], 'Văn phòng');
+    expect(json['isDefault'], false);
+
+    final restored = AddressModel.fromJson(json);
+    expect(restored.address, 'Bitexco Financial Tower, Quan 1, TP. HCM');
+    expect(restored.receiverName, 'Dang Thao Vy');
   });
 }

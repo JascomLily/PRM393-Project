@@ -1,4 +1,5 @@
 import '../services/supabase_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -156,7 +157,48 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(milliseconds: 800));
+    try {
+      final client = SupabaseService.client;
+      if (client != null) {
+        await client.auth.signInWithOAuth(
+          OAuthProvider.google,
+          redirectTo: 'io.supabase.furni3d://login-callback/',
+        );
+
+        final sbUser = client.auth.currentUser;
+        if (sbUser != null) {
+          final email = sbUser.email ?? 'google.user@furni3d.vn';
+          final name = sbUser.userMetadata?['full_name'] ??
+              sbUser.userMetadata?['name'] ??
+              'Khách hàng Google';
+          final avatar = sbUser.userMetadata?['avatar_url'] ??
+              sbUser.userMetadata?['picture'] ??
+              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
+
+          _currentUser = UserModel(
+            id: sbUser.id,
+            name: name,
+            email: email,
+            phone: '0983 838 311',
+            avatar: avatar,
+            furniCoins: 200,
+            savedAddress: 'Tòa nhà Landmark 81, P. 22, Q. Bình Thạnh, TP. Hồ Chí Minh',
+            role: 'customer',
+            isActive: true,
+          );
+          await SupabaseService.upsertProfile(_currentUser!);
+          _isLoading = false;
+          await _saveUserToStorage();
+          notifyListeners();
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint('[AuthProvider] Supabase Google OAuth notice: $e');
+    }
+
+    // Fallback cho chế độ trực tiếp nếu chưa config callback trên browser
+    await Future.delayed(const Duration(milliseconds: 600));
 
     _currentUser = UserModel(
       id: 'usr-google-${DateTime.now().millisecondsSinceEpoch}',

@@ -268,42 +268,74 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Login Button
-              ElevatedButton(
-                onPressed: auth.isLoading ? null : _handleLogin,
-                child: auth.isLoading
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Text('Đăng nhập'),
+              // Login Button (Full Width)
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    elevation: 2,
+                  ),
+                  onPressed: auth.isLoading ? null : _handleLogin,
+                  child: auth.isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Text(
+                          'Đăng nhập',
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        ),
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
+
+              // Register Button (Same prominent size as Login Button)
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppTheme.primary, width: 1.5),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    foregroundColor: AppTheme.primary,
+                  ),
+                  icon: const Icon(Icons.person_add_outlined, size: 18),
+                  label: const Text(
+                    'Đăng ký tài khoản mới (+100 Xu)',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
 
               // Google Login Button (Hardware / Spec Requirement)
-              OutlinedButton.icon(
-                icon: const Icon(Icons.g_mobiledata, size: 24, color: Color(0xFFEA4335)),
-                label: const Text('Đăng nhập với Google (1-Click)'),
-                onPressed: auth.isLoading ? null : _handleGoogleLogin,
-              ),
-
-              const SizedBox(height: 24),
-
-              // Register row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Chưa có tài khoản? ', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                      );
-                    },
-                    child: const Text(
-                      'Đăng ký ngay (+100 Xu)',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.primary),
-                    ),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppTheme.border),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    foregroundColor: AppTheme.textPrimary,
                   ),
-                ],
+                  icon: const Icon(Icons.g_mobiledata, size: 28, color: Color(0xFFEA4335)),
+                  label: const Text(
+                    'Đăng nhập với Google (1-Click)',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                  onPressed: auth.isLoading ? null : _handleGoogleLogin,
+                ),
               ),
             ],
           ),

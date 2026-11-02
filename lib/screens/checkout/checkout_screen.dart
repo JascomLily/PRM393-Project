@@ -2,26 +2,25 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:geolocator/geolocator.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/order_provider.dart';
 import '../../models/order_model.dart';
 import '../../models/address_model.dart';
 import '../../theme/app_theme.dart';
+import '../../services/location_service.dart';
 import '../main_navigation_screen.dart';
-import 'vnpay_qr_screen.dart';
-import 'vnpay_atm_screen.dart';
+import 'vnpay_gateway_screen.dart';
 import 'order_success_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
-  final int amount;
-  final int coinsUsed;
+  final int? amount;
+  final int? coinsUsed;
 
   const CheckoutScreen({
     super.key,
-    this.amount = 0,
-    this.coinsUsed = 0,
+    this.amount,
+    this.coinsUsed,
   });
 
   @override
@@ -32,9 +31,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
+  final _voucherInputController = TextEditingController();
   final _noteController =
       TextEditingController(text: 'Giao giờ hành chính, gọi trước khi đến');
-  String _paymentMethod = 'VNPAY_QR'; // 'VNPAY_QR', 'VNPAY_ATM', 'COD'
+
+  String _paymentMethod = 'VNPAY'; // Exactly 2 options: 'VNPAY' or 'COD'
   bool _isGettingLocation = false;
   String? _gpsCoordinates;
   String? _selectedAddressId;
@@ -57,6 +58,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _nameController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
+    _voucherInputController.dispose();
     _noteController.dispose();
     super.dispose();
   }
@@ -74,66 +76,187 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _isGettingLocation = true);
 
     try {
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Quyền truy cập vị trí bị từ chối')),
-            );
-          }
-          setState(() => _isGettingLocation = false);
-          return;
-        }
-      }
+      final addressResult = await LocationService.getCurrentAddress();
+      if (!mounted) return;
 
-      if (permission == LocationPermission.deniedForever) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Quyền vị trí bị từ chối vĩnh viễn trong Cài đặt máy'),
-            ),
-          );
-        }
-        setState(() => _isGettingLocation = false);
-        return;
-      }
+      if (addressResult != null) {
+        final latStr = addressResult.latitude.toStringAsFixed(4);
+        final lngStr = addressResult.longitude.toStringAsFixed(4);
 
-      final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 10),
-      );
+        setState(() {
+          _gpsCoordinates = '$latStr, $lngStr';
+          _addressController.text = addressResult.formattedAddress;
+          _isGettingLocation = false;
+        });
 
-      final lat = position.latitude.toStringAsFixed(4);
-      final lng = position.longitude.toStringAsFixed(4);
-
-      setState(() {
-        _gpsCoordinates = '$lat, $lng';
-        _addressController.text =
-            'Tọa độ GPS: ($lat, $lng) - Khu vực TP. Hồ Chí Minh';
-        _isGettingLocation = false;
-      });
-
-      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             backgroundColor: AppTheme.primary,
-            content: Text('Đã cập nhật vị trí GPS chính xác của thiết bị!'),
+            content: Text('Đã xác định địa chỉ chính xác từ vị trí GPS của bạn!'),
+          ),
+        );
+      } else {
+        setState(() => _isGettingLocation = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Không thể xác định vị trí GPS hoặc quyền truy cập bị từ chối'),
           ),
         );
       }
     } catch (e) {
-      setState(() => _isGettingLocation = false);
       if (mounted) {
+        setState(() => _isGettingLocation = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Không thể lấy tọa độ GPS lúc này')),
+          SnackBar(content: Text('Lỗi định vị: $e')),
         );
       }
     }
   }
 
-  void _finishOrder(String transactionId, String paymentMethod) {
+  void _showVoucherBottomSheet() {
+    final cart = Provider.of<CartProvider>(context, listen: false);
+    final availableVouchers = cart.vouchers;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Chọn mã giảm giá',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (availableVouchers.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(
+                    child: Text('Hiện không có mã ưu đãi khả dụng'),
+                  ),
+                )
+              else
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: availableVouchers.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    itemBuilder: (_, index) {
+                      final v = availableVouchers[index];
+                      final isSelected = cart.appliedVoucher?.code == v.code;
+                      return Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppTheme.surfaceAlt : Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: isSelected ? AppTheme.primary : AppTheme.border,
+                            width: isSelected ? 1.5 : 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primary,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(Icons.confirmation_number_outlined,
+                                  color: Colors.white, size: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    v.code,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      color: AppTheme.primary,
+                                    ),
+                                  ),
+                                  Text(
+                                    v.title,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Đơn tối thiểu: ${NumberFormat.currency(locale: 'vi_VN', symbol: '₫').format(v.minSpend)}',
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: AppTheme.woodDark,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: isSelected ? Colors.grey : AppTheme.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              onPressed: () {
+                                if (isSelected) {
+                                  cart.removeVoucher();
+                                } else {
+                                  cart.applyVoucher(v);
+                                }
+                                Navigator.pop(ctx);
+                              },
+                              child: Text(
+                                isSelected ? 'Bỏ chọn' : 'Áp dụng',
+                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _finishOrder({
+    required String transactionId,
+    required String paymentMethod,
+    required int finalTotal,
+    required int coinsDeducted,
+  }) {
     final cart = Provider.of<CartProvider>(context, listen: false);
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
@@ -145,7 +268,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         price: item.price,
         quantity: item.quantity,
         image: item.image,
-        variant: 'Phiên bản tiêu chuẩn',
+        variant: item.variant ?? 'Phiên bản tiêu chuẩn',
       );
     }).toList();
 
@@ -154,7 +277,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       id: 'ord-${DateTime.now().millisecondsSinceEpoch}',
       code: '#F3D-${100000 + rand.nextInt(900000)}',
       date: DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now()),
-      totalAmount: widget.amount,
+      totalAmount: finalTotal,
       paymentMethod: paymentMethod,
       paymentStatus: paymentMethod == 'COD' ? 'PENDING' : 'PAID',
       transactionId: transactionId,
@@ -176,19 +299,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         TimelineStepModel(
           id: 1,
           title: paymentMethod == 'COD'
-              ? 'Đã tiếp nhận đơn hàng COD'
-              : 'Đã xác nhận thanh toán VNPAY',
+              ? 'Đã tiếp nhận đơn hàng tiền mặt (COD)'
+              : 'Đã xác nhận thanh toán Cổng VNPAY',
           time: DateFormat('HH:mm').format(DateTime.now()),
           description: paymentMethod == 'COD'
-              ? 'Đơn hàng đang chờ chuẩn bị và đóng gói.'
-              : 'Giao dịch qua cổng VNPAY Sandbox thành công.',
+              ? 'Đơn hàng đang chờ nhân viên kiểm đếm phụ kiện và đóng gói.'
+              : 'Giao dịch qua Cổng thanh toán VNPAY thành công.',
           status: 'completed',
         ),
         TimelineStepModel(
           id: 2,
           title: 'Đã xuất kho & kiểm đếm phụ kiện',
           time: 'Đang chuẩn bị',
-          description: 'Kho Trung tâm chuẩn bị quét mã vạch và bọc xốp chống sốc.',
+          description: 'Kho Trung tâm quét mã linh kiện và bọc chống sốc tiêu chuẩn.',
           status: 'current',
         ),
         TimelineStepModel(
@@ -203,8 +326,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     orderProvider.addOrder(newOrder);
 
-    if (widget.coinsUsed > 0) {
-      auth.deductCoins(widget.coinsUsed);
+    if (coinsDeducted > 0) {
+      auth.deductCoins(coinsDeducted);
     }
     auth.addCoins(30);
 
@@ -228,7 +351,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  void _handleProceedPayment() {
+  void _handleProceedPayment(int payableAmount, int coinsUsed) {
     if (_nameController.text.trim().isEmpty ||
         _phoneController.text.trim().isEmpty ||
         _addressController.text.trim().isEmpty) {
@@ -244,31 +367,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         'VNP-${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}-${10000 + rand.nextInt(90000)}';
 
     if (_paymentMethod == 'COD') {
-      _finishOrder('COD-${100000 + rand.nextInt(900000)}', 'COD');
-    } else if (_paymentMethod == 'VNPAY_ATM') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => VnpayAtmScreen(
-            amount: widget.amount,
-            txId: txId,
-            onPaymentSuccess: () {
-              Navigator.pop(context);
-              _finishOrder(txId, 'VNPAY_ATM');
-            },
-          ),
-        ),
+      _finishOrder(
+        transactionId: 'COD-${100000 + rand.nextInt(900000)}',
+        paymentMethod: 'COD',
+        finalTotal: payableAmount,
+        coinsDeducted: coinsUsed,
       );
     } else {
+      // VNPAY Gateway (QR & ATM / Banking integration)
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => VnpayQrScreen(
-            amount: widget.amount,
+          builder: (_) => VnpayGatewayScreen(
+            amount: payableAmount,
             txId: txId,
+            orderInfo: 'Thanh toan don hang Furni3D $txId',
             onPaymentSuccess: () {
               Navigator.pop(context);
-              _finishOrder(txId, 'VNPAY_QR');
+              _finishOrder(
+                transactionId: txId,
+                paymentMethod: 'VNPAY',
+                finalTotal: payableAmount,
+                coinsDeducted: coinsUsed,
+              );
             },
           ),
         ),
@@ -280,7 +401,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget build(BuildContext context) {
     final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
     final auth = Provider.of<AuthProvider>(context);
-    final savedAddresses = auth.currentUser?.addresses ?? [];
+    final cart = Provider.of<CartProvider>(context);
+    final user = auth.currentUser;
+    final savedAddresses = user?.addresses ?? [];
+
+    final userCoins = user?.furniCoins ?? 0;
+    final subtotal = cart.subtotal;
+    final voucherDiscount = cart.voucherDiscount;
+    final shippingFee = cart.getShippingFee();
+    final coinsDiscount = cart.getCoinsDiscount(userCoins);
+    final coinsUsed = cart.getCoinsUsed(userCoins);
+
+    // Calculate final payable total dynamically
+    final calculatedTotal = widget.amount != null && widget.amount! > 0
+        ? widget.amount!
+        : cart.getFinalTotal(userCoins);
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -301,42 +436,193 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 border: Border.all(color: AppTheme.border),
                 boxShadow: AppTheme.cardShadow,
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Số tiền thanh toán:',
-                        style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Tổng số tiền thanh toán:',
+                            style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                          ),
+                          Text(
+                            currencyFormatter.format(calculatedTotal),
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              color: AppTheme.primary,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        currencyFormatter.format(widget.amount),
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          color: AppTheme.primary,
+                      if (coinsUsed > 0)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppTheme.woodLight,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Đã trừ $coinsUsed Xu',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.woodDark,
+                            ),
+                          ),
                         ),
+                    ],
+                  ),
+                  const Divider(height: 18),
+                  _feeRow('Tạm tính hàng hóa:', currencyFormatter.format(subtotal)),
+                  if (voucherDiscount > 0)
+                    _feeRow('Mã giảm giá (${cart.appliedVoucher?.code}):',
+                        '-${currencyFormatter.format(voucherDiscount)}',
+                        isNegative: true),
+                  if (coinsDiscount > 0)
+                    _feeRow('Điểm thưởng FurniCoins:',
+                        '-${currencyFormatter.format(coinsDiscount)}',
+                        isNegative: true),
+                  _feeRow(
+                    'Phí vận chuyển:',
+                    shippingFee == 0 ? 'Miễn phí' : currencyFormatter.format(shippingFee),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Voucher & Coins Management Section
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.border),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.confirmation_number_outlined, size: 18, color: AppTheme.primary),
+                          SizedBox(width: 6),
+                          Text(
+                            'Mã ưu đãi / Khuyến mãi',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                          ),
+                        ],
+                      ),
+                      TextButton(
+                        onPressed: _showVoucherBottomSheet,
+                        style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                        child: const Text('Chọn voucher', style: TextStyle(fontSize: 12, color: AppTheme.primary)),
                       ),
                     ],
                   ),
-                  if (widget.coinsUsed > 0)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppTheme.woodLight,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'Đã trừ ${widget.coinsUsed} Xu',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.woodDark,
+                  const SizedBox(height: 8),
+
+                  // Voucher Input & Apply Row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _voucherInputController,
+                          textCapitalization: TextCapitalization.characters,
+                          decoration: InputDecoration(
+                            hintText: cart.appliedVoucher != null
+                                ? 'Đang áp dụng: ${cart.appliedVoucher!.code}'
+                                : 'Nhập mã giảm giá...',
+                            hintStyle: const TextStyle(fontSize: 12),
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(color: AppTheme.border),
+                            ),
+                          ),
                         ),
                       ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        onPressed: () {
+                          final code = _voucherInputController.text.trim().toUpperCase();
+                          if (code.isNotEmpty) {
+                            final success = cart.applyVoucherByCode(code);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(success
+                                    ? 'Đã áp dụng mã $code thành công!'
+                                    : 'Mã không hợp lệ hoặc đơn hàng chưa đủ điều kiện.'),
+                              ),
+                            );
+                            _voucherInputController.clear();
+                          }
+                        },
+                        child: const Text('Áp dụng', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+
+                  if (cart.appliedVoucher != null) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.check_circle, size: 14, color: AppTheme.primary),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Mã ${cart.appliedVoucher!.code}: ${cart.appliedVoucher!.title}',
+                          style: const TextStyle(fontSize: 11, color: AppTheme.textPrimary, fontWeight: FontWeight.w600),
+                        ),
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: () => cart.removeVoucher(),
+                          child: const Text('Gỡ', style: TextStyle(fontSize: 11, color: Colors.red)),
+                        ),
+                      ],
                     ),
+                  ],
+
+                  const Divider(height: 20),
+
+                  // FurniCoins toggle
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.monetization_on_outlined, size: 18, color: AppTheme.woodDark),
+                          const SizedBox(width: 6),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Dùng điểm thưởng FurniCoins',
+                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                              Text('Khả dụng: $userCoins Xu (1 Xu = 1.000₫)',
+                                  style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary)),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Switch(
+                        value: cart.useFurniCoins,
+                        activeColor: AppTheme.primary,
+                        onChanged: userCoins > 0 ? (val) => cart.toggleFurniCoins() : null,
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -433,10 +719,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     : const Icon(Icons.my_location, size: 18),
                 label: Text(
                   _isGettingLocation
-                      ? 'Đang lấy vị trí GPS...'
+                      ? 'Đang dò tìm địa chỉ từ GPS...'
                       : _gpsCoordinates != null
-                          ? 'Cập nhật vị trí GPS'
-                          : 'Dùng vị trí hiện tại (GPS)',
+                          ? 'Cập nhật lại địa chỉ GPS'
+                          : 'Lấy địa chỉ chính xác qua GPS',
                   style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                 ),
                 onPressed: _isGettingLocation ? null : _useCurrentLocation,
@@ -463,38 +749,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Payment Method Selector
+            // Payment Method Selector: EXACTLY 2 CHOICES (VNPAY & COD)
             const Text(
               'Phương thức thanh toán',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
             ),
             const SizedBox(height: 10),
 
-            // Option 1: VNPAY QR
+            // Choice 1: Cổng VNPAY (QR & Thẻ ATM / Banking)
             _paymentOptionTile(
-              id: 'VNPAY_QR',
-              title: 'VNPAY QR (Sandbox)',
-              subtitle: 'Quét mã tức thì qua 40+ app Ngân hàng & Ví VNPAY',
-              icon: Icons.qr_code_2,
+              id: 'VNPAY',
+              title: 'Cổng thanh toán điện tử VNPAY',
+              subtitle: 'Hỗ trợ VNPAY-QR, Thẻ ATM nội địa & Internet Banking 40+ ngân hàng',
+              icon: Icons.account_balance_wallet_outlined,
               iconBgColor: const Color(0xFF005BA9),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
 
-            // Option 2: VNPAY ATM
-            _paymentOptionTile(
-              id: 'VNPAY_ATM',
-              title: 'Thẻ ATM nội địa (VNPAY Sandbox)',
-              subtitle: 'Hỗ trợ thẻ test ngân hàng NCB chuẩn Sandbox',
-              icon: Icons.credit_card,
-              iconBgColor: AppTheme.woodDark,
-            ),
-            const SizedBox(height: 8),
-
-            // Option 3: COD
+            // Choice 2: Tiền mặt khi nhận hàng (COD)
             _paymentOptionTile(
               id: 'COD',
-              title: 'Thanh toán khi nhận hàng (COD)',
-              subtitle: 'Kiểm tra hàng trước khi thanh toán tiền mặt',
+              title: 'Thanh toán tiền mặt khi nhận hàng (COD)',
+              subtitle: 'Kiểm tra sản phẩm và phụ kiện trước khi thanh toán cho tài xế',
               icon: Icons.payments_outlined,
               iconBgColor: AppTheme.wood,
             ),
@@ -515,11 +791,31 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   _paymentMethod == 'COD' ? 'Xác nhận đặt hàng COD' : 'Tiếp tục thanh toán VNPAY',
                   style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
-                onPressed: _handleProceedPayment,
+                onPressed: () => _handleProceedPayment(calculatedTotal, coinsUsed),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _feeRow(String title, String value, {bool isNegative = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title, style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: isNegative ? AppTheme.primary : AppTheme.textPrimary,
+            ),
+          ),
+        ],
       ),
     );
   }
