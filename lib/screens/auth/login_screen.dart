@@ -116,10 +116,16 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final errStr = e.toString();
+        final displayMsg = errStr.contains('Exception:')
+            ? errStr.split('Exception:').last.trim()
+            : errStr;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Colors.red,
-            content: Text('Lỗi kết nối Google: $e'),
+            content: Text(
+              displayMsg.length > 150 ? '${displayMsg.substring(0, 150)}...' : displayMsg,
+            ),
           ),
         );
       }
