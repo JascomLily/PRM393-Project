@@ -72,6 +72,15 @@ class CartProvider extends ChangeNotifier {
     return subtotal > 2000000 ? 0 : 45000;
   }
 
+  // =========================================================================
+  // [NOTE - CAU HINH QUY DOI XU KHI THANH TOAN (TIEU XU)]:
+  // Quy uoc hien tai: 1 Xu = 1.000 VND.
+  // - Khi khach chon "Dung FurniCoins", so tien duoc giam = so xu * 1.000d.
+  // * HUONG DAN CHINH SUA MAI KHI CAN:
+  //   - Neu muon doi sang 1 Xu = 1 VND (chuan Shopee Xu):
+  //     Sua `~/ 1000` thanh `~/ 1` va `coinsToUse * 1000` thanh `coinsToUse * 1`.
+  //   - Neu muon doi sang 1 Xu = X dong: Sua so 1000 thanh X.
+  // =========================================================================
   int getCoinsDiscount(int userCoins) {
     if (!_useFurniCoins || userCoins <= 0) return 0;
     final maxAllowed = (subtotal - voucherDiscount) ~/ 1000;

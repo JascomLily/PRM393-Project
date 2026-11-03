@@ -280,12 +280,12 @@ void main() {
   });
 
   test('Dynamic FurniCoins reward calculation based on order total', () {
-    int calc(int total) => (total / 50000).clamp(10, 1000).round();
+    int calc(int total) => (total / 50000).clamp(10, 50).round();
     expect(calc(500000), 10);
     expect(calc(1500000), 30);
     expect(calc(2450000), 49);
-    expect(calc(4700000), 94);
-    expect(calc(10000000), 200);
+    expect(calc(4700000), 50);
+    expect(calc(10000000), 50);
   });
 
   testWidgets('PartsScreen renders without overflow on narrow screens with high text scaling', (tester) async {

@@ -325,8 +325,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ],
     );
 
-    // Tích lũy FurniCoins theo giá trị thực tế của đơn hàng (1 Xu cho mỗi 50.000đ thanh toán, tối thiểu 10 Xu)
-    final earnedCoins = (finalTotal / 50000).clamp(10, 1000).round();
+    // =========================================================================
+    // [NOTE - CAU HINH QUY DOI XU (FURNICOINS)]:
+    // Quy uoc hien tai: 1 Xu = 1.000 VND.
+    // - Ty le thuong khi mua hang: Moi 50.000d gia tri don hang duoc cong 1 Xu.
+    // - Toi thieu: 10 Xu (= 10.000d giam cho don sau).
+    // - Toi da (Tran thuong): 50 Xu (= 50.000d giam cho don sau) de tranh bi tru qua nhieu tien.
+    // * HUONG DAN CHINH SUA:
+    //   - Muon doi tran thuong: Sua so 50 trong .clamp(10, 50).
+    //   - Muon doi ty le: Sua so 50000 trong (finalTotal / 50000).
+    // =========================================================================
+    final earnedCoins = (finalTotal / 50000).clamp(10, 50).round();
 
     orderProvider.addOrder(newOrder, userId: auth.currentUser?.id);
 
