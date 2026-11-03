@@ -5,6 +5,10 @@ import '../../theme/app_theme.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/missing_report_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/order_provider.dart';
+import '../../models/missing_report_model.dart';
+import '../auth/login_screen.dart';
 import 'report_missing_dialog.dart';
 
 class PartsScreen extends StatefulWidget {
@@ -22,7 +26,30 @@ class _PartsScreenState extends State<PartsScreen> {
     final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
     final productProv = Provider.of<ProductProvider>(context);
     final reportProv = Provider.of<MissingReportProvider>(context);
+    final auth = Provider.of<AuthProvider>(context);
+    final orderProv = Provider.of<OrderProvider>(context);
     final cart = Provider.of<CartProvider>(context, listen: false);
+    final user = auth.currentUser;
+
+    // Filter tickets so guests and uninvolved users see no tickets
+    final List<MissingReportModel> userReports;
+    if (user == null) {
+      userReports = [];
+    } else if (user.isAdmin) {
+      userReports = reportProv.reports;
+    } else {
+      final userOrderCodes = orderProv.orders
+          .where((o) =>
+              (user.phone.isNotEmpty && o.receiverPhone == user.phone) ||
+              (user.name.isNotEmpty && o.receiverName == user.name))
+          .map((o) => o.code.replaceAll('#', '').trim().toUpperCase())
+          .toSet();
+
+      userReports = reportProv.reports.where((r) {
+        final code = r.orderCode.replaceAll('#', '').trim().toUpperCase();
+        return userOrderCodes.contains(code);
+      }).toList();
+    }
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -81,6 +108,19 @@ class _PartsScreenState extends State<PartsScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     onPressed: () {
+                      if (!auth.isLoggedIn || user == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Vui lòng đăng nhập để gửi yêu cầu hỗ trợ linh kiện.'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                        );
+                        return;
+                      }
                       showDialog(
                         context: context,
                         builder: (_) => const ReportMissingDialog(),
@@ -95,7 +135,7 @@ class _PartsScreenState extends State<PartsScreen> {
             const SizedBox(height: 20),
 
             // Active Missing Reports Status Tracker (Customer Ticket Tracking)
-            if (reportProv.reports.isNotEmpty) ...[
+            if (user != null && userReports.isNotEmpty) ...[
               const Row(
                 children: [
                   Icon(Icons.mark_email_read_outlined, size: 16, color: AppTheme.primary),
@@ -108,7 +148,7 @@ class _PartsScreenState extends State<PartsScreen> {
               ),
               const SizedBox(height: 10),
 
-              ...reportProv.reports.map((report) {
+              ...userReports.map((report) {
                 Color statusBg;
                 Color statusColor;
                 String statusText;

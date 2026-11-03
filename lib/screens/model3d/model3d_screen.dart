@@ -52,17 +52,54 @@ class _Model3DScreenState extends State<Model3DScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        backgroundColor: const Color(0xFF1A1A1A),
+        elevation: 2,
+        iconTheme: const IconThemeData(color: Colors.white, size: 24),
+        actionsIconTheme: const IconThemeData(color: Colors.white, size: 24),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.arrow_back_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
           tooltip: 'Quay lại',
           onPressed: _returnToHome,
         ),
         title: Text(
           'Hướng dẫn lắp ráp: ${_product.name}',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+          ),
           overflow: TextOverflow.ellipsis,
         ),
+        actions: [
+          IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.home_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+            tooltip: 'Trang chủ',
+            onPressed: _returnToHome,
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: SafeArea(
         child: Column(
