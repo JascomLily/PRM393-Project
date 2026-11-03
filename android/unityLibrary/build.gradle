@@ -63,19 +63,6 @@ tasks.register('buildIl2Cpp') {
         outputs.file getIl2CppSymbolPath(workingDir, abi)
     }
     doLast {
-        def il2cppExecutable = file("${workingDir}/src/main/Il2CppOutputProject/IL2CPP/build/deploy/il2cpp" + (org.gradle.internal.os.OperatingSystem.current().isWindows() ? ".exe" : ""))
-        if (!il2cppExecutable.exists()) {
-            println("IL2CPP executable not found at ${il2cppExecutable}. Using precompiled libraries in jniLibs.")
-            archs.each { arch, abi ->
-                def symF = file(getIl2CppSymbolPath(workingDir, abi))
-                if (!symF.exists()) {
-                    symF.parentFile.mkdirs()
-                    symF.write("PrecompiledSymbols")
-                }
-            }
-            return
-        }
-
         // skipIl2CppBuild used for testing purposes
         if (project.hasProperty("skipIl2CppBuild")) {
             println("Skipping il2cpp build, creating dummy files.")
@@ -198,4 +185,4 @@ def execCommand(String workDir, List<String> command, Map<String, String> env = 
         error.append("Command Line:\n${command.join(' ')}\n");
         throw new GradleException(error.toString())
     }
-}
+}
