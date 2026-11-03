@@ -69,11 +69,17 @@ class MissingReportProvider extends ChangeNotifier {
         adminNote: adminNote ?? _reports[index].adminNote,
       );
       notifyListeners();
+      if (SupabaseService.isConfigured) {
+        SupabaseService.updateMissingReportStatus(id, status, adminNote: adminNote);
+      }
     }
   }
 
   void deleteReport(String id) {
     _reports.removeWhere((r) => r.id == id);
     notifyListeners();
+    if (SupabaseService.isConfigured) {
+      SupabaseService.deleteMissingReport(id);
+    }
   }
 }

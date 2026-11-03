@@ -8,8 +8,11 @@ import 'package:image_picker/image_picker.dart';
 import '../../providers/order_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
+import '../../providers/missing_report_provider.dart';
 import '../../models/product_model.dart';
 import '../../models/voucher_model.dart';
+import '../../models/missing_report_model.dart';
+import '../../widgets/product_image_view.dart';
 import '../../services/supabase_service.dart';
 import '../../theme/app_theme.dart';
 
@@ -40,7 +43,7 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -589,6 +592,9 @@ class _AdminScreenState extends State<AdminScreen>
 
   @override
   Widget build(BuildContext context) {
+    final reportProv = Provider.of<MissingReportProvider>(context);
+    final pendingCount = reportProv.reports.where((r) => r.status == 'PENDING').length;
+
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
@@ -596,14 +602,20 @@ class _AdminScreenState extends State<AdminScreen>
         centerTitle: true,
         bottom: TabBar(
           controller: _tabController,
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
           indicatorColor: AppTheme.primary,
           labelColor: AppTheme.primary,
           unselectedLabelColor: AppTheme.textSecondary,
           labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-          tabs: const [
-            Tab(icon: Icon(Icons.dashboard_outlined, size: 18), text: 'Đơn hàng & Tiền'),
-            Tab(icon: Icon(Icons.chair_outlined, size: 18), text: 'Sản phẩm & 3D'),
-            Tab(icon: Icon(Icons.confirmation_number_outlined, size: 18), text: 'Mã Voucher'),
+          tabs: [
+            const Tab(icon: Icon(Icons.dashboard_outlined, size: 18), text: 'Đơn hàng & Tiền'),
+            const Tab(icon: Icon(Icons.chair_outlined, size: 18), text: 'Sản phẩm & 3D'),
+            const Tab(icon: Icon(Icons.confirmation_number_outlined, size: 18), text: 'Mã Voucher'),
+            Tab(
+              icon: const Icon(Icons.handyman_outlined, size: 18),
+              text: pendingCount > 0 ? 'Phiếu linh kiện ($pendingCount mới)' : 'Phiếu linh kiện',
+            ),
           ],
         ),
       ),
@@ -618,6 +630,9 @@ class _AdminScreenState extends State<AdminScreen>
 
           // TAB 3: VOUCHERS
           _buildVouchersTab(),
+
+          // TAB 4: PHIẾU LINH KIỆN
+          _buildMissingReportsTab(),
         ],
       ),
     );
@@ -1099,6 +1114,320 @@ class _AdminScreenState extends State<AdminScreen>
       child: Text(
         text,
         style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  // ==========================================================================
+  // TAB 4: PHIẾU HỖ TRỢ & BẢO HÀNH LINH KIỆN
+  // ==========================================================================
+  Widget _buildMissingReportsTab() {
+    final reportProv = Provider.of<MissingReportProvider>(context);
+    final reports = reportProv.reports;
+    final pendingCount = reports.where((r) => r.status == 'PENDING').length;
+    final approvedCount = reports.where((r) => r.status == 'APPROVED').length;
+    final deliveringCount = reports.where((r) => r.status == 'DELIVERING').length;
+    final completedCount = reports.where((r) => r.status == 'COMPLETED').length;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Banner summary
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF2C1810), Color(0xFF4A2B18)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primary.withOpacity(0.2),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'BẢO HÀNH & GỬI BÙ LINH KIỆN TẬN NHÀ',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: AppTheme.woodLight,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '${reports.length} Yêu cầu',
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: [
+                    _statTag('Chờ xử lý: $pendingCount'),
+                    _statTag('Đã duyệt: $approvedCount'),
+                    _statTag('Đang giao: $deliveringCount'),
+                    _statTag('Hoàn thành: $completedCount'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          const Text(
+            'Danh sách phiếu hỗ trợ khách hàng',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+          ),
+          const SizedBox(height: 10),
+
+          if (reports.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(24),
+              alignment: Alignment.center,
+              child: const Text('Chưa có yêu cầu hỗ trợ linh kiện nào.', style: TextStyle(color: AppTheme.textSecondary)),
+            )
+          else
+            ...reports.map((report) {
+              Color statusBg;
+              Color statusColor;
+              String statusText;
+
+              switch (report.status) {
+                case 'APPROVED':
+                  statusBg = AppTheme.successBg;
+                  statusColor = AppTheme.success;
+                  statusText = 'Đã duyệt gửi bù';
+                  break;
+                case 'DELIVERING':
+                  statusBg = AppTheme.infoBg;
+                  statusColor = AppTheme.info;
+                  statusText = 'Đang giao Viettel Post';
+                  break;
+                case 'COMPLETED':
+                  statusBg = AppTheme.successBg;
+                  statusColor = AppTheme.success;
+                  statusText = 'Đã nhận đủ phụ kiện';
+                  break;
+                case 'REJECTED':
+                  statusBg = AppTheme.errorBg;
+                  statusColor = AppTheme.error;
+                  statusText = 'Từ chối hỗ trợ';
+                  break;
+                default:
+                  statusBg = AppTheme.warningBg;
+                  statusColor = AppTheme.warning;
+                  statusText = 'Đang chờ xử lý';
+              }
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppTheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.border),
+                  boxShadow: AppTheme.softShadow,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ProductImageView(
+                          imageUrl: report.photoUrl,
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          borderRadius: BorderRadius.circular(10),
+                          placeholderIconSize: 22,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      '${report.id} • ${report.orderCode}',
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: statusBg,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      statusText,
+                                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: statusColor),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                '${report.productName} • ${report.partName} (x${report.quantity})',
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                              ),
+                              if (report.note.isNotEmpty) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Khách báo: ${report.note}',
+                                  style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                              if (report.adminNote != null) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  'CSKH: ${report.adminNote}',
+                                  style: const TextStyle(fontSize: 10, color: AppTheme.primary, fontStyle: FontStyle.italic),
+                                ),
+                              ],
+                              const SizedBox(height: 2),
+                              Text(
+                                'Ngày tạo: ${report.createdAt}',
+                                style: const TextStyle(fontSize: 10, color: AppTheme.textMuted),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 18),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        if (report.status == 'PENDING') ...[
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.success,
+                              foregroundColor: Colors.white,
+                              visualDensity: VisualDensity.compact,
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            icon: const Icon(Icons.check, size: 14),
+                            label: const Text('Duyệt bù', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                            onPressed: () {
+                              reportProv.updateReportStatus(
+                                report.id,
+                                'APPROVED',
+                                adminNote: 'Admin đã duyệt xuất kho gửi bù phụ kiện chính hãng.',
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(backgroundColor: AppTheme.primary, content: Text('Đã duyệt phiếu ${report.id}!')),
+                              );
+                            },
+                          ),
+                          OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppTheme.error,
+                              side: const BorderSide(color: AppTheme.error),
+                              visualDensity: VisualDensity.compact,
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            icon: const Icon(Icons.close, size: 14),
+                            label: const Text('Từ chối', style: TextStyle(fontSize: 11)),
+                            onPressed: () {
+                              reportProv.updateReportStatus(
+                                report.id,
+                                'REJECTED',
+                                adminNote: 'Từ chối: Sản phẩm không thuộc diện bảo hành linh kiện.',
+                              );
+                            },
+                          ),
+                        ],
+                        if (report.status == 'APPROVED') ...[
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.info,
+                              foregroundColor: Colors.white,
+                              visualDensity: VisualDensity.compact,
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            icon: const Icon(Icons.local_shipping_outlined, size: 14),
+                            label: const Text('Gửi Viettel Post', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                            onPressed: () {
+                              final trackingCode = 'VT${1000000 + DateTime.now().millisecondsSinceEpoch % 8999999}';
+                              reportProv.updateReportStatus(
+                                report.id,
+                                'DELIVERING',
+                                adminNote: 'Đã gửi bưu phẩm Viettel Post mã $trackingCode (Miễn phí 100%)',
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(backgroundColor: AppTheme.primary, content: Text('Đã cập nhật mã bưu phẩm $trackingCode!')),
+                              );
+                            },
+                          ),
+                        ],
+                        if (report.status == 'DELIVERING') ...[
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.success,
+                              foregroundColor: Colors.white,
+                              visualDensity: VisualDensity.compact,
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            icon: const Icon(Icons.done_all, size: 14),
+                            label: const Text('Xác nhận đã giao', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                            onPressed: () {
+                              reportProv.updateReportStatus(
+                                report.id,
+                                'COMPLETED',
+                                adminNote: 'Khách hàng đã nhận đủ linh kiện nguyên seal.',
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(backgroundColor: AppTheme.primary, content: Text('Phiếu ${report.id} đã hoàn tất!')),
+                              );
+                            },
+                          ),
+                        ],
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, size: 18, color: AppTheme.error),
+                          tooltip: 'Xóa phiếu',
+                          onPressed: () {
+                            reportProv.deleteReport(report.id);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(backgroundColor: AppTheme.primary, content: Text('Đã xóa phiếu ${report.id}.')),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }),
+        ],
       ),
     );
   }

@@ -436,6 +436,32 @@ class SupabaseService {
     }
   }
 
+  static Future<bool> updateMissingReportStatus(String id, String status, {String? adminNote}) async {
+    final c = client;
+    if (c == null) return false;
+    try {
+      final updates = <String, dynamic>{'status': status};
+      if (adminNote != null) updates['admin_note'] = adminNote;
+      await c.from('missing_reports').update(updates).eq('id', id);
+      return true;
+    } catch (e) {
+      debugPrint('[SupabaseService] updateMissingReportStatus error: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> deleteMissingReport(String id) async {
+    final c = client;
+    if (c == null) return false;
+    try {
+      await c.from('missing_reports').delete().eq('id', id);
+      return true;
+    } catch (e) {
+      debugPrint('[SupabaseService] deleteMissingReport error: $e');
+      return false;
+    }
+  }
+
   // ==========================================================================
   // STORAGE BUCKET: TẢI ẢNH CHỤP TỪ CAMERA / THƯ VIỆN LÊN SUPABASE
   // ==========================================================================

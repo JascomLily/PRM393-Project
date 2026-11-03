@@ -113,9 +113,20 @@ void main() {
     expect(provider.reports.length, initialCount + 1);
 
     provider.updateReportStatus('TICKET-TEST-01', 'APPROVED', adminNote: 'Đã duyệt gửi bù');
-    final updated = provider.reports.firstWhere((r) => r.id == 'TICKET-TEST-01');
+    var updated = provider.reports.firstWhere((r) => r.id == 'TICKET-TEST-01');
     expect(updated.status, 'APPROVED');
     expect(updated.adminNote, 'Đã duyệt gửi bù');
+
+    provider.updateReportStatus('TICKET-TEST-01', 'DELIVERING', adminNote: 'Viettel Post mã VT9999');
+    updated = provider.reports.firstWhere((r) => r.id == 'TICKET-TEST-01');
+    expect(updated.status, 'DELIVERING');
+
+    provider.updateReportStatus('TICKET-TEST-01', 'COMPLETED', adminNote: 'Đã nhận đủ phụ kiện');
+    updated = provider.reports.firstWhere((r) => r.id == 'TICKET-TEST-01');
+    expect(updated.status, 'COMPLETED');
+
+    provider.deleteReport('TICKET-TEST-01');
+    expect(provider.reports.length, initialCount);
   });
 
   test('UserModel isActive and deactivation status test', () {
