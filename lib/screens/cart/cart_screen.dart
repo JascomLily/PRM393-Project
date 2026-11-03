@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/product_image_view.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../checkout/checkout_screen.dart';
@@ -188,20 +189,12 @@ class _CartScreenState extends State<CartScreen> {
                         ),
                         child: Row(
                           children: [
-                            ClipRRect(
+                            ProductImageView(
+                              imageUrl: item.image,
+                              width: 68,
+                              height: 68,
+                              fit: BoxFit.cover,
                               borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                item.image,
-                                width: 68,
-                                height: 68,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
-                                  width: 68,
-                                  height: 68,
-                                  color: AppTheme.surfaceAlt,
-                                  child: const Icon(Icons.chair, color: AppTheme.textMuted),
-                                ),
-                              ),
                             ),
                             const SizedBox(width: 14),
                             Expanded(

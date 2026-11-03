@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/order_model.dart';
 import '../../providers/order_provider.dart';
+import '../../widgets/product_image_view.dart';
 import '../../providers/auth_provider.dart';
 import 'vnpay_invoice_dialog.dart';
 
@@ -327,16 +328,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                 ),
                                 child: Row(
                                   children: [
-                                    ClipRRect(
+                                    ProductImageView(
+                                      imageUrl: item.image,
+                                      width: 40,
+                                      height: 40,
+                                      fit: BoxFit.cover,
                                       borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        item.image,
-                                        width: 40,
-                                        height: 40,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) =>
-                                            const Icon(Icons.chair, size: 24),
-                                      ),
+                                      placeholderIconSize: 20,
                                     ),
                                     const SizedBox(width: 10),
                                     Expanded(

@@ -7,6 +7,7 @@ import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/voice_search_dialog.dart';
+import '../../widgets/product_image_view.dart';
 import 'product_detail_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -610,20 +611,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                       ),
                                       child: AspectRatio(
                                         aspectRatio: 1.2,
-                                        child: Image.network(
-                                          product.image,
+                                        child: ProductImageView(
+                                          imageUrl: product.image,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) =>
-                                              Container(
-                                            color: AppTheme.surfaceAlt,
-                                            child: const Center(
-                                              child: Icon(
-                                                Icons.chair,
-                                                color: AppTheme.wood,
-                                                size: 36,
-                                              ),
-                                            ),
-                                          ),
                                         ),
                                       ),
                                     ),

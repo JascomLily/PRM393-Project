@@ -6,6 +6,7 @@ import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/voice_search_dialog.dart';
+import '../../widgets/product_image_view.dart';
 import '../explore/product_detail_screen.dart';
 import '../explore/explore_screen.dart';
 
@@ -449,17 +450,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   child: AspectRatio(
                                     aspectRatio: 1.25,
-                                    child: Image.network(
-                                      product.image,
+                                    child: ProductImageView(
+                                      imageUrl: product.image,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Container(
-                                        color: AppTheme.surfaceAlt,
-                                        child: const Icon(
-                                          Icons.chair,
-                                          color: AppTheme.wood,
-                                          size: 32,
-                                        ),
-                                      ),
                                     ),
                                   ),
                                 ),
@@ -645,23 +638,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       child: Row(
                         children: [
-                          ClipRRect(
+                          ProductImageView(
+                            imageUrl: product.image,
+                            width: 72,
+                            height: 72,
+                            fit: BoxFit.cover,
                             borderRadius: BorderRadius.circular(12),
-                            child: Image.network(
-                              product.image,
-                              width: 72,
-                              height: 72,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                width: 72,
-                                height: 72,
-                                color: AppTheme.surfaceAlt,
-                                child: const Icon(
-                                  Icons.chair,
-                                  color: AppTheme.wood,
-                                ),
-                              ),
-                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(

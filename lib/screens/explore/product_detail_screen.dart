@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../models/product_model.dart';
+import '../../widgets/product_image_view.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../model3d/model3d_screen.dart';
@@ -63,12 +64,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   height: 300,
                   width: double.infinity,
                   color: AppTheme.surfaceAlt,
-                  child: Image.network(
-                    widget.product.image,
+                  child: ProductImageView(
+                    imageUrl: widget.product.image,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Center(
-                      child: Icon(Icons.chair, size: 80, color: AppTheme.textMuted),
-                    ),
+                    placeholderIconSize: 64,
                   ),
                 ),
 
