@@ -117,19 +117,24 @@ class _ReportMissingDialogState extends State<ReportMissingDialog> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.support_agent, color: AppTheme.primary, size: 22),
-                        SizedBox(width: 8),
-                        Text(
-                          'Báo Thiếu / Hỏng Linh Kiện',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.textPrimary,
+                    const Expanded(
+                      child: Row(
+                        children: [
+                          Icon(Icons.support_agent, color: AppTheme.primary, size: 22),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Báo Thiếu / Hỏng Linh Kiện',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.textPrimary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close, size: 20),

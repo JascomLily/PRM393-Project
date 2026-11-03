@@ -8,6 +8,7 @@ import '../../providers/missing_report_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/order_provider.dart';
 import '../../models/missing_report_model.dart';
+import '../../widgets/product_image_view.dart';
 import '../auth/login_screen.dart';
 import 'report_missing_dialog.dart';
 
@@ -140,9 +141,11 @@ class _PartsScreenState extends State<PartsScreen> {
                 children: [
                   Icon(Icons.mark_email_read_outlined, size: 16, color: AppTheme.primary),
                   SizedBox(width: 6),
-                  Text(
-                    'Phiếu hỗ trợ linh kiện của bạn:',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                  Expanded(
+                    child: Text(
+                      'Phiếu hỗ trợ linh kiện của bạn:',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                    ),
                   ),
                 ],
               ),
@@ -185,15 +188,13 @@ class _PartsScreenState extends State<PartsScreen> {
                   ),
                   child: Row(
                     children: [
-                      ClipRRect(
+                      ProductImageView(
+                        imageUrl: report.photoUrl,
+                        width: 44,
+                        height: 44,
+                        fit: BoxFit.cover,
                         borderRadius: BorderRadius.circular(10),
-                        child: Image.network(
-                          report.photoUrl,
-                          width: 44,
-                          height: 44,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(Icons.handyman, size: 24),
-                        ),
+                        placeholderIconSize: 20,
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -203,10 +204,14 @@ class _PartsScreenState extends State<PartsScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  '${report.id} • ${report.orderCode}',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                Expanded(
+                                  child: Text(
+                                    '${report.id} • ${report.orderCode}',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
+                                const SizedBox(width: 8),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
@@ -250,9 +255,11 @@ class _PartsScreenState extends State<PartsScreen> {
               children: [
                 Icon(Icons.inventory_2_outlined, size: 16, color: AppTheme.primary),
                 SizedBox(width: 6),
-                Text(
-                  'Kho phụ tùng & Linh kiện thay thế chính hãng:',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                Expanded(
+                  child: Text(
+                    'Kho phụ tùng & Linh kiện thay thế chính hãng:',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                  ),
                 ),
               ],
             ),
@@ -295,20 +302,13 @@ class _PartsScreenState extends State<PartsScreen> {
                 ),
                 child: Row(
                   children: [
-                    ClipRRect(
+                    ProductImageView(
+                      imageUrl: part.image,
+                      width: 64,
+                      height: 64,
+                      fit: BoxFit.cover,
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        part.image,
-                        width: 64,
-                        height: 64,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          width: 64,
-                          height: 64,
-                          color: AppTheme.surfaceAlt,
-                          child: const Icon(Icons.handyman, size: 24, color: AppTheme.textMuted),
-                        ),
-                      ),
+                      placeholderIconSize: 24,
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -340,40 +340,44 @@ class _PartsScreenState extends State<PartsScreen> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 6),
-                          Row(
+                          Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
+                            runSpacing: 6,
                             children: [
-                              Expanded(
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      currencyFormatter.format(part.price),
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w800,
-                                        color: AppTheme.primary,
-                                      ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    currencyFormatter.format(part.price),
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppTheme.primary,
                                     ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      isOutOfStock ? 'Hết hàng' : 'Còn $stock sản phẩm',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w600,
-                                        color: isOutOfStock ? AppTheme.error : AppTheme.success,
-                                      ),
+                                  ),
+                                  Text(
+                                    isOutOfStock ? 'Hết hàng' : 'Còn $stock sản phẩm',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: isOutOfStock ? AppTheme.error : AppTheme.success,
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                               ElevatedButton.icon(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: isOutOfStock ? AppTheme.surfaceAlt : AppTheme.primaryMint,
                                   foregroundColor: isOutOfStock ? AppTheme.textMuted : AppTheme.primary,
                                   elevation: 0,
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  visualDensity: VisualDensity.compact,
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                 ),
-                                icon: const Icon(Icons.add_shopping_cart, size: 14),
+                                icon: const Icon(Icons.add_shopping_cart, size: 13),
                                 label: const Text('Thêm vào giỏ', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                                 onPressed: isOutOfStock ? null : () {
                                   cart.addItem(

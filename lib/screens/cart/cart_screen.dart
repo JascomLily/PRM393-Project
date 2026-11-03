@@ -329,16 +329,22 @@ class _CartScreenState extends State<CartScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Row(
-                                  children: [
-                                    const Icon(Icons.monetization_on, color: AppTheme.woodDark, size: 18),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Dùng $userCoins Xu (Tiết kiệm ${currencyFormatter.format(cart.getCoinsDiscount(userCoins))})',
-                                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.woodDark),
-                                    ),
-                                  ],
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.monetization_on, color: AppTheme.woodDark, size: 18),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'Dùng $userCoins Xu (Tiết kiệm ${currencyFormatter.format(cart.getCoinsDiscount(userCoins))})',
+                                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.woodDark),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
+                                const SizedBox(width: 8),
                                 Switch(
                                   value: cart.useFurniCoins,
                                   activeColor: AppTheme.wood,

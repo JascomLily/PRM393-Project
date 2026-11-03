@@ -1,5 +1,10 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:provider/provider.dart';
 import 'package:furni3d_mobile/models/address_model.dart';
 import 'package:furni3d_mobile/providers/cart_provider.dart';
+import 'package:furni3d_mobile/providers/order_provider.dart';
+import 'package:furni3d_mobile/screens/parts/parts_screen.dart';
 import 'package:furni3d_mobile/services/vnpay_service.dart';
 import 'package:furni3d_mobile/services/location_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -261,5 +266,32 @@ void main() {
     await auth.logout();
     expect(auth.isLoggedIn, false);
     expect(auth.currentUser, isNull);
+  });
+
+  testWidgets('PartsScreen renders without overflow on narrow screens with high text scaling', (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AuthProvider()),
+          ChangeNotifierProvider(create: (_) => ProductProvider()),
+          ChangeNotifierProvider(create: (_) => CartProvider()),
+          ChangeNotifierProvider(create: (_) => MissingReportProvider()),
+          ChangeNotifierProvider(create: (_) => OrderProvider()),
+        ],
+        child: const MaterialApp(
+          home: Scaffold(body: PartsScreen()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
   });
 }
