@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import 'register_screen.dart';
@@ -136,9 +137,12 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
 
-    // Tự động đóng màn hình đăng nhập khi quay về từ Deep Link Google OAuth
+    // Tự động đóng cửa sổ trình duyệt và màn hình đăng nhập khi quay về từ Deep Link Google OAuth
     if (auth.isLoggedIn) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        try {
+          await closeInAppWebView();
+        } catch (_) {}
         if (mounted && Navigator.canPop(context)) {
           if (widget.onLoginSuccess != null) {
             widget.onLoginSuccess!();

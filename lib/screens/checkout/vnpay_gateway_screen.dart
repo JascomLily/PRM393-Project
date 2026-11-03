@@ -12,6 +12,7 @@ class VnpayGatewayScreen extends StatefulWidget {
   final String txId;
   final String orderInfo;
   final VoidCallback onPaymentSuccess;
+  final VoidCallback? onPaymentCancelled;
 
   const VnpayGatewayScreen({
     super.key,
@@ -19,6 +20,7 @@ class VnpayGatewayScreen extends StatefulWidget {
     required this.txId,
     this.orderInfo = 'Thanh toán đơn hàng nội thất Furni3D',
     required this.onPaymentSuccess,
+    this.onPaymentCancelled,
   });
 
   @override
@@ -31,6 +33,7 @@ class _VnpayGatewayScreenState extends State<VnpayGatewayScreen>
   int _secondsLeft = 899; // 14:59
   Timer? _timer;
   bool _isProcessing = false;
+  bool _isPaymentCompleted = false;
   late String _officialPaymentUrl;
 
   @override
@@ -74,9 +77,13 @@ class _VnpayGatewayScreenState extends State<VnpayGatewayScreen>
   Future<void> _launchOfficialVnpayUrl() async {
     final uri = Uri.parse(_officialPaymentUrl);
     try {
-      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      // Ưu tiên mở bằng Custom Tab (inAppBrowserView) để không để lại tab rác trong trình duyệt của người dùng
+      final launched = await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
       if (!launched && mounted) {
-        _showBrowserFallbackDialog();
+        final fallback = await launchUrl(uri, mode: LaunchMode.externalApplication);
+        if (!fallback && mounted) {
+          _showBrowserFallbackDialog();
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -118,6 +125,7 @@ class _VnpayGatewayScreenState extends State<VnpayGatewayScreen>
   }
 
   void _handleSuccessVerification() {
+    _isPaymentCompleted = true;
     setState(() => _isProcessing = true);
     Future.delayed(const Duration(milliseconds: 1000), () {
       if (mounted) {
@@ -325,6 +333,15 @@ class _VnpayGatewayScreenState extends State<VnpayGatewayScreen>
                 onPressed: isVerifying
                     ? null
                     : () {
+                        if (otpCtrl.text.trim() != '123456') {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              backgroundColor: Colors.red,
+                              content: Text('Mã OTP không chính xác (Mã lỗi 13). Giao dịch chưa được thanh toán.'),
+                            ),
+                          );
+                          return;
+                        }
                         setOtpState(() => isVerifying = true);
                         Future.delayed(const Duration(milliseconds: 1200), () {
                           if (mounted) {
@@ -393,6 +410,7 @@ class _VnpayGatewayScreenState extends State<VnpayGatewayScreen>
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: () {
+                  _isPaymentCompleted = true;
                   Navigator.pop(ctx);
                   widget.onPaymentSuccess();
                 },
@@ -456,8 +474,8 @@ class _VnpayGatewayScreenState extends State<VnpayGatewayScreen>
         actions: [
           TextButton(
             onPressed: () {
-              tmnController.text = '2QXUI4B4';
-              secretController.text = 'RAHQPTB5VYRTLXFLMNXAXGXBAGDXYTXM';
+              tmnController.text = 'I2IEWTK8';
+              secretController.text = 'G5QNFVDC594C08IZPSU1WMMJRWSA9X02';
             },
             child: const Text('Đặt mặc định', style: TextStyle(fontSize: 11)),
           ),
@@ -503,7 +521,14 @@ class _VnpayGatewayScreenState extends State<VnpayGatewayScreen>
     final minutes = _secondsLeft ~/ 60;
     final seconds = _secondsLeft % 60;
 
-    return Scaffold(
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop && !_isPaymentCompleted) {
+          widget.onPaymentCancelled?.call();
+        }
+      },
+      child: Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
         backgroundColor: const Color(0xFF005BA9),
@@ -514,7 +539,12 @@ class _VnpayGatewayScreenState extends State<VnpayGatewayScreen>
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (!_isPaymentCompleted) {
+              widget.onPaymentCancelled?.call();
+            }
+            Navigator.pop(context);
+          },
         ),
         actions: [
           IconButton(
@@ -670,6 +700,7 @@ class _VnpayGatewayScreenState extends State<VnpayGatewayScreen>
             ),
           ],
         ),
+      ),
       ),
     );
   }

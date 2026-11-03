@@ -325,12 +325,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ],
     );
 
+    // Tích lũy FurniCoins theo giá trị thực tế của đơn hàng (1 Xu cho mỗi 50.000đ thanh toán, tối thiểu 10 Xu)
+    final earnedCoins = (finalTotal / 50000).clamp(10, 1000).round();
+
     orderProvider.addOrder(newOrder, userId: auth.currentUser?.id);
 
     if (coinsDeducted > 0) {
       auth.deductCoins(coinsDeducted);
     }
-    auth.addCoins(30);
+    auth.addCoins(earnedCoins);
 
     cart.clearCart();
 
@@ -339,6 +342,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       MaterialPageRoute(
         builder: (_) => OrderSuccessScreen(
           order: newOrder,
+          earnedCoins: earnedCoins,
           onGoToOrders: () {
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
@@ -390,6 +394,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 paymentMethod: 'VNPAY',
                 finalTotal: payableAmount,
                 coinsDeducted: coinsUsed,
+              );
+            },
+            onPaymentCancelled: () {
+              // Rollback an toàn: Giỏ hàng, điểm thưởng và voucher được giữ nguyên
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  backgroundColor: AppTheme.textPrimary,
+                  content: Text('Giao dịch chưa hoàn tất. Giỏ hàng và số dư FurniCoins của bạn được giữ nguyên vẹn (Rollback an toàn).'),
+                  duration: Duration(seconds: 3),
+                ),
               );
             },
           ),
