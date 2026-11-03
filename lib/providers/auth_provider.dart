@@ -31,7 +31,10 @@ class AuthProvider extends ChangeNotifier {
       client.auth.onAuthStateChange.listen((data) async {
         final AuthChangeEvent event = data.event;
         final Session? session = data.session;
-        if (event == AuthChangeEvent.signedIn && session?.user != null) {
+        if ((event == AuthChangeEvent.signedIn ||
+                event == AuthChangeEvent.initialSession ||
+                event == AuthChangeEvent.tokenRefreshed) &&
+            session?.user != null) {
           final sbUser = session!.user;
           final existingProfile = await SupabaseService.fetchProfile(sbUser.id);
           if (existingProfile != null) {
@@ -62,9 +65,21 @@ class AuthProvider extends ChangeNotifier {
             );
             await SupabaseService.upsertProfile(_currentUser!);
           }
+          final idx = _users.indexWhere((u) => u.id == _currentUser!.id);
+          if (idx != -1) {
+            _users[idx] = _currentUser!;
+          } else {
+            _users.insert(0, _currentUser!);
+          }
           _isLoading = false;
           await _saveUserToStorage();
           notifyListeners();
+        } else if (event == AuthChangeEvent.signedOut) {
+          if (_currentUser != null && _currentUser!.id.length >= 30) {
+            _currentUser = null;
+            await _saveUserToStorage();
+            notifyListeners();
+          }
         }
       });
     } catch (e) {
@@ -116,14 +131,58 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> _loadUserFromStorage() async {
     try {
+      // 1. Kiểm tra session Supabase hiện có (Google OAuth)
+      final client = SupabaseService.client;
+      if (client != null && client.auth.currentUser != null) {
+        final sbUser = client.auth.currentUser!;
+        final remoteProfile = await SupabaseService.fetchProfile(sbUser.id);
+        if (remoteProfile != null) {
+          _currentUser = remoteProfile;
+          final idx = _users.indexWhere((u) => u.id == remoteProfile.id);
+          if (idx != -1) {
+            _users[idx] = remoteProfile;
+          } else {
+            _users.insert(0, remoteProfile);
+          }
+          await _saveUserToStorage();
+          notifyListeners();
+          return;
+        }
+      }
+
+      // 2. Đọc từ bộ nhớ SharedPreferences máy
       final prefs = await SharedPreferences.getInstance();
       final userStr = prefs.getString('furni3d_current_user');
       if (userStr != null) {
         _currentUser = UserModel.fromJson(jsonDecode(userStr));
+        if (_currentUser != null) {
+          final idx = _users.indexWhere((u) => u.id == _currentUser!.id);
+          if (idx != -1) {
+            _users[idx] = _currentUser!;
+          } else {
+            _users.insert(0, _currentUser!);
+          }
+
+          // Đồng bộ lại profile mới nhất từ Supabase (nếu online)
+          if (SupabaseService.isConfigured) {
+            SupabaseService.fetchProfile(_currentUser!.id).then((remoteProfile) {
+              if (remoteProfile != null) {
+                _currentUser = remoteProfile;
+                final uIdx = _users.indexWhere((u) => u.id == remoteProfile.id);
+                if (uIdx != -1) {
+                  _users[uIdx] = remoteProfile;
+                }
+                _saveUserToStorage();
+                notifyListeners();
+              }
+            });
+          }
+        }
       } else {
         _currentUser = null;
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[AuthProvider] _loadUserFromStorage error: $e');
       _currentUser = null;
     }
     notifyListeners();
@@ -147,8 +206,56 @@ class AuthProvider extends ChangeNotifier {
 
     await Future.delayed(const Duration(milliseconds: 600));
 
+    final normalizedEmail = email.toLowerCase().trim();
+
+    // 1. Ưu tiên kiểm tra profile trực tiếp từ Supabase
+    if (SupabaseService.isConfigured) {
+      try {
+        final client = SupabaseService.client;
+        if (client != null) {
+          final res = await client
+              .from('profiles')
+              .select()
+              .ilike('email', normalizedEmail)
+              .maybeSingle();
+          if (res != null) {
+            final remoteUser = UserModel(
+              id: res['id'] ?? '',
+              name: res['name'] ?? '',
+              email: res['email'] ?? '',
+              phone: res['phone'] ?? '',
+              avatar: res['avatar'] ?? '',
+              furniCoins: (res['furni_coins'] as num?)?.toInt() ?? 100,
+              savedAddress: res['saved_address'] ?? '',
+              role: res['role'] ?? 'customer',
+              isActive: res['is_active'] ?? true,
+            );
+            if (!remoteUser.isActive) {
+              _isLoading = false;
+              notifyListeners();
+              throw Exception(
+                  'Tài khoản này đã bị vô hiệu hóa bởi Quản trị viên. Vui lòng liên hệ hỗ trợ.');
+            }
+            _currentUser = remoteUser;
+            final idx = _users.indexWhere((u) => u.email.toLowerCase() == normalizedEmail);
+            if (idx != -1) {
+              _users[idx] = remoteUser;
+            } else {
+              _users.insert(0, remoteUser);
+            }
+            _isLoading = false;
+            await _saveUserToStorage();
+            notifyListeners();
+            return true;
+          }
+        }
+      } catch (e) {
+        debugPrint('[AuthProvider] Supabase fetch profile error on login: $e');
+      }
+    }
+
     final existingIndex = _users.indexWhere(
-        (u) => u.email.toLowerCase() == email.toLowerCase().trim());
+        (u) => u.email.toLowerCase() == normalizedEmail);
 
     if (existingIndex != -1) {
       if (!_users[existingIndex].isActive) {
@@ -164,7 +271,7 @@ class AuthProvider extends ChangeNotifier {
       return true;
     }
 
-    // Tài khoản mặc định cho demo
+    // Tài khoản mặc định cho demo nếu chưa có trên Supabase
     if (email.contains('admin')) {
       _currentUser = UserModel(
         id: 'usr-admin-demo',
@@ -223,67 +330,20 @@ class AuthProvider extends ChangeNotifier {
           OAuthProvider.google,
           redirectTo: 'io.supabase.furni3d://login-callback/',
         );
-
-        final sbUser = client.auth.currentUser;
-        if (sbUser != null) {
-          final existingProfile = await SupabaseService.fetchProfile(sbUser.id);
-          if (existingProfile != null) {
-            _currentUser = existingProfile;
-          } else {
-            final email = sbUser.email ?? 'google.user@furni3d.vn';
-            final name = sbUser.userMetadata?['full_name'] ??
-                sbUser.userMetadata?['name'] ??
-                email.split('@').first;
-            final avatar = sbUser.userMetadata?['avatar_url'] ??
-                sbUser.userMetadata?['picture'] ??
-                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
-            final phone = (sbUser.phone ?? '').isNotEmpty
-                ? sbUser.phone!
-                : (sbUser.userMetadata?['phone'] ?? '');
-            final savedAddress = sbUser.userMetadata?['address'] ?? '';
-
-            _currentUser = UserModel(
-              id: sbUser.id,
-              name: name,
-              email: email,
-              phone: phone,
-              avatar: avatar,
-              furniCoins: 100,
-              savedAddress: savedAddress,
-              role: 'customer',
-              isActive: true,
-            );
-            await SupabaseService.upsertProfile(_currentUser!);
-          }
-          _isLoading = false;
-          await _saveUserToStorage();
-          notifyListeners();
-          return;
-        }
+        _isLoading = false;
+        notifyListeners();
+        return;
       }
     } catch (e) {
-      debugPrint('[AuthProvider] Supabase Google OAuth notice: $e');
+      debugPrint('[AuthProvider] Supabase Google OAuth error: $e');
+      _isLoading = false;
+      notifyListeners();
+      rethrow;
     }
 
-    // Fallback cho chế độ trực tiếp nếu chưa config callback trên browser
-    await Future.delayed(const Duration(milliseconds: 600));
-
-    _currentUser = UserModel(
-      id: 'usr-google-${DateTime.now().millisecondsSinceEpoch}',
-      name: 'Khách hàng Google',
-      email: 'user.google@gmail.com',
-      phone: '',
-      avatar:
-          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-      furniCoins: 100,
-      savedAddress: '',
-      role: 'customer',
-      isActive: true,
-    );
-
     _isLoading = false;
-    await _saveUserToStorage();
     notifyListeners();
+    throw Exception('Dịch vụ Supabase chưa được kết nối.');
   }
 
   Future<bool> register({
@@ -340,6 +400,12 @@ class AuthProvider extends ChangeNotifier {
   Future<void> logout() async {
     _currentUser = null;
     await _saveUserToStorage();
+    try {
+      final client = SupabaseService.client;
+      if (client != null) {
+        await client.auth.signOut();
+      }
+    } catch (_) {}
     notifyListeners();
   }
 

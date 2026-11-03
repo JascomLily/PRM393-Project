@@ -91,18 +91,37 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleGoogleLogin() async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
-    await auth.loginWithGoogle();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: AppTheme.primary,
-          content: Text('Đăng nhập Google thành công!'),
-        ),
-      );
-      if (widget.onLoginSuccess != null) {
-        widget.onLoginSuccess!();
-      } else if (Navigator.canPop(context)) {
-        Navigator.pop(context);
+    try {
+      await auth.loginWithGoogle();
+      if (!mounted) return;
+      if (auth.isLoggedIn) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: AppTheme.primary,
+            content: Text('Đăng nhập Google thành công!'),
+          ),
+        );
+        if (widget.onLoginSuccess != null) {
+          widget.onLoginSuccess!();
+        } else if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: AppTheme.primary,
+            content: Text('Đang mở trang xác thực Google...'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red,
+            content: Text('Lỗi kết nối Google: $e'),
+          ),
+        );
       }
     }
   }
@@ -110,6 +129,19 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
+
+    // Tự động đóng màn hình đăng nhập khi quay về từ Deep Link Google OAuth
+    if (auth.isLoggedIn) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && Navigator.canPop(context)) {
+          if (widget.onLoginSuccess != null) {
+            widget.onLoginSuccess!();
+          } else {
+            Navigator.pop(context);
+          }
+        }
+      });
+    }
 
     return Scaffold(
       backgroundColor: AppTheme.background,
