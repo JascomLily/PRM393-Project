@@ -47,7 +47,34 @@ class VnpayService {
     }
   }
 
+  // Hàm loại bỏ dấu tiếng Việt chuẩn bảo mật VNPAY
+  static String removeVietnameseDiacritics(String str) {
+    const vietnamese = 'aAeEoOuUiIdDyY';
+    final patterns = [
+      RegExp(r'[àáạảãâầấậẩẫăằắặẳẵ]'),
+      RegExp(r'[ÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ]'),
+      RegExp(r'[èéẹẻẽêềếệểễ]'),
+      RegExp(r'[ÈÉẸẺẼÊỀẾỆỂỄ]'),
+      RegExp(r'[òóọỏõôồốộổỗơờớợởỡ]'),
+      RegExp(r'[ÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠ]'),
+      RegExp(r'[ùúụủũưừứựửữ]'),
+      RegExp(r'[ÙÚỤỦŨƯỪỨỰỬỮ]'),
+      RegExp(r'[ìíịỉĩ]'),
+      RegExp(r'[ÌÍỊỈĨ]'),
+      RegExp(r'[đ]'),
+      RegExp(r'[Đ]'),
+      RegExp(r'[ỳýỵỷỹ]'),
+      RegExp(r'[ỲÝỴỶỸ]'),
+    ];
+    String result = str;
+    for (int i = 0; i < patterns.length; i++) {
+      result = result.replaceAll(patterns[i], vietnamese[i]);
+    }
+    return result.replaceAll(RegExp(r'[^a-zA-Z0-9\s]'), '');
+  }
+
   // Khởi tạo URL thanh toán chuẩn VNPAY kèm chữ ký HMAC-SHA512
+  // Tương thích 100% logic cổng thanh toán VnPaySandboxPaymentGateway.cs
   static String createPaymentUrl({
     required String orderId,
     required int amount,
@@ -55,9 +82,12 @@ class VnpayService {
     String ipAddress = '127.0.0.1',
     String? bankCode,
   }) {
-    final now = DateTime.now();
+    // Múi giờ Việt Nam (GMT+7) theo chuẩn kỹ thuật VNPAY
+    final now = DateTime.now().toUtc().add(const Duration(hours: 7));
     final createDate = DateFormat('yyyyMMddHHmmss').format(now);
     final expireDate = DateFormat('yyyyMMddHHmmss').format(now.add(const Duration(minutes: 15)));
+
+    final cleanOrderInfo = removeVietnameseDiacritics(orderInfo).trim();
 
     final params = <String, String>{
       'vnp_Version': '2.1.0',
@@ -68,7 +98,7 @@ class VnpayService {
       'vnp_CurrCode': 'VND',
       'vnp_IpAddr': ipAddress,
       'vnp_Locale': 'vn',
-      'vnp_OrderInfo': orderInfo,
+      'vnp_OrderInfo': cleanOrderInfo.isEmpty ? 'Thanh toan don hang $orderId' : cleanOrderInfo,
       'vnp_OrderType': 'other',
       'vnp_ReturnUrl': returnUrl,
       'vnp_TxnRef': orderId,
@@ -80,31 +110,22 @@ class VnpayService {
     }
 
     final sortedKeys = params.keys.toList()..sort();
-
-    final hashDataBuffer = StringBuffer();
     final queryBuffer = StringBuffer();
 
     for (int i = 0; i < sortedKeys.length; i++) {
       final key = sortedKeys[i];
       final value = params[key]!;
-
-      final encodedKey = Uri.encodeQueryComponent(key);
-      final encodedValue = Uri.encodeQueryComponent(value);
-
-      if (i > 0) {
-        hashDataBuffer.write('&');
-        queryBuffer.write('&');
-      }
-
-      hashDataBuffer.write('$key=$value');
-      queryBuffer.write('$encodedKey=$encodedValue');
+      if (value.isEmpty) continue;
+      if (queryBuffer.isNotEmpty) queryBuffer.write('&');
+      queryBuffer.write('${Uri.encodeQueryComponent(key)}=${Uri.encodeQueryComponent(value)}');
     }
 
+    final queryString = queryBuffer.toString();
     final hmac = Hmac(sha512, utf8.encode(hashSecret));
-    final digest = hmac.convert(utf8.encode(hashDataBuffer.toString()));
-    final secureHash = digest.toString();
+    final digest = hmac.convert(utf8.encode(queryString));
+    final secureHash = digest.toString().toLowerCase();
 
-    return '$vnpUrl?${queryBuffer.toString()}&vnp_SecureHash=$secureHash';
+    return '$vnpUrl?$queryString&vnp_SecureHash=$secureHash';
   }
 
   // Kiểm tra kết quả phản hồi từ Return URL hoặc Webview Callback
@@ -122,20 +143,22 @@ class VnpayService {
       ..remove('vnp_SecureHashType');
 
     final sortedKeys = filteredParams.keys.toList()..sort();
-    final hashDataBuffer = StringBuffer();
+    final queryBuffer = StringBuffer();
 
     for (int i = 0; i < sortedKeys.length; i++) {
       final key = sortedKeys[i];
       final value = filteredParams[key]!;
-      if (i > 0) hashDataBuffer.write('&');
-      hashDataBuffer.write('$key=$value');
+      if (value.isEmpty) continue;
+      if (queryBuffer.isNotEmpty) queryBuffer.write('&');
+      queryBuffer.write('${Uri.encodeQueryComponent(key)}=${Uri.encodeQueryComponent(value)}');
     }
 
+    final queryString = queryBuffer.toString();
     final hmac = Hmac(sha512, utf8.encode(hashSecret));
-    final expectedDigest = hmac.convert(utf8.encode(hashDataBuffer.toString())).toString();
+    final expectedDigest = hmac.convert(utf8.encode(queryString)).toString().toLowerCase();
 
     final isHashValid = secureHash.isNotEmpty &&
-        secureHash.toLowerCase() == expectedDigest.toLowerCase();
+        secureHash.toLowerCase() == expectedDigest;
 
     final isSuccess = isHashValid && vnpResponseCode == '00';
     final message = getResponseMessage(vnpResponseCode);
