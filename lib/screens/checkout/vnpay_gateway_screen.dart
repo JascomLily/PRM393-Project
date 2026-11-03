@@ -701,6 +701,7 @@ class _VnpayGatewayScreenState extends State<VnpayGatewayScreen>
           ],
         ),
       ),
+      ),
     );
   }
 
@@ -840,7 +841,6 @@ class _VnpayGatewayScreenState extends State<VnpayGatewayScreen>
             ),
           ],
         ),
-      ),
       ),
     );
   }
