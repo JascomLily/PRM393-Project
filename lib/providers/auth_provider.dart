@@ -1,5 +1,6 @@
 import '../services/supabase_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -38,6 +39,11 @@ class AuthProvider extends ChangeNotifier {
                 event == AuthChangeEvent.initialSession ||
                 event == AuthChangeEvent.tokenRefreshed) &&
             session?.user != null) {
+          // Tự động đóng cửa sổ trình duyệt xác thực Google khi đăng nhập thành công
+          try {
+            await closeInAppWebView();
+          } catch (_) {}
+
           final sbUser = session!.user;
           final existingProfile = await SupabaseService.fetchProfile(sbUser.id);
           if (existingProfile != null) {
@@ -331,10 +337,23 @@ class AuthProvider extends ChangeNotifier {
       if (client != null) {
         _listenToAuthChanges();
 
-        await client.auth.signInWithOAuth(
-          OAuthProvider.google,
+        // Lấy OAuth URL từ Supabase và mở trong Custom Tab (inAppBrowserView)
+        // Khi người dùng hoàn tất đăng nhập, callback deep link sẽ tự động đóng Custom Tab
+        // tránh việc để lại nhiều tab mở trong trình duyệt của người dùng.
+        final res = await client.auth.getOAuthSignInUrl(
+          provider: OAuthProvider.google,
           redirectTo: 'io.supabase.furni3d://login-callback/',
         );
+
+        final uri = Uri.parse(res.url);
+        final launched = await launchUrl(
+          uri,
+          mode: LaunchMode.inAppBrowserView,
+        );
+        if (!launched) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+
         _isLoading = false;
         notifyListeners();
         return;

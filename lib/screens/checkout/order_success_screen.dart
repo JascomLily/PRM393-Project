@@ -7,11 +7,13 @@ import '../main_navigation_screen.dart';
 class OrderSuccessScreen extends StatelessWidget {
   final OrderModel order;
   final VoidCallback? onGoToOrders;
+  final int earnedCoins;
 
   const OrderSuccessScreen({
     super.key,
     required this.order,
     this.onGoToOrders,
+    this.earnedCoins = 30,
   });
 
   @override
@@ -67,14 +69,14 @@ class OrderSuccessScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppTheme.wood.withOpacity(0.25)),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.monetization_on, color: AppTheme.woodDark, size: 24),
-                    SizedBox(width: 10),
+                    const Icon(Icons.monetization_on, color: AppTheme.woodDark, size: 24),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Bạn nhận được +30 Xu thưởng FurniCoins đã cộng trực tiếp vào ví!',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.woodDark),
+                        'Bạn nhận được +$earnedCoins Xu thưởng FurniCoins đã cộng trực tiếp vào ví!',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.woodDark),
                       ),
                     ),
                   ],

@@ -279,6 +279,15 @@ void main() {
     expect(auth.currentUser, isNull);
   });
 
+  test('Dynamic FurniCoins reward calculation based on order total', () {
+    int calc(int total) => (total / 50000).clamp(10, 1000).round();
+    expect(calc(500000), 10);
+    expect(calc(1500000), 30);
+    expect(calc(2450000), 49);
+    expect(calc(4700000), 94);
+    expect(calc(10000000), 200);
+  });
+
   testWidgets('PartsScreen renders without overflow on narrow screens with high text scaling', (tester) async {
     tester.view.physicalSize = const Size(320, 640);
     tester.view.devicePixelRatio = 1.0;
