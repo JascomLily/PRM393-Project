@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/cart_provider.dart';
@@ -90,6 +91,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       appBar: AppBar(
         backgroundColor: AppTheme.background,
         elevation: 0,
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.black,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
         title: Row(
           children: [
             Container(

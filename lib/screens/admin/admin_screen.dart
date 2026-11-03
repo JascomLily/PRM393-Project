@@ -120,7 +120,9 @@ class _AdminScreenState extends State<AdminScreen>
             ),
             content: SizedBox(
               width: double.maxFinite,
+              height: MediaQuery.of(context).size.height * 0.65,
               child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,16 +239,17 @@ class _AdminScreenState extends State<AdminScreen>
                         style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary)),
                     const SizedBox(height: 4),
                     DropdownButtonFormField<String>(
+                      isExpanded: true,
                       value: selectedCategory,
                       decoration: const InputDecoration(
                         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
                       items: const [
-                        DropdownMenuItem(value: 'desk', child: Text('Bàn làm việc (Desk)')),
-                        DropdownMenuItem(value: 'chair', child: Text('Ghế thư giãn (Chair)')),
-                        DropdownMenuItem(value: 'shelf', child: Text('Kệ & Tủ quần áo (Closet/Shelf)')),
-                        DropdownMenuItem(value: 'lamp', child: Text('Tủ ngăn kéo (Drawer)')),
-                        DropdownMenuItem(value: 'parts', child: Text('Linh kiện phụ kiện (Parts)')),
+                        DropdownMenuItem(value: 'desk', child: Text('Bàn làm việc (Desk)', overflow: TextOverflow.ellipsis)),
+                        DropdownMenuItem(value: 'chair', child: Text('Ghế thư giãn (Chair)', overflow: TextOverflow.ellipsis)),
+                        DropdownMenuItem(value: 'shelf', child: Text('Kệ & Tủ quần áo (Closet/Shelf)', overflow: TextOverflow.ellipsis)),
+                        DropdownMenuItem(value: 'lamp', child: Text('Tủ ngăn kéo (Drawer)', overflow: TextOverflow.ellipsis)),
+                        DropdownMenuItem(value: 'parts', child: Text('Linh kiện phụ kiện (Parts)', overflow: TextOverflow.ellipsis)),
                       ],
                       onChanged: (val) {
                         if (val != null) setModalState(() => selectedCategory = val);
@@ -259,6 +262,7 @@ class _AdminScreenState extends State<AdminScreen>
                         style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primary)),
                     const SizedBox(height: 4),
                     DropdownButtonFormField<String>(
+                      isExpanded: true,
                       value: selectedModelCode,
                       decoration: const InputDecoration(
                         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -270,6 +274,7 @@ class _AdminScreenState extends State<AdminScreen>
                             '${m['code']} • ${m['name']}',
                             style: const TextStyle(fontSize: 12),
                             overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         );
                       }).toList(),

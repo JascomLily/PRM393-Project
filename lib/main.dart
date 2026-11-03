@@ -7,11 +7,22 @@ import 'providers/order_provider.dart';
 import 'providers/missing_report_provider.dart';
 import 'screens/main_navigation_screen.dart';
 import 'services/supabase_service.dart';
+import 'package:flutter/services.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SupabaseService.initialize();
+
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.black,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+      systemNavigationBarColor: Colors.black,
+      systemNavigationBarIconBrightness: Brightness.light,
+    ),
+  );
   runApp(
     MultiProvider(
       providers: [
