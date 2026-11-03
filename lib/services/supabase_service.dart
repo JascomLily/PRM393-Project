@@ -18,32 +18,61 @@ class SupabaseService {
       supabaseAnonKey.isNotEmpty;
 
   static bool _initialized = false;
+  static String? lastInitError;
 
   static SupabaseClient? get client {
-    if (!isConfigured || !_initialized) return null;
+    if (!isConfigured) return null;
     try {
-      return Supabase.instance.client;
-    } catch (_) {
-      return null;
-    }
+      if (_initialized) return Supabase.instance.client;
+      if (Supabase.instance.isInitialized) {
+        _initialized = true;
+        return Supabase.instance.client;
+      }
+    } catch (_) {}
+    return null;
   }
 
   /// Khởi tạo Supabase client an toàn (không crash app nếu chưa điền key)
-  static Future<void> initialize() async {
+  static Future<bool> initialize() async {
     if (!isConfigured) {
       debugPrint('[SupabaseService] Chưa cấu hình URL/Key. App sẽ sử dụng dữ liệu Mock an toàn.');
-      return;
+      return false;
     }
+    try {
+      if (Supabase.instance.isInitialized) {
+        _initialized = true;
+        return true;
+      }
+    } catch (_) {}
+
     try {
       await Supabase.initialize(
         url: supabaseUrl,
+        anonKey: supabaseAnonKey,
         publishableKey: supabaseAnonKey,
       );
       _initialized = true;
+      lastInitError = null;
       debugPrint('[SupabaseService] Kết nối Supabase thành công!');
+      return true;
     } catch (e) {
+      lastInitError = e.toString();
       debugPrint('[SupabaseService] Lỗi kết nối Supabase: $e');
+      try {
+        if (Supabase.instance.isInitialized) {
+          _initialized = true;
+          return true;
+        }
+      } catch (_) {}
+      return false;
     }
+  }
+
+  static Future<SupabaseClient?> getClientOrInit() async {
+    final existing = client;
+    if (existing != null) return existing;
+    await initialize();
+    return client;
   }
 
   // ==========================================================================

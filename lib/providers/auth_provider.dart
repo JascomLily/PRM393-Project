@@ -18,6 +18,8 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   List<UserModel> get allUsers => List.unmodifiable(_users);
 
+  dynamic _authSub;
+
   AuthProvider() {
     _initSampleUsers();
     _loadUserFromStorage();
@@ -25,10 +27,11 @@ class AuthProvider extends ChangeNotifier {
   }
 
   void _listenToAuthChanges() {
+    if (_authSub != null) return;
     try {
       final client = SupabaseService.client;
       if (client == null) return;
-      client.auth.onAuthStateChange.listen((data) async {
+      _authSub = client.auth.onAuthStateChange.listen((data) async {
         final AuthChangeEvent event = data.event;
         final Session? session = data.session;
         if ((event == AuthChangeEvent.signedIn ||
@@ -324,8 +327,10 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final client = SupabaseService.client;
+      final client = await SupabaseService.getClientOrInit();
       if (client != null) {
+        _listenToAuthChanges();
+
         await client.auth.signInWithOAuth(
           OAuthProvider.google,
           redirectTo: 'io.supabase.furni3d://login-callback/',
@@ -343,7 +348,8 @@ class AuthProvider extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
-    throw Exception('Dịch vụ Supabase chưa được kết nối.');
+    final detail = SupabaseService.lastInitError ?? 'Không thể khởi tạo kết nối Supabase';
+    throw Exception('Dịch vụ Supabase chưa sẵn sàng: $detail');
   }
 
   Future<bool> register({
