@@ -34,6 +34,7 @@ build/
 /coverage/
 
 # Android specific
+*.apk
 **/android/.gradle/
 **/android/local.properties
 **/android/**/build/
