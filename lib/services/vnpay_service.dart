@@ -25,8 +25,8 @@ class VnpayPaymentResult {
 class VnpayService {
   // Cấu hình môi trường VNPAY Sandbox (Test) chuẩn:
   // Khi chuyển sang môi trường Production của doanh nghiệp, chỉ cần thay đổi 2 biến sau:
-  static String tmnCode = '2QXUI4B4';
-  static String hashSecret = 'RAHQPTB5VYRTLXFLMNXAXGXBAGDXYTXM';
+  static String tmnCode = 'I2IEWTK8';
+  static String hashSecret = 'G5QNFVDC594C08IZPSU1WMMJRWSA9X02';
   static String vnpUrl = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
   static String returnUrl = 'https://furni3d.vn/vnpay_return';
 

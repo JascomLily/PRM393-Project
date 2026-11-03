@@ -456,8 +456,8 @@ class _VnpayGatewayScreenState extends State<VnpayGatewayScreen>
         actions: [
           TextButton(
             onPressed: () {
-              tmnController.text = '2QXUI4B4';
-              secretController.text = 'RAHQPTB5VYRTLXFLMNXAXGXBAGDXYTXM';
+              tmnController.text = 'I2IEWTK8';
+              secretController.text = 'G5QNFVDC594C08IZPSU1WMMJRWSA9X02';
             },
             child: const Text('Đặt mặc định', style: TextStyle(fontSize: 11)),
           ),
