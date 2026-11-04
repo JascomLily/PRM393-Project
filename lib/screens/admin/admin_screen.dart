@@ -11,7 +11,6 @@ import '../../providers/product_provider.dart';
 import '../../providers/missing_report_provider.dart';
 import '../../models/product_model.dart';
 import '../../models/voucher_model.dart';
-import '../../models/missing_report_model.dart';
 import '../../widgets/product_image_view.dart';
 import '../../services/supabase_service.dart';
 import '../../theme/app_theme.dart';

@@ -10,6 +10,8 @@ import '../../providers/order_provider.dart';
 import '../../widgets/product_image_view.dart';
 import '../../providers/auth_provider.dart';
 import 'vnpay_invoice_dialog.dart';
+import 'cod_receipt_dialog.dart';
+import '../../widgets/media_viewer_dialog.dart';
 import '../parts/report_missing_dialog.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -593,35 +595,49 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                   ),
                                 const SizedBox(width: 8),
                                 Expanded(
-                                  child: OutlinedButton.icon(
-                                    style: OutlinedButton.styleFrom(
-                                      side: const BorderSide(
-                                        color: Color(0xFF005BA9),
-                                      ),
-                                      foregroundColor: const Color(0xFF005BA9),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 8,
-                                      ),
-                                    ),
-                                    icon: const Icon(
-                                      Icons.receipt_long,
-                                      size: 16,
-                                    ),
-                                    label: const Text(
-                                      'Hóa đơn VNPAY',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    onPressed: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (_) =>
-                                            VnpayInvoiceDialog(order: order),
+                                  child: Builder(
+                                    builder: (ctx) {
+                                      final isCod = order.paymentMethod.toUpperCase() == 'COD';
+                                      final btnColor = isCod
+                                          ? const Color(0xFF805528)
+                                          : const Color(0xFF005BA9);
+                                      return OutlinedButton.icon(
+                                        style: OutlinedButton.styleFrom(
+                                          side: BorderSide(color: btnColor),
+                                          foregroundColor: btnColor,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 8,
+                                          ),
+                                        ),
+                                        icon: Icon(
+                                          isCod
+                                              ? Icons.local_shipping_outlined
+                                              : Icons.receipt_long,
+                                          size: 16,
+                                        ),
+                                        label: Text(
+                                          isCod ? 'Phiếu thu COD' : 'Hóa đơn VNPAY',
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        onPressed: () {
+                                          if (isCod) {
+                                            showDialog(
+                                              context: context,
+                                              builder: (_) => CodReceiptDialog(order: order),
+                                            );
+                                          } else {
+                                            showDialog(
+                                              context: context,
+                                              builder: (_) => VnpayInvoiceDialog(order: order),
+                                            );
+                                          }
+                                        },
                                       );
                                     },
                                   ),
@@ -724,37 +740,69 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                             final mPath = order.reviewMedia![mIdx];
                                             final isVid =
                                                 mPath.toLowerCase().endsWith('.mp4');
-                                            return Container(
-                                              width: 55,
-                                              height: 55,
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                color: Colors.black12,
-                                              ),
-                                              clipBehavior: Clip.antiAlias,
-                                              child: isVid
-                                                  ? Container(
-                                                      color: Colors.black87,
-                                                      child: const Center(
+                                            return GestureDetector(
+                                              onTap: () {
+                                                MediaViewerDialog.show(
+                                                  context,
+                                                  mediaPath: mPath,
+                                                  isVideo: isVid,
+                                                  title: 'Đánh giá đơn hàng #${order.code}',
+                                                );
+                                              },
+                                              child: Container(
+                                                width: 55,
+                                                height: 55,
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  color: Colors.black12,
+                                                ),
+                                                clipBehavior: Clip.antiAlias,
+                                                child: Stack(
+                                                  children: [
+                                                    Positioned.fill(
+                                                      child: isVid
+                                                          ? Container(
+                                                              color: Colors.black87,
+                                                              child: const Center(
+                                                                child: Icon(
+                                                                  Icons.play_circle_fill,
+                                                                  color: Colors.white,
+                                                                  size: 26,
+                                                                ),
+                                                              ),
+                                                            )
+                                                          : (kIsWeb
+                                                              ? const Center(
+                                                                  child: Icon(
+                                                                    Icons.image,
+                                                                    size: 20,
+                                                                  ),
+                                                                )
+                                                              : Image.file(
+                                                                  File(mPath),
+                                                                  fit: BoxFit.cover,
+                                                                )),
+                                                    ),
+                                                    Positioned(
+                                                      right: 2,
+                                                      bottom: 2,
+                                                      child: Container(
+                                                        padding: const EdgeInsets.all(2),
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.black54,
+                                                          borderRadius: BorderRadius.circular(4),
+                                                        ),
                                                         child: Icon(
-                                                          Icons.play_circle_fill,
+                                                          isVid ? Icons.videocam : Icons.zoom_in,
                                                           color: Colors.white,
-                                                          size: 22,
+                                                          size: 11,
                                                         ),
                                                       ),
-                                                    )
-                                                  : (kIsWeb
-                                                      ? const Center(
-                                                          child: Icon(
-                                                            Icons.image,
-                                                            size: 20,
-                                                          ),
-                                                        )
-                                                      : Image.file(
-                                                          File(mPath),
-                                                          fit: BoxFit.cover,
-                                                        )),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
                                             );
                                           },
                                         ),

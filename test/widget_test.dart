@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:furni3d_mobile/models/address_model.dart';
 import 'package:furni3d_mobile/providers/cart_provider.dart';
 import 'package:furni3d_mobile/providers/order_provider.dart';
 import 'package:furni3d_mobile/screens/parts/parts_screen.dart';
 import 'package:furni3d_mobile/services/vnpay_service.dart';
-import 'package:furni3d_mobile/services/location_service.dart';
 import 'package:furni3d_mobile/services/ai_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:furni3d_mobile/providers/auth_provider.dart';
@@ -304,6 +302,12 @@ void main() {
     final missingReply = await AiService.sendMessage('Tôi bị thiếu ốc vít lắp bàn sồi');
     expect(missingReply.suggestedAction, 'REPORT_MISSING');
     expect(missingReply.suggestedProductOrPart, 'Nordic Oak Desk');
+
+    final bedroomReply = await AiService.sendMessage('mình muốn tủ quần áo cho phòng ngủ');
+    expect(bedroomReply.text.contains('Hemnes King Bed Frame 35'), true);
+    expect(bedroomReply.text.contains('Pax Modern Closet 23'), true);
+    expect(bedroomReply.text.contains('Koppang Walnut Drawer 31'), true);
+    expect(bedroomReply.suggestedAction, 'VIEW_PRODUCT');
   });
 
   testWidgets('PartsScreen renders without overflow on narrow screens with high text scaling', (tester) async {
