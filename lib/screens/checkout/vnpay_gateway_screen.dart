@@ -192,9 +192,12 @@ class _VnpayGatewayScreenState extends State<VnpayGatewayScreen> {
             ),
           ],
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
+        body: SafeArea(
+          top: false,
+          bottom: true,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
             children: [
               // Order Summary Card
               Container(
@@ -443,6 +446,7 @@ class _VnpayGatewayScreenState extends State<VnpayGatewayScreen> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }

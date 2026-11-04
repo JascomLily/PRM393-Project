@@ -556,9 +556,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       appBar: AppBar(
         title: const Text('Thanh toán đơn hàng'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
+      body: SafeArea(
+        top: false,
+        bottom: true,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Amount Summary Card
@@ -942,7 +945,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _feeRow(String title, String value, {bool isNegative = false}) {

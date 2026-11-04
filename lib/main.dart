@@ -14,6 +14,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SupabaseService.initialize();
 
+  await SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.manual,
+    overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
+  );
+
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.black,
@@ -21,6 +26,7 @@ void main() async {
       statusBarBrightness: Brightness.dark,
       systemNavigationBarColor: Colors.black,
       systemNavigationBarIconBrightness: Brightness.light,
+      systemNavigationBarDividerColor: Colors.transparent,
     ),
   );
   runApp(

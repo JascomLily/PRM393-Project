@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_embed_unity/flutter_embed_unity.dart';
 
 import '../../data/mock_data.dart';
@@ -80,9 +81,27 @@ class _Model3DScreenState extends State<Model3DScreen> {
     });
   }
 
+  void _restoreSystemUI() {
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
+    );
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.black,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+        systemNavigationBarColor: Colors.black,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
+    );
+  }
+
   @override
   void dispose() {
     pauseUnity();
+    _restoreSystemUI();
     super.dispose();
   }
 
@@ -92,6 +111,7 @@ class _Model3DScreenState extends State<Model3DScreen> {
 
   void _returnToHome() {
     pauseUnity();
+    _restoreSystemUI();
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
       (_) => false,

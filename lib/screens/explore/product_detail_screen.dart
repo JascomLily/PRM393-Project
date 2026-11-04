@@ -353,138 +353,142 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ],
         ),
       ),
-      bottomSheet: Container(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-        decoration: BoxDecoration(
-          color: AppTheme.surface,
-          border: const Border(top: BorderSide(color: AppTheme.border)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 16,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // Quantity Adjuster
-            Container(
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceAlt,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.border),
+      bottomSheet: SafeArea(
+        top: false,
+        bottom: true,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            border: const Border(top: BorderSide(color: AppTheme.border)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 16,
+                offset: const Offset(0, -4),
               ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.remove, size: 16),
-                    onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
-                  ),
-                  Text(
-                    '$_quantity',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.add, size: 16),
-                    onPressed: () => setState(() => _quantity++),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(width: 12),
-
-            // Add to Cart
-            Expanded(
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            ],
+          ),
+          child: Row(
+            children: [
+              // Quantity Adjuster
+              Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceAlt,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.border),
                 ),
-                icon: const Icon(Icons.add_shopping_cart, size: 16),
-                label: const Text('Thêm vào giỏ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                onPressed: () {
-                  cart.addItem(
-                    id: widget.product.id,
-                    name: widget.product.name,
-                    price: widget.product.price,
-                    image: widget.product.image,
-                    variant: _selectedWood,
-                    quantity: _quantity,
-                  );
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      backgroundColor: AppTheme.primary,
-                      content: Text('Đã thêm $_quantity x "${widget.product.name}" vào giỏ hàng!'),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove, size: 16),
+                      onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
                     ),
-                  );
-                },
-              ),
-            ),
-
-            const SizedBox(width: 8),
-
-            // Buy Now
-            Expanded(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    Text(
+                      '$_quantity',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add, size: 16),
+                      onPressed: () => setState(() => _quantity++),
+                    ),
+                  ],
                 ),
-                onPressed: () {
-                  final auth = Provider.of<AuthProvider>(context, listen: false);
-                  if (!auth.isLoggedIn || auth.currentUser == null) {
+              ),
+
+              const SizedBox(width: 12),
+
+              // Add to Cart
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  icon: const Icon(Icons.add_shopping_cart, size: 16),
+                  label: const Text('Thêm vào giỏ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  onPressed: () {
+                    cart.addItem(
+                      id: widget.product.id,
+                      name: widget.product.name,
+                      price: widget.product.price,
+                      image: widget.product.image,
+                      variant: _selectedWood,
+                      quantity: _quantity,
+                    );
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Vui lòng đăng nhập tài khoản trước khi mua hàng.'),
-                        behavior: SnackBarBehavior.floating,
+                      SnackBar(
+                        backgroundColor: AppTheme.primary,
+                        content: Text('Đã thêm $_quantity x "${widget.product.name}" vào giỏ hàng!'),
                       ),
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              // Buy Now
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  onPressed: () {
+                    final auth = Provider.of<AuthProvider>(context, listen: false);
+                    if (!auth.isLoggedIn || auth.currentUser == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Vui lòng đăng nhập tài khoản trước khi mua hàng.'),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => LoginScreen(
+                            onLoginSuccess: () {
+                              Navigator.pop(context);
+                              cart.addItem(
+                                id: widget.product.id,
+                                name: widget.product.name,
+                                price: widget.product.price,
+                                image: widget.product.image,
+                                variant: _selectedWood,
+                                quantity: _quantity,
+                              );
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const CheckoutScreen()),
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+
+                    cart.addItem(
+                      id: widget.product.id,
+                      name: widget.product.name,
+                      price: widget.product.price,
+                      image: widget.product.image,
+                      variant: _selectedWood,
+                      quantity: _quantity,
                     );
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => LoginScreen(
-                          onLoginSuccess: () {
-                            Navigator.pop(context);
-                            cart.addItem(
-                              id: widget.product.id,
-                              name: widget.product.name,
-                              price: widget.product.price,
-                              image: widget.product.image,
-                              variant: _selectedWood,
-                              quantity: _quantity,
-                            );
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const CheckoutScreen()),
-                            );
-                          },
-                        ),
-                      ),
+                      MaterialPageRoute(builder: (_) => const CheckoutScreen()),
                     );
-                    return;
-                  }
-
-                  cart.addItem(
-                    id: widget.product.id,
-                    name: widget.product.name,
-                    price: widget.product.price,
-                    image: widget.product.image,
-                    variant: _selectedWood,
-                    quantity: _quantity,
-                  );
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const CheckoutScreen()),
-                  );
-                },
-                child: const Text('Mua ngay', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  },
+                  child: const Text('Mua ngay', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

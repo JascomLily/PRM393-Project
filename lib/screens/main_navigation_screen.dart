@@ -229,70 +229,74 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         ],
       ),
       body: IndexedStack(index: _currentIndex, children: screens),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: const Border(
-            top: BorderSide(color: AppTheme.border),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        bottom: true,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: const Border(
+              top: BorderSide(color: AppTheme.border),
             ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          backgroundColor: Colors.white,
-          elevation: 0,
-          selectedItemColor: AppTheme.primary,
-          unselectedItemColor: AppTheme.textMuted,
-          selectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 11,
-          ),
-          unselectedLabelStyle: const TextStyle(fontSize: 10),
-          type: BottomNavigationBarType.fixed,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          items: [
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Trang chủ',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.search_outlined),
-              activeIcon: Icon(Icons.search),
-              label: 'Khám phá',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.qr_code_scanner_outlined),
-              activeIcon: Icon(Icons.qr_code_scanner),
-              label: 'Quét QR',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.build_outlined),
-              activeIcon: Icon(Icons.build),
-              label: 'Linh kiện',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.inventory_2_outlined),
-              activeIcon: Icon(Icons.inventory_2),
-              label: 'Đơn hàng',
-            ),
-            if (isAdmin)
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.admin_panel_settings_outlined),
-                activeIcon: Icon(Icons.admin_panel_settings),
-                label: 'Quản trị',
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 10,
+                offset: const Offset(0, -2),
               ),
-          ],
+            ],
+          ),
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            backgroundColor: Colors.white,
+            elevation: 0,
+            selectedItemColor: AppTheme.primary,
+            unselectedItemColor: AppTheme.textMuted,
+            selectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 11,
+            ),
+            unselectedLabelStyle: const TextStyle(fontSize: 10),
+            type: BottomNavigationBarType.fixed,
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            items: [
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.home_outlined),
+                activeIcon: Icon(Icons.home),
+                label: 'Trang chủ',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.search_outlined),
+                activeIcon: Icon(Icons.search),
+                label: 'Khám phá',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.qr_code_scanner_outlined),
+                activeIcon: Icon(Icons.qr_code_scanner),
+                label: 'Quét QR',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.build_outlined),
+                activeIcon: Icon(Icons.build),
+                label: 'Linh kiện',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.inventory_2_outlined),
+                activeIcon: Icon(Icons.inventory_2),
+                label: 'Đơn hàng',
+              ),
+              if (isAdmin)
+                const BottomNavigationBarItem(
+                  icon: Icon(Icons.admin_panel_settings_outlined),
+                  activeIcon: Icon(Icons.admin_panel_settings),
+                  label: 'Quản trị',
+                ),
+            ],
+          ),
         ),
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../services/ai_service.dart';
 import '../../theme/app_theme.dart';
 import '../parts/report_missing_dialog.dart';
@@ -166,6 +167,11 @@ class _FurniAiAssistantScreenState extends State<FurniAiAssistantScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F5F2),
       appBar: AppBar(
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.black,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
         title: const Row(
           children: [
             Icon(Icons.smart_toy_outlined, color: AppTheme.woodDark, size: 22),
@@ -243,40 +249,44 @@ class _FurniAiAssistantScreenState extends State<FurniAiAssistantScreen> {
             ),
           ),
 
-          // Bottom Input Bar
-          Container(
-            padding: const EdgeInsets.fromLTRB(14, 8, 14, 18),
-            color: Colors.white,
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: TextField(
-                      controller: _textCtrl,
-                      decoration: const InputDecoration(
-                        hintText: 'Hỏi FurniAI về phối đồ, thiếu linh kiện...',
-                        hintStyle: TextStyle(fontSize: 12, color: Colors.grey),
-                        border: InputBorder.none,
+          // Bottom Input Bar with Safe Area for Android navigation buttons
+          SafeArea(
+            top: false,
+            bottom: true,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
+              color: Colors.white,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(24),
                       ),
-                      onSubmitted: _handleSendMessage,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: TextField(
+                        controller: _textCtrl,
+                        decoration: const InputDecoration(
+                          hintText: 'Hỏi FurniAI về phối đồ, thiếu linh kiện...',
+                          hintStyle: TextStyle(fontSize: 12, color: Colors.grey),
+                          border: InputBorder.none,
+                        ),
+                        onSubmitted: _handleSendMessage,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                CircleAvatar(
-                  backgroundColor: AppTheme.primary,
-                  radius: 20,
-                  child: IconButton(
-                    icon: const Icon(Icons.send, size: 18, color: Colors.white),
-                    onPressed: () => _handleSendMessage(_textCtrl.text),
+                  const SizedBox(width: 8),
+                  CircleAvatar(
+                    backgroundColor: AppTheme.primary,
+                    radius: 20,
+                    child: IconButton(
+                      icon: const Icon(Icons.send, size: 18, color: Colors.white),
+                      onPressed: () => _handleSendMessage(_textCtrl.text),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
