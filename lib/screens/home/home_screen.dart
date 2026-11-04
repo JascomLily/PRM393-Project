@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../theme/app_theme.dart';
@@ -76,6 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final currencyFormatter =
         NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
     final cart = Provider.of<CartProvider>(context);
+    final auth = Provider.of<AuthProvider>(context);
     final productProvider = Provider.of<ProductProvider>(context);
     final allProducts = productProvider.products;
 
@@ -557,42 +559,49 @@ class _HomeScreenState extends State<HomeScreen> {
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
-                                      InkWell(
-                                        onTap: () {
-                                          cart.addItem(
-                                            id: product.id,
-                                            name: product.name,
-                                            price: product.price,
-                                            image: product.image,
-                                          );
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              backgroundColor: AppTheme.primary,
-                                              content: Text(
-                                                'Đã thêm ${product.name} vào giỏ',
+                                      if (!auth.isAdmin)
+                                        InkWell(
+                                          onTap: () {
+                                            cart.addItem(
+                                              id: product.id,
+                                              name: product.name,
+                                              price: product.price,
+                                              image: product.image,
+                                            );
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                backgroundColor: AppTheme.primary,
+                                                content: Text(
+                                                  'Đã thêm ${product.name} vào giỏ',
+                                                ),
+                                                duration: const Duration(
+                                                  seconds: 1,
+                                                ),
                                               ),
-                                              duration: const Duration(
-                                                seconds: 1,
-                                              ),
+                                            );
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: BoxDecoration(
+                                              color: AppTheme.woodLight,
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
                                             ),
-                                          );
-                                        },
-                                        child: Container(
-                                          padding: const EdgeInsets.all(4),
-                                          decoration: BoxDecoration(
-                                            color: AppTheme.woodLight,
-                                            borderRadius:
-                                                BorderRadius.circular(6),
+                                            child: const Icon(
+                                              Icons.add,
+                                              size: 14,
+                                              color: AppTheme.woodDark,
+                                            ),
                                           ),
-                                          child: const Icon(
-                                            Icons.add,
-                                            size: 14,
-                                            color: AppTheme.woodDark,
-                                          ),
+                                        )
+                                      else
+                                        const Icon(
+                                          Icons.arrow_forward_ios,
+                                          size: 12,
+                                          color: AppTheme.woodDark,
                                         ),
-                                      ),
                                     ],
                                   ),
                                 ],
@@ -685,21 +694,15 @@ class _HomeScreenState extends State<HomeScreen> {
                               children: [
                                 Text(
                                   product.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
                                     color: AppTheme.textPrimary,
                                   ),
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  product.subtitle,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: AppTheme.textSecondary,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 3),
                                 Row(
                                   children: [
                                     const Icon(
@@ -707,11 +710,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                       size: 12,
                                       color: Colors.amber,
                                     ),
+                                    const SizedBox(width: 2),
                                     Text(
-                                      ' ${product.rating} (${product.reviewCount} đánh giá)',
+                                      '${product.rating}',
                                       style: const TextStyle(
                                         fontSize: 11,
-                                        color: AppTheme.textSecondary,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.textPrimary,
                                       ),
                                     ),
                                   ],
@@ -720,7 +725,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Text(
                                   currencyFormatter.format(product.price),
                                   style: const TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 13,
                                     fontWeight: FontWeight.bold,
                                     color: AppTheme.primary,
                                   ),
@@ -728,43 +733,78 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                             ),
                           ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.primary,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                            ),
-                            onPressed: () {
-                              cart.addItem(
-                                id: product.id,
-                                name: product.name,
-                                price: product.price,
-                                image: product.image,
-                              );
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  backgroundColor: AppTheme.primary,
-                                  content: Text(
-                                    'Đã thêm ${product.name} vào giỏ',
-                                  ),
-                                  duration: const Duration(seconds: 1),
+                          if (auth.isAdmin)
+                            OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(
+                                  color: Color(0xFF805528),
                                 ),
-                              );
-                            },
-                            child: const Text(
-                              'Mua',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
+                                foregroundColor: const Color(0xFF805528),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 8,
+                                ),
+                              ),
+                              icon: const Icon(
+                                Icons.visibility_outlined,
+                                size: 14,
+                              ),
+                              label: const Text(
+                                'Xem',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      ProductDetailScreen(product: product),
+                                ),
+                              ),
+                            )
+                          else
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primary,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                              ),
+                              onPressed: () {
+                                cart.addItem(
+                                  id: product.id,
+                                  name: product.name,
+                                  price: product.price,
+                                  image: product.image,
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: AppTheme.primary,
+                                    content: Text(
+                                      'Đã thêm ${product.name} vào giỏ',
+                                    ),
+                                    duration: const Duration(seconds: 1),
+                                  ),
+                                );
+                              },
+                              child: const Text(
+                                'Mua',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                          ),
                         ],
                       ),
                     ),

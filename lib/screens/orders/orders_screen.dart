@@ -555,7 +555,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                       },
                                     ),
                                   )
-                                else
+                                else if (!auth.isAdmin)
                                   Expanded(
                                     child: OutlinedButton.icon(
                                       style: OutlinedButton.styleFrom(
@@ -646,38 +646,39 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             ),
                             const SizedBox(height: 8),
 
-                            // Nut Bao thieu linh kien truc tiep tu don hang
-                            SizedBox(
-                              width: double.infinity,
-                              child: OutlinedButton.icon(
-                                style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(color: Color(0xFF805528)),
-                                  foregroundColor: const Color(0xFF805528),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
-                                ),
-                                icon: const Icon(Icons.build_circle_outlined, size: 16),
-                                label: const Text(
-                                  'Báo thiếu linh kiện đơn này',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (_) => ReportMissingDialog(
-                                      initialProduct: order.items.isNotEmpty
-                                          ? order.items.first.name
-                                          : '',
+                            // Nut Bao thieu linh kien truc tiep tu don hang (chi hien thi cho khach hang)
+                            if (!auth.isAdmin)
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(color: Color(0xFF805528)),
+                                    foregroundColor: const Color(0xFF805528),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
-                                  );
-                                },
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                  ),
+                                  icon: const Icon(Icons.build_circle_outlined, size: 16),
+                                  label: const Text(
+                                    'Báo thiếu linh kiện đơn này',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (_) => ReportMissingDialog(
+                                        initialProduct: order.items.isNotEmpty
+                                            ? order.items.first.name
+                                            : '',
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
-                            ),
 
                             // Hien thi review va Media neu don da duoc danh gia
                             if (order.reviewStars != null) ...[

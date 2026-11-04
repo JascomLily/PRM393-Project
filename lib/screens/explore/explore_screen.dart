@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/product_model.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../theme/app_theme.dart';
@@ -257,6 +258,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     final currencyFormatter =
         NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
     final cart = Provider.of<CartProvider>(context);
+    final auth = Provider.of<AuthProvider>(context);
     final productProvider = Provider.of<ProductProvider>(context);
     final allProducts = productProvider.products;
 
@@ -761,43 +763,50 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                               ],
                                             ),
                                           ),
-                                          InkWell(
-                                            onTap: () {
-                                              cart.addItem(
-                                                id: product.id,
-                                                name: product.name,
-                                                price: product.price,
-                                                image: product.image,
-                                              );
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  backgroundColor:
-                                                      AppTheme.primary,
-                                                  content: Text(
-                                                    'Đã thêm ${product.name} vào giỏ hàng',
+                                          if (!auth.isAdmin)
+                                            InkWell(
+                                              onTap: () {
+                                                cart.addItem(
+                                                  id: product.id,
+                                                  name: product.name,
+                                                  price: product.price,
+                                                  image: product.image,
+                                                );
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  SnackBar(
+                                                    backgroundColor:
+                                                        AppTheme.primary,
+                                                    content: Text(
+                                                      'Đã thêm ${product.name} vào giỏ hàng',
+                                                    ),
+                                                    duration: const Duration(
+                                                      seconds: 1,
+                                                    ),
                                                   ),
-                                                  duration: const Duration(
-                                                    seconds: 1,
-                                                  ),
+                                                );
+                                              },
+                                              child: Container(
+                                                padding: const EdgeInsets.all(6),
+                                                decoration: BoxDecoration(
+                                                  color: AppTheme.woodLight,
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
                                                 ),
-                                              );
-                                            },
-                                            child: Container(
-                                              padding: const EdgeInsets.all(6),
-                                              decoration: BoxDecoration(
-                                                color: AppTheme.woodLight,
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
+                                                child: const Icon(
+                                                  Icons.add_shopping_cart,
+                                                  size: 16,
+                                                  color: AppTheme.woodDark,
+                                                ),
                                               ),
-                                              child: const Icon(
-                                                Icons.add_shopping_cart,
-                                                size: 16,
-                                                color: AppTheme.woodDark,
-                                              ),
+                                            )
+                                          else
+                                            const Icon(
+                                              Icons.arrow_forward_ios,
+                                              size: 13,
+                                              color: AppTheme.woodDark,
                                             ),
-                                          ),
                                         ],
                                       ),
                                     ],

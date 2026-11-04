@@ -12,6 +12,7 @@ import '../../providers/missing_report_provider.dart';
 import '../../models/product_model.dart';
 import '../../models/voucher_model.dart';
 import '../../widgets/product_image_view.dart';
+import '../../widgets/media_viewer_dialog.dart';
 import '../../services/supabase_service.dart';
 import '../../theme/app_theme.dart';
 
@@ -26,6 +27,7 @@ class _AdminScreenState extends State<AdminScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _picker = ImagePicker();
+  String _adminReviewFilter = 'all';
 
   // 19 Official Unity 3D Models in project
   static const List<Map<String, String>> official3DModels = [
@@ -53,7 +55,7 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
   }
 
   @override
@@ -636,6 +638,10 @@ class _AdminScreenState extends State<AdminScreen>
               icon: const Icon(Icons.handyman_outlined, size: 18),
               text: pendingCount > 0 ? 'Phiếu linh kiện ($pendingCount mới)' : 'Phiếu linh kiện',
             ),
+            const Tab(
+              icon: Icon(Icons.star_rate_outlined, size: 18),
+              text: 'Đánh giá SP',
+            ),
           ],
         ),
       ),
@@ -653,6 +659,9 @@ class _AdminScreenState extends State<AdminScreen>
 
           // TAB 4: PHIẾU LINH KIỆN
           _buildMissingReportsTab(),
+
+          // TAB 5: ĐÁNH GIÁ SẢN PHẨM CỦA KHÁCH HÀNG
+          _buildReviewsTab(),
         ],
       ),
     );
@@ -1451,4 +1460,398 @@ class _AdminScreenState extends State<AdminScreen>
       ),
     );
   }
+
+  // ==========================================================================
+  // TAB 5: CUSTOMER REVIEWS
+  // ==========================================================================
+  Widget _buildReviewsTab() {
+    final orderProvider = Provider.of<OrderProvider>(context);
+    final reviewedOrders = orderProvider.orders.where((o) => o.reviewStars != null).toList();
+
+    // Filter
+    final filtered = reviewedOrders.where((o) {
+      if (_adminReviewFilter == 'media') {
+        return o.reviewMedia != null && o.reviewMedia!.isNotEmpty;
+      }
+      if (_adminReviewFilter == '5star') return o.reviewStars == 5;
+      if (_adminReviewFilter == '4star') return o.reviewStars == 4;
+      if (_adminReviewFilter == '3star') return (o.reviewStars ?? 0) <= 3;
+      return true;
+    }).toList();
+
+    final avgRating = reviewedOrders.isNotEmpty
+        ? (reviewedOrders.map((o) => o.reviewStars!).reduce((a, b) => a + b) / reviewedOrders.length).toStringAsFixed(1)
+        : '5.0';
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header Summary Card
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF2C1810), Color(0xFF5A341E)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'TỔNG QUAN ĐÁNH GIÁ SẢN PHẨM',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.woodLight,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          avgRating,
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const Text(
+                          ' / 5.0',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        '${reviewedOrders.length}',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const Text(
+                        'Đánh giá',
+                        style: TextStyle(fontSize: 10, color: Colors.white70),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Filter Chips
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _adminFilterChip('Tất cả (${reviewedOrders.length})', 'all'),
+                const SizedBox(width: 8),
+                _adminFilterChip(
+                  'Có ảnh/video (${reviewedOrders.where((o) => o.reviewMedia != null && o.reviewMedia!.isNotEmpty).length})',
+                  'media',
+                ),
+                const SizedBox(width: 8),
+                _adminFilterChip(
+                  '5 sao (${reviewedOrders.where((o) => o.reviewStars == 5).length})',
+                  '5star',
+                ),
+                const SizedBox(width: 8),
+                _adminFilterChip(
+                  '4 sao (${reviewedOrders.where((o) => o.reviewStars == 4).length})',
+                  '4star',
+                ),
+                const SizedBox(width: 8),
+                _adminFilterChip(
+                  '<= 3 sao (${reviewedOrders.where((o) => (o.reviewStars ?? 0) <= 3).length})',
+                  '3star',
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // List of customer reviews
+          if (filtered.isEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.black.withOpacity(0.06)),
+              ),
+              child: const Column(
+                children: [
+                  Icon(Icons.rate_review_outlined, size: 40, color: Colors.grey),
+                  SizedBox(height: 10),
+                  Text(
+                    'Chưa có phản hồi đánh giá nào',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Khi khách hàng mua đơn và gửi đánh giá kèm ảnh/video, toàn bộ dữ liệu sẽ hiển thị tại đây để Admin theo dõi.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
+                ],
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: filtered.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (ctx, idx) {
+                final order = filtered[idx];
+                return Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.black.withOpacity(0.06)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.02),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header: Customer + Order Code + Date
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 14,
+                                backgroundColor: const Color(0xFF2C1810),
+                                child: Text(
+                                  order.receiverName.isNotEmpty ? order.receiverName[0].toUpperCase() : 'U',
+                                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    order.receiverName.isNotEmpty ? order.receiverName : 'Khách hàng Furni3D',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                  ),
+                                  Text(
+                                    '${order.receiverPhone} • Đơn #${order.code}',
+                                    style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          Text(
+                            order.date,
+                            style: const TextStyle(fontSize: 10, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Products reviewed in this order
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF7F5F2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            if (order.items.isNotEmpty)
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(6),
+                                child: ProductImageView(
+                                  imageUrl: order.items.first.image,
+                                  width: 32,
+                                  height: 32,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                order.items.isNotEmpty
+                                    ? order.items.map((i) => i.name).join(', ')
+                                    : 'Sản phẩm nội thất',
+                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF2C1810)),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Stars Rating
+                      Row(
+                        children: [
+                          Row(
+                            children: List.generate(
+                              order.reviewStars ?? 5,
+                              (_) => const Icon(Icons.star, size: 14, color: Colors.amber),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${order.reviewStars ?? 5}/5 sao',
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF805528)),
+                          ),
+                        ],
+                      ),
+
+                      // Comment Text
+                      if (order.reviewComment != null && order.reviewComment!.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          order.reviewComment!,
+                          style: const TextStyle(fontSize: 12, height: 1.4, color: Color(0xFF333333)),
+                        ),
+                      ],
+
+                      // Media (Photos and Videos)
+                      if (order.reviewMedia != null && order.reviewMedia!.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: 60,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: order.reviewMedia!.length,
+                            separatorBuilder: (_, __) => const SizedBox(width: 6),
+                            itemBuilder: (ctx, mIdx) {
+                              final mPath = order.reviewMedia![mIdx];
+                              final isVid = mPath.toLowerCase().endsWith('.mp4') ||
+                                  mPath.toLowerCase().endsWith('.mov') ||
+                                  mPath.toLowerCase().endsWith('.mkv');
+                              return GestureDetector(
+                                onTap: () {
+                                  MediaViewerDialog.show(
+                                    context,
+                                    mediaPath: mPath,
+                                    isVideo: isVid,
+                                    title: 'Đánh giá từ ${order.receiverName}',
+                                  );
+                                },
+                                child: Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    color: Colors.black12,
+                                  ),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      isVid
+                                          ? Container(
+                                              color: Colors.black87,
+                                              child: const Center(
+                                                child: Icon(Icons.play_circle_fill, color: Colors.white, size: 24),
+                                              ),
+                                            )
+                                          : (kIsWeb
+                                              ? const Center(child: Icon(Icons.image, size: 20))
+                                              : (mPath.startsWith('http')
+                                                  ? Image.network(mPath, fit: BoxFit.cover)
+                                                  : Image.file(File(mPath), fit: BoxFit.cover))),
+                                      Positioned(
+                                        right: 2,
+                                        bottom: 2,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black54,
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Icon(
+                                            isVid ? Icons.videocam : Icons.zoom_in,
+                                            color: Colors.white,
+                                            size: 11,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _adminFilterChip(String label, String value) {
+    final isSelected = _adminReviewFilter == value;
+    return ChoiceChip(
+      label: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          color: isSelected ? Colors.white : const Color(0xFF2C1810),
+        ),
+      ),
+      selected: isSelected,
+      selectedColor: const Color(0xFF2C1810),
+      backgroundColor: Colors.white,
+      side: BorderSide(
+        color: isSelected ? const Color(0xFF2C1810) : const Color(0xFFDCD2C6),
+      ),
+      onSelected: (_) {
+        setState(() {
+          _adminReviewFilter = value;
+        });
+      },
+    );
+  }
+
 }

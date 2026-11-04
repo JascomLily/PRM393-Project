@@ -380,6 +380,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _handleProceedPayment(int payableAmount, int coinsUsed) {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    if (auth.isAdmin) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tài khoản Quản trị viên không thực hiện đặt hàng. Vui lòng đăng nhập tài khoản Khách hàng.'),
+          backgroundColor: Color(0xFF2C1810),
+        ),
+      );
+      return;
+    }
+
     if (_nameController.text.trim().isEmpty ||
         _phoneController.text.trim().isEmpty ||
         _addressController.text.trim().isEmpty) {

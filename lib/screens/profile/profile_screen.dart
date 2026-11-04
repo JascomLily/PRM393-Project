@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../models/address_model.dart';
 import '../../services/supabase_service.dart';
 import '../auth/login_screen.dart';
+import '../admin/admin_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -591,62 +592,138 @@ class ProfileScreen extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // FurniCoins Points Card
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: AppTheme.woodLight,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppTheme.wood.withOpacity(0.25)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
+            // Phan hien thi theo vai tro: Admin vs Khach hang
+            if (isAdmin) ...[
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2C1810),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFF4A2A18)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.admin_panel_settings, color: Colors.amber, size: 28),
                     ),
-                    child: const Icon(Icons.monetization_on, color: AppTheme.woodDark, size: 28),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'VÍ ĐIỂM THƯỞNG SOFA SO GOOD',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.5,
-                            color: AppTheme.woodDark,
+                    const SizedBox(width: 14),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'QUYỀN HỆ THỐNG',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                              color: Colors.amber,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${user.furniCoins} Xu',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            color: AppTheme.textPrimary,
+                          SizedBox(height: 2),
+                          Text(
+                            'Quản Trị Viên (Admin)',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        const Text(
-                          '1 Xu = 1.000₫ • Dùng trực tiếp khi thanh toán đơn hàng',
-                          style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
-                        ),
-                      ],
+                          SizedBox(height: 4),
+                          Text(
+                            'Quản lý danh mục 3D, đơn hàng, mã giảm giá và theo dõi đánh giá của khách hàng.',
+                            style: TextStyle(fontSize: 11, color: Color(0xFFDCD2C6)),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF805528),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  icon: const Icon(Icons.dashboard_outlined, size: 16),
+                  label: const Text('Mở Bảng điều khiển Quản trị viên', style: TextStyle(fontWeight: FontWeight.bold)),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AdminScreen()),
+                    );
+                  },
+                ),
+              ),
+            ] else ...[
+              // FurniCoins Points Card cho khach hang
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: AppTheme.woodLight,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.wood.withOpacity(0.25)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.monetization_on, color: AppTheme.woodDark, size: 28),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'VÍ ĐIỂM THƯỞNG SOFA SO GOOD',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                              color: AppTheme.woodDark,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${user.furniCoins} Xu',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          const Text(
+                            '1 Xu = 1.000₫ • Dùng trực tiếp khi thanh toán đơn hàng',
+                            style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
 
             const SizedBox(height: 20),
 
-            // SỔ ĐỊA CHỈ NHẬN HÀNG (ADDRESS BOOK)
+            // SỔ ĐỊA CHỈ NHẬN HÀNG (ADDRESS BOOK) - Chi hien thi cho khach hang
+            if (!isAdmin) ...[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -799,6 +876,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
               );
             }),
+            ],
 
             const SizedBox(height: 24),
 

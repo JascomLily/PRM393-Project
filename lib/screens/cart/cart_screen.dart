@@ -443,6 +443,16 @@ class _CartScreenState extends State<CartScreen> {
                                   return;
                                 }
 
+                                if (auth.isAdmin) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Tài khoản Quản trị viên không thực hiện đặt hàng. Vui lòng đăng nhập tài khoản Khách hàng.'),
+                                      backgroundColor: Color(0xFF2C1810),
+                                    ),
+                                  );
+                                  return;
+                                }
+
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(

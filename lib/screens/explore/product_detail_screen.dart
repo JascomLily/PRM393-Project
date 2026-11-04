@@ -25,6 +25,7 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  final ScrollController _scrollController = ScrollController();
   int _quantity = 1;
   String _selectedWood = 'Gỗ Sồi Trắng Tự Nhiên';
   String _reviewFilter = 'all';
@@ -36,9 +37,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   ];
 
   @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
     final cart = Provider.of<CartProvider>(context, listen: false);
+    final auth = Provider.of<AuthProvider>(context);
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -59,6 +67,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ],
       ),
       body: SingleChildScrollView(
+        controller: _scrollController,
         padding: const EdgeInsets.only(bottom: 100),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -365,11 +374,88 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ],
         ),
       ),
-      bottomSheet: SafeArea(
-        top: false,
-        bottom: true,
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+      bottomSheet: auth.isAdmin
+          ? SafeArea(
+              top: false,
+              bottom: true,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2C1810),
+                  border: const Border(top: BorderSide(color: Color(0xFF4A2A18))),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 10,
+                      offset: const Offset(0, -3),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.shield_outlined, color: Colors.amber, size: 20),
+                    ),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Tài khoản Quản trị viên',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                          Text(
+                            'Chế độ xem & theo dõi đánh giá sản phẩm',
+                            style: TextStyle(
+                              color: Color(0xFFDCD2C6),
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.amber),
+                        foregroundColor: Colors.amber,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      ),
+                      icon: const Icon(Icons.star_outline, size: 14),
+                      label: const Text(
+                        'Xem đánh giá',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                      onPressed: () {
+                        _scrollController.animateTo(
+                          _scrollController.position.maxScrollExtent,
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeOut,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : SafeArea(
+              top: false,
+              bottom: true,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
           decoration: BoxDecoration(
             color: AppTheme.surface,
             border: const Border(top: BorderSide(color: AppTheme.border)),
@@ -621,8 +707,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget _buildCustomerReviewsSection(BuildContext context) {
     final orderProvider = Provider.of<OrderProvider>(context);
 
-    // 1. Gather live reviews from OrderProvider for this product
-    final liveReviews = <Map<String, dynamic>>[];
+    // 1. Gather ONLY real live reviews from OrderProvider for this product (NO MOCK DATA)
+    final realReviews = <Map<String, dynamic>>[];
     for (final o in orderProvider.orders) {
       if (o.reviewStars != null) {
         final matchesProduct = o.items.any((item) =>
@@ -634,7 +720,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     .contains(widget.product.modelCode.toLowerCase())));
 
         if (matchesProduct) {
-          liveReviews.add({
+          realReviews.add({
             'author': o.receiverName.isNotEmpty
                 ? o.receiverName
                 : 'Khách hàng Furni3D',
@@ -642,7 +728,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             'date': o.date,
             'comment': (o.reviewComment != null && o.reviewComment!.isNotEmpty)
                 ? o.reviewComment!
-                : 'Rất hài lòng! Sản phẩm thực tế sắc nét, khớp đúng 100% bản vẽ 3D trên app.',
+                : 'Sản phẩm hoàn thiện đẹp, đúng với mô tả và bản vẽ 3D.',
             'media': o.reviewMedia ?? <String>[],
             'variant': 'Gỗ Sồi Trắng Tự Nhiên',
             'isLive': true,
@@ -651,49 +737,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       }
     }
 
-    // 2. Curated baseline reviews for high credibility
-    final seedReviews = [
-      {
-        'author': 'Nguyễn Minh Tuấn',
-        'stars': 5,
-        'date': 'Hôm qua',
-        'comment':
-            'Sản phẩm hoàn thiện rất tỉ mỉ, mộng gỗ âm dương khít 100%. Lắp theo bản vẽ 3D trên ứng dụng trực quan và nhanh hơn nhiều so với đọc giấy.',
-        'media': [
-          'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=600&q=80',
-          'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-        ],
-        'variant': 'Gỗ Sồi Trắng Tự Nhiên',
-        'isLive': false,
-      },
-      {
-        'author': 'Trần Mai Anh',
-        'stars': 5,
-        'date': '4 ngày trước',
-        'comment':
-            'Màu gỗ tự nhiên rất đẹp và sáng phòng. Đóng gói cẩn thận 3 lớp bọc chống sốc. Nhân viên hỗ trợ tư vấn nhiệt tình.',
-        'media': [
-          'https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=600&q=80',
-        ],
-        'variant': 'Gỗ Óc Chó Bắc Âu',
-        'isLive': false,
-      },
-      {
-        'author': 'Phạm Gia Huy',
-        'stars': 5,
-        'date': '1 tuần trước',
-        'comment':
-            'Chất lượng xuất khẩu chuẩn chỉ, góc bo tròn mềm mại không sợ va đập. Rất đáng tiền!',
-        'media': <String>[],
-        'variant': 'Gỗ Bạch Dương Ép Nhiệt',
-        'isLive': false,
-      },
-    ];
-
-    final allReviews = [...liveReviews, ...seedReviews];
-
     // Filter reviews
-    final filteredReviews = allReviews.where((r) {
+    final filteredReviews = realReviews.where((r) {
       if (_reviewFilter == 'media') {
         final m = r['media'] as List;
         return m.isNotEmpty;
@@ -703,9 +748,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       return true;
     }).toList();
 
-    // Collect all media across all reviews for quick media gallery
+    // Collect all media across real reviews
     final allMediaItems = <Map<String, String>>[];
-    for (final r in allReviews) {
+    for (final r in realReviews) {
       final mediaList = r['media'] as List;
       for (final m in mediaList) {
         allMediaItems.add({
@@ -714,6 +759,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         });
       }
     }
+
+    final hasReviews = realReviews.isNotEmpty;
+    final double avgRating = hasReviews
+        ? realReviews
+                .map((r) => r['stars'] as int)
+                .reduce((a, b) => a + b) /
+            realReviews.length
+        : widget.product.rating;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -731,7 +784,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
             ),
             Text(
-              '(${widget.product.reviewCount + liveReviews.length} đánh giá)',
+              '( đánh giá thực tế)',
               style: const TextStyle(
                 fontSize: 12,
                 color: AppTheme.textSecondary,
@@ -741,321 +794,382 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ),
         const SizedBox(height: 12),
 
-        // Rating Overview Card
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFAF7F2),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE8DFD5)),
-          ),
-          child: Row(
-            children: [
-              // Rating big number
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Text(
-                        '${widget.product.rating}',
-                        style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF2C1810),
-                        ),
-                      ),
-                      const Text(
-                        ' / 5',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: List.generate(
-                      5,
-                      (_) => const Icon(
-                        Icons.star,
-                        color: Colors.amber,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    '100% hài lòng',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF805528),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 20),
-              Container(width: 1, height: 60, color: const Color(0xFFE8DFD5)),
-              const SizedBox(width: 16),
-              // Rating breakdown bars
-              Expanded(
-                child: Column(
-                  children: [
-                    _buildRatingBar(5, 0.94),
-                    const SizedBox(height: 3),
-                    _buildRatingBar(4, 0.05),
-                    const SizedBox(height: 3),
-                    _buildRatingBar(3, 0.01),
-                    const SizedBox(height: 3),
-                    _buildRatingBar(2, 0.0),
-                    const SizedBox(height: 3),
-                    _buildRatingBar(1, 0.0),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        // Quick Media Gallery (Photos and Videos from buyers)
-        if (allMediaItems.isNotEmpty) ...[
-          Row(
-            children: [
-              const Icon(
-                Icons.photo_library_outlined,
-                size: 16,
-                color: Color(0xFF805528),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                'Hình ảnh & Video thực tế (${allMediaItems.length})',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C1810),
-                ),
-              ),
-              const Spacer(),
-              const Text(
-                'Chạm để xem/phát',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            height: 72,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: allMediaItems.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (ctx, idx) {
-                final item = allMediaItems[idx];
-                return _buildMediaThumbnail(item['path']!, item['author']!);
-              },
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-
-        // Filter chips
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              _buildFilterChip('Tất cả (${allReviews.length})', 'all'),
-              const SizedBox(width: 8),
-              _buildFilterChip(
-                'Có ảnh / video (${allReviews.where((r) => (r['media'] as List).isNotEmpty).length})',
-                'media',
-              ),
-              const SizedBox(width: 8),
-              _buildFilterChip(
-                '5 sao (${allReviews.where((r) => (r['stars'] as int) == 5).length})',
-                '5star',
-              ),
-              const SizedBox(width: 8),
-              _buildFilterChip(
-                '4 sao (${allReviews.where((r) => (r['stars'] as int) == 4).length})',
-                '4star',
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 14),
-
-        // Review items list
-        if (filteredReviews.isEmpty)
+        // If no real reviews yet -> display clean empty state for testing
+        if (!hasReviews) ...[
           Container(
-            padding: const EdgeInsets.all(24),
-            alignment: Alignment.center,
-            child: const Text(
-              'Không có đánh giá nào phù hợp với bộ lọc.',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAF7F2),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE8DFD5)),
             ),
-          )
-        else
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: filteredReviews.length,
-            separatorBuilder: (_, __) => const Divider(height: 24),
-            itemBuilder: (ctx, idx) {
-              final r = filteredReviews[idx];
-              final author = r['author'] as String;
-              final stars = r['stars'] as int;
-              final date = r['date'] as String;
-              final comment = r['comment'] as String;
-              final variant = r['variant'] as String;
-              final mediaList = (r['media'] as List).cast<String>();
-              final isLive = r['isLive'] as bool? ?? false;
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 16,
-                        backgroundColor: isLive
-                            ? const Color(0xFF2C1810)
-                            : const Color(0xFF805528),
-                        child: Text(
-                          author.isNotEmpty ? author[0].toUpperCase() : 'U',
+            child: Column(
+              children: [
+                const Icon(
+                  Icons.rate_review_outlined,
+                  size: 40,
+                  color: Color(0xFF805528),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Chưa có đánh giá thực tế',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2C1810),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Sản phẩm hiện chưa có đánh giá nào từ khách hàng.\nKhi người dùng mua đơn và gửi đánh giá (kèm ảnh hoặc video), đánh giá thực tế sẽ lập tức hiển thị tại đây để bạn kiểm thử chức năng!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF717973),
+                    height: 1.45,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ] else ...[
+          // Rating Overview Card with REAL STATS
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAF7F2),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE8DFD5)),
+            ),
+            child: Row(
+              children: [
+                // Rating big number
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          avgRating.toStringAsFixed(1),
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 32,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF2C1810),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Flexible(
-                                  child: Text(
-                                    author,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF161B28),
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE8F5E9),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.check_circle,
-                                        size: 10,
-                                        color: Color(0xFF2E7D32),
-                                      ),
-                                      SizedBox(width: 2),
-                                      Text(
-                                        'Đã mua hàng',
-                                        style: TextStyle(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF2E7D32),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 2),
-                            Row(
-                              children: [
-                                Row(
-                                  children: List.generate(
-                                    stars,
-                                    (_) => const Icon(
-                                      Icons.star,
-                                      size: 13,
-                                      color: Colors.amber,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  date,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                        const Text(
+                          ' / 5',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: List.generate(
+                        5,
+                        (starIdx) => Icon(
+                          starIdx < avgRating.round()
+                              ? Icons.star
+                              : Icons.star_border,
+                          color: Colors.amber,
+                          size: 16,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      ' lượt đánh giá',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF805528),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 20),
+                Container(width: 1, height: 60, color: const Color(0xFFE8DFD5)),
+                const SizedBox(width: 16),
+                // Real rating breakdown bars
+                Expanded(
+                  child: Column(
+                    children: [
+                      _buildRatingBar(
+                        5,
+                        realReviews.where((r) => r['stars'] == 5).length /
+                            realReviews.length,
+                      ),
+                      const SizedBox(height: 3),
+                      _buildRatingBar(
+                        4,
+                        realReviews.where((r) => r['stars'] == 4).length /
+                            realReviews.length,
+                      ),
+                      const SizedBox(height: 3),
+                      _buildRatingBar(
+                        3,
+                        realReviews.where((r) => r['stars'] == 3).length /
+                            realReviews.length,
+                      ),
+                      const SizedBox(height: 3),
+                      _buildRatingBar(
+                        2,
+                        realReviews.where((r) => r['stars'] == 2).length /
+                            realReviews.length,
+                      ),
+                      const SizedBox(height: 3),
+                      _buildRatingBar(
+                        1,
+                        realReviews.where((r) => r['stars'] == 1).length /
+                            realReviews.length,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Phân loại: $variant',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Color(0xFF805528),
-                      fontWeight: FontWeight.w500,
-                    ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Quick Media Gallery (Photos and Videos from real buyers)
+          if (allMediaItems.isNotEmpty) ...[
+            Row(
+              children: [
+                const Icon(
+                  Icons.photo_library_outlined,
+                  size: 16,
+                  color: Color(0xFF805528),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Hình ảnh & Video thực tế ()',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2C1810),
                   ),
-                  if (comment.isNotEmpty) ...[
+                ),
+                const Spacer(),
+                const Text(
+                  'Chạm để xem/phát',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 72,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: allMediaItems.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (ctx, idx) {
+                  final item = allMediaItems[idx];
+                  return _buildMediaThumbnail(item['path']!, item['author']!);
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // Filter chips
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildFilterChip('Tất cả ()', 'all'),
+                const SizedBox(width: 8),
+                _buildFilterChip(
+                  'Có ảnh / video ()',
+                  'media',
+                ),
+                const SizedBox(width: 8),
+                _buildFilterChip(
+                  '5 sao ()',
+                  '5star',
+                ),
+                const SizedBox(width: 8),
+                _buildFilterChip(
+                  '4 sao ()',
+                  '4star',
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 14),
+
+          // Real reviews list
+          if (filteredReviews.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(24),
+              alignment: Alignment.center,
+              child: const Text(
+                'Không có đánh giá nào phù hợp với bộ lọc.',
+                style: TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: filteredReviews.length,
+              separatorBuilder: (_, __) => const Divider(height: 24),
+              itemBuilder: (ctx, idx) {
+                final r = filteredReviews[idx];
+                final author = r['author'] as String;
+                final stars = r['stars'] as int;
+                final date = r['date'] as String;
+                final comment = r['comment'] as String;
+                final variant = r['variant'] as String;
+                final mediaList = (r['media'] as List).cast<String>();
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 16,
+                          backgroundColor: const Color(0xFF2C1810),
+                          child: Text(
+                            author.isNotEmpty ? author[0].toUpperCase() : 'U',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      author,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF161B28),
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE8F5E9),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.check_circle,
+                                          size: 10,
+                                          color: Color(0xFF2E7D32),
+                                        ),
+                                        SizedBox(width: 2),
+                                        Text(
+                                          'Đã mua hàng',
+                                          style: TextStyle(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF2E7D32),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  Row(
+                                    children: List.generate(
+                                      stars,
+                                      (_) => const Icon(
+                                        Icons.star,
+                                        size: 13,
+                                        color: Colors.amber,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    date,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 6),
                     Text(
-                      comment,
+                      'Phân loại: ',
                       style: const TextStyle(
-                        fontSize: 13,
-                        height: 1.45,
-                        color: Color(0xFF333333),
+                        fontSize: 11,
+                        color: Color(0xFF805528),
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                  ],
-                  if (mediaList.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      height: 70,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: mediaList.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 8),
-                        itemBuilder: (_, mIdx) =>
-                            _buildMediaThumbnail(mediaList[mIdx], author),
+                    if (comment.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        comment,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          height: 1.45,
+                          color: Color(0xFF333333),
+                        ),
                       ),
-                    ),
+                    ],
+                    if (mediaList.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: 70,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: mediaList.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(width: 8),
+                          itemBuilder: (_, mIdx) =>
+                              _buildMediaThumbnail(mediaList[mIdx], author),
+                        ),
+                      ),
+                    ],
                   ],
-                ],
-              );
-            },
-          ),
+                );
+              },
+            ),
+        ],
       ],
     );
   }
