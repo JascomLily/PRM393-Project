@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/order_provider.dart';
@@ -9,6 +10,7 @@ import '../../models/order_model.dart';
 import '../../models/address_model.dart';
 import '../../theme/app_theme.dart';
 import '../../services/location_service.dart';
+import '../../widgets/delivery_map_view.dart';
 import '../main_navigation_screen.dart';
 import 'vnpay_gateway_screen.dart';
 import 'order_success_screen.dart';
@@ -40,10 +42,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _isGettingLocation = false;
   String? _gpsCoordinates;
   String? _selectedAddressId;
+  double? _userLatitude;
+  double? _userLongitude;
+  double _distanceKm = 8.5;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final cart = Provider.of<CartProvider>(context, listen: false);
+      cart.setDeliveryDistance(_distanceKm);
+    });
     final user = Provider.of<AuthProvider>(context, listen: false).currentUser;
     if (user != null) {
       _nameController.text = user.name;
@@ -84,16 +93,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         final latStr = addressResult.latitude.toStringAsFixed(4);
         final lngStr = addressResult.longitude.toStringAsFixed(4);
 
+        final meters = Geolocator.distanceBetween(
+          DeliveryMapView.hqLat,
+          DeliveryMapView.hqLng,
+          addressResult.latitude,
+          addressResult.longitude,
+        );
+        final calculatedKm = meters / 1000.0;
+
         setState(() {
           _gpsCoordinates = '$latStr, $lngStr';
           _addressController.text = addressResult.formattedAddress;
+          _userLatitude = addressResult.latitude;
+          _userLongitude = addressResult.longitude;
+          _distanceKm = calculatedKm;
           _isGettingLocation = false;
         });
 
+        final cart = Provider.of<CartProvider>(context, listen: false);
+        cart.setDeliveryDistance(calculatedKm);
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             backgroundColor: AppTheme.primary,
-            content: Text('Đã xác định địa chỉ chính xác từ vị trí GPS của bạn!'),
+            content: Text('Xac dinh vi tri GPS thanh cong! Quang duong: ${calculatedKm.toStringAsFixed(1)} km.'),
           ),
         );
       } else {
@@ -325,16 +348,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ],
     );
 
-    // =========================================================================
-    // [NOTE - CAU HINH QUY DOI XU (FURNICOINS)]:
-    // Quy uoc hien tai: 1 Xu = 1.000 VND.
-    // - Ty le thuong khi mua hang: Moi 50.000d gia tri don hang duoc cong 1 Xu.
-    // - Toi thieu: 10 Xu (= 10.000d giam cho don sau).
-    // - Toi da (Tran thuong): 50 Xu (= 50.000d giam cho don sau) de tranh bi tru qua nhieu tien.
-    // * HUONG DAN CHINH SUA:
-    //   - Muon doi tran thuong: Sua so 50 trong .clamp(10, 50).
-    //   - Muon doi ty le: Sua so 50000 trong (finalTotal / 50000).
-    // =========================================================================
+    // Tich luy FurniCoins (1 Xu / 50k, toi thieu 10 Xu, toi da 50 Xu)
     final earnedCoins = (finalTotal / 50000).clamp(10, 50).round();
 
     orderProvider.addOrder(newOrder, userId: auth.currentUser?.id);
@@ -861,7 +875,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ],
               ),
             ],
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
+
+            // OpenStreetMap Interactive Route & Distance View
+            DeliveryMapView(
+              destinationLat: _userLatitude,
+              destinationLng: _userLongitude,
+              destinationAddress: _addressController.text,
+              distanceKm: _distanceKm,
+              shippingFee: shippingFee,
+              onRefreshLocation: _useCurrentLocation,
+            ),
+            const SizedBox(height: 14),
 
             TextField(
               controller: _noteController,

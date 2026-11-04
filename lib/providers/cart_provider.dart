@@ -11,6 +11,7 @@ class CartProvider extends ChangeNotifier {
 
   VoucherModel? _appliedVoucher;
   bool _useFurniCoins = false;
+  double? _deliveryDistanceKm;
   final List<VoucherModel> _vouchers = getMockVouchers();
 
   CartProvider() {
@@ -56,6 +57,7 @@ class CartProvider extends ChangeNotifier {
   List<CartItemModel> get items => List.unmodifiable(_items);
   VoucherModel? get appliedVoucher => _appliedVoucher;
   bool get useFurniCoins => _useFurniCoins;
+  double? get deliveryDistanceKm => _deliveryDistanceKm;
   List<VoucherModel> get vouchers => List.unmodifiable(_vouchers);
 
   int get itemCount => _items.fold(0, (sum, item) => sum + item.quantity);
@@ -67,20 +69,21 @@ class CartProvider extends ChangeNotifier {
     return _appliedVoucher!.calculateDiscount(subtotal);
   }
 
+  // Tinh phi giao hang theo khoang cach tu Tru so Furni3D Landmark 81 (<= 20km: 20k; > 20km: +5k/km)
   int getShippingFee() {
     if (_items.isEmpty) return 0;
-    return subtotal > 2000000 ? 0 : 45000;
+    if (_deliveryDistanceKm == null) return 20000;
+    if (_deliveryDistanceKm! <= 20.0) return 20000;
+    final extraKm = (_deliveryDistanceKm! - 20.0).ceil();
+    return 20000 + extraKm * 5000;
   }
 
-  // =========================================================================
-  // [NOTE - CAU HINH QUY DOI XU KHI THANH TOAN (TIEU XU)]:
-  // Quy uoc hien tai: 1 Xu = 1.000 VND.
-  // - Khi khach chon "Dung FurniCoins", so tien duoc giam = so xu * 1.000d.
-  // * HUONG DAN CHINH SUA MAI KHI CAN:
-  //   - Neu muon doi sang 1 Xu = 1 VND (chuan Shopee Xu):
-  //     Sua `~/ 1000` thanh `~/ 1` va `coinsToUse * 1000` thanh `coinsToUse * 1`.
-  //   - Neu muon doi sang 1 Xu = X dong: Sua so 1000 thanh X.
-  // =========================================================================
+  void setDeliveryDistance(double distanceKm) {
+    _deliveryDistanceKm = distanceKm;
+    notifyListeners();
+  }
+
+  // Quy doi FurniCoins: 1 Xu = 1.000 VND
   int getCoinsDiscount(int userCoins) {
     if (!_useFurniCoins || userCoins <= 0) return 0;
     final maxAllowed = (subtotal - voucherDiscount) ~/ 1000;
@@ -150,6 +153,7 @@ class CartProvider extends ChangeNotifier {
     _items.clear();
     _appliedVoucher = null;
     _useFurniCoins = false;
+    _deliveryDistanceKm = null;
     _saveToStorage();
     notifyListeners();
   }

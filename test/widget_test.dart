@@ -7,6 +7,7 @@ import 'package:furni3d_mobile/providers/order_provider.dart';
 import 'package:furni3d_mobile/screens/parts/parts_screen.dart';
 import 'package:furni3d_mobile/services/vnpay_service.dart';
 import 'package:furni3d_mobile/services/location_service.dart';
+import 'package:furni3d_mobile/services/ai_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:furni3d_mobile/providers/auth_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -224,21 +225,29 @@ void main() {
     );
 
     expect(cart.subtotal, 2450000);
-    expect(cart.getShippingFee(), 0);
+
+    // Test distance-based shipping fee (<= 20km: 20k; > 20km: 20k + 5k/km)
+    cart.setDeliveryDistance(12.5);
+    expect(cart.getShippingFee(), 20000);
+
+    cart.setDeliveryDistance(25.0);
+    expect(cart.getShippingFee(), 45000); // 20.000 + 5 * 5.000
+
+    cart.setDeliveryDistance(10.0);
 
     // Apply percentage voucher
     final applied = cart.applyVoucherByCode('JAPANDI2025');
     expect(applied, true);
     expect(cart.voucherDiscount, 245000);
 
-    // Final total calculation
+    // Final total calculation: 2.450.000 - 245.000 + 20.000 = 2.225.000
     final finalTotal = cart.getFinalTotal(0);
-    expect(finalTotal, 2205000);
+    expect(finalTotal, 2225000);
 
     // Remove voucher
     cart.removeVoucher();
     expect(cart.voucherDiscount, 0);
-    expect(cart.getFinalTotal(0), 2450000);
+    expect(cart.getFinalTotal(0), 2470000);
   });
 
   test('AddressModel serialization and default status test', () {
@@ -286,6 +295,15 @@ void main() {
     expect(calc(2450000), 49);
     expect(calc(4700000), 50);
     expect(calc(10000000), 50);
+  });
+
+  test('AiService fallback knowledge engine provides recommendations and missing part diagnostic', () async {
+    final decorReply = await AiService.sendMessage('Gợi ý cho tôi nội thất phòng khách');
+    expect(decorReply.text.contains('Poäng Scandi Chair'), true);
+
+    final missingReply = await AiService.sendMessage('Tôi bị thiếu ốc vít lắp bàn sồi');
+    expect(missingReply.suggestedAction, 'REPORT_MISSING');
+    expect(missingReply.suggestedProductOrPart, 'Nordic Oak Desk');
   });
 
   testWidgets('PartsScreen renders without overflow on narrow screens with high text scaling', (tester) async {

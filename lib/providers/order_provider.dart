@@ -189,11 +189,14 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void submitReview(String orderId, int stars, String comment) {
+  void submitReview(String orderId, int stars, String comment, {List<String>? media}) {
     final index = _orders.indexWhere((o) => o.id == orderId);
     if (index >= 0) {
       _orders[index].reviewStars = stars;
       _orders[index].reviewComment = comment;
+      if (media != null && media.isNotEmpty) {
+        _orders[index].reviewMedia = List.from(media);
+      }
       notifyListeners();
     }
   }

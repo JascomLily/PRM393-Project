@@ -85,6 +85,7 @@ class OrderModel {
   final List<TimelineStepModel> timeline;
   int? reviewStars;
   String? reviewComment;
+  List<String>? reviewMedia;
 
   OrderModel({
     required this.id,
@@ -105,5 +106,6 @@ class OrderModel {
     required this.timeline,
     this.reviewStars,
     this.reviewComment,
+    this.reviewMedia,
   });
 }

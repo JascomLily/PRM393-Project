@@ -9,6 +9,7 @@ import '../../providers/auth_provider.dart';
 import '../model3d/model3d_screen.dart';
 import '../checkout/checkout_screen.dart';
 import '../auth/login_screen.dart';
+import '../parts/report_missing_dialog.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final ProductModel product;
@@ -262,6 +263,70 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         _specRow(Icons.architecture_outlined, 'Kết cấu mộng:', 'Mộng âm dương liên kết chốt cam'),
                         const SizedBox(height: 10),
                         _specRow(Icons.qr_code_2, 'Tem thùng hàng:', 'Tích hợp mã QR dẫn thẳng hướng dẫn 3D'),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Missing parts quick report banner
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFBF4ED),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFE2C9B0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.build_circle_outlined, size: 20, color: AppTheme.woodDark),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Thùng hàng bị thiếu linh kiện / phụ kiện?',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.woodDark,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Furni3D cam kết gửi bù 100% linh kiện thiếu, ốc vít, mộng âm dương miễn phí trong 48h.',
+                          style: TextStyle(fontSize: 11, color: Color(0xFF6B4E31)),
+                        ),
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.woodDark,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                            ),
+                            icon: const Icon(Icons.add_task, size: 16),
+                            label: const Text(
+                              'Báo thiếu linh kiện sản phẩm này',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                            ),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => ReportMissingDialog(
+                                  initialProduct: widget.product.name,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
                       ],
                     ),
                   ),

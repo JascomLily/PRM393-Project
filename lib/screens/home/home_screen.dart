@@ -9,6 +9,7 @@ import '../../widgets/voice_search_dialog.dart';
 import '../../widgets/product_image_view.dart';
 import '../explore/product_detail_screen.dart';
 import '../explore/explore_screen.dart';
+import '../ai/furniai_assistant_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -173,6 +174,38 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: const Icon(
                           Icons.mic,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // FurniAI Trigger Button
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const FurniAiAssistantScreen(),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2C1810),
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.15),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.smart_toy_outlined,
                           color: Colors.white,
                           size: 20,
                         ),
@@ -741,6 +774,21 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: const Color(0xFF2C1810),
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.smart_toy_outlined, size: 20),
+        label: const Text(
+          'FurniAI Tư vấn',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+        ),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const FurniAiAssistantScreen()),
+          );
+        },
       ),
     );
   }
