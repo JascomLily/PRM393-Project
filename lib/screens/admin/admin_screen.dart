@@ -28,16 +28,27 @@ class _AdminScreenState extends State<AdminScreen>
   late TabController _tabController;
   final _picker = ImagePicker();
 
-  // 8 Official Unity 3D Models available in the project
+  // 19 Official Unity 3D Models in project
   static const List<Map<String, String>> official3DModels = [
-    {'code': 'CHAIR-01', 'name': 'Poäng Scandi Chair (Ghế uốn nhiệt)'},
-    {'code': 'CHAIR-18', 'name': 'Eames Lounge Chair (Ghế bọc da)'},
-    {'code': 'CHAIR-34', 'name': 'Strandmon Wing Chair (Ghế tựa lưng cao)'},
-    {'code': 'CLOSET-01', 'name': 'Pax Wardrobe Closet (Tủ quần áo 2 cánh)'},
-    {'code': 'DRAWER-30', 'name': 'Koppang Dresser Drawer (Tủ ngăn kéo 3 tầng)'},
-    {'code': 'TABLE-08', 'name': 'Nordic Oak Desk (Bàn làm việc sồi)'},
-    {'code': 'TABLE-09', 'name': 'Hemnes Wood Table (Tủ đầu giường)'},
-    {'code': 'TABLE-26', 'name': 'Noguchi Coffee Table (Bàn trà dáng lá)'},
+    {'code': 'Chair01', 'name': 'Poäng Scandi Chair (Ghế bập bênh uốn nhiệt)'},
+    {'code': 'Chair18', 'name': 'Strandmon Lounge Armchair (Ghế bành tựa cao)'},
+    {'code': 'Chair34', 'name': 'Frosta Nordic Stool (Ghế đẩu tròn xếp chồng)'},
+    {'code': 'Closet01', 'name': 'Hemnes Wardrobe (Tủ quần áo 2 cánh gỗ sồi)'},
+    {'code': 'Closet23', 'name': 'Pax Modern Closet 23 (Tủ quần áo âm tường đa ngăn)'},
+    {'code': 'Drawer30', 'name': 'Malm Dresser 30 (Tủ ngăn kéo 3 tầng tối giản)'},
+    {'code': 'Drawer31', 'name': 'Koppang Walnut Drawer 31 (Tủ ngăn kéo gỗ óc chó)'},
+    {'code': 'Drawer50', 'name': 'Nordli Wide Dresser 50 (Tủ kệ ngăn kéo lớn)'},
+    {'code': 'Bed26', 'name': 'Malm Bed Frame 26 (Giường ngủ gỗ tự nhiên 1m6)'},
+    {'code': 'Bed35', 'name': 'Hemnes King Bed Frame 35 (Giường ngủ Master King 1m8)'},
+    {'code': 'Sofa36', 'name': 'Kivik Scandi Fabric Sofa 36 (Sofa nỉ 2 chỗ Scandinavia)'},
+    {'code': 'Sofa49', 'name': 'Landskrona Leather Sectional 49 (Sofa da góc chữ L)'},
+    {'code': 'Table08', 'name': 'Nordic Oak Desk 08 (Bàn làm việc sồi Bắc Âu)'},
+    {'code': 'Table09', 'name': 'Ingatorp Dining Table 09 (Bàn ăn mở rộng gia đình)'},
+    {'code': 'Table26', 'name': 'Lövbacken Coffee Table 26 (Bàn trà sofa dáng lá)'},
+    {'code': 'Table33', 'name': 'Lisabo Dining Table 33 (Bàn ăn chân chéo 4-6 ghế)'},
+    {'code': 'Table43', 'name': 'Gladom Bistro Table 43 (Bàn cafe tròn chân sắt)'},
+    {'code': 'Table48', 'name': 'Marble Luxury Coffee Table 48 (Bàn trà mặt đá cẩm thạch)'},
+    {'code': 'BathroomVanity04', 'name': 'Godmorgon Vanity Drawer 04 (Tủ lavabo ngăn kéo)'},
   ];
 
   @override
@@ -72,7 +83,15 @@ class _AdminScreenState extends State<AdminScreen>
     final imageCtrl = TextEditingController(text: productToEdit?.image ?? '');
 
     String selectedCategory = productToEdit?.category ?? 'desk';
-    String selectedModelCode = productToEdit?.modelCode ?? 'TABLE-08';
+    final initialModelCode = productToEdit?.modelCode ?? 'Table08';
+    final matchedModel = official3DModels.firstWhere(
+      (m) =>
+          m['code']!.toLowerCase() == initialModelCode.toLowerCase() ||
+          m['code']!.replaceAll('-', '').toLowerCase() ==
+              initialModelCode.replaceAll('-', '').toLowerCase(),
+      orElse: () => official3DModels.first,
+    );
+    String selectedModelCode = matchedModel['code']!;
     String? localImagePreview;
     Uint8List? pickedImageBytes;
     String? pickedFileName;
@@ -252,6 +271,8 @@ class _AdminScreenState extends State<AdminScreen>
                         DropdownMenuItem(value: 'chair', child: Text('Ghế thư giãn (Chair)', overflow: TextOverflow.ellipsis)),
                         DropdownMenuItem(value: 'shelf', child: Text('Kệ & Tủ quần áo (Closet/Shelf)', overflow: TextOverflow.ellipsis)),
                         DropdownMenuItem(value: 'lamp', child: Text('Tủ ngăn kéo (Drawer)', overflow: TextOverflow.ellipsis)),
+                        DropdownMenuItem(value: 'sofa', child: Text('Sofa phòng khách (Sofa)', overflow: TextOverflow.ellipsis)),
+                        DropdownMenuItem(value: 'bed', child: Text('Giường ngủ (Bed)', overflow: TextOverflow.ellipsis)),
                         DropdownMenuItem(value: 'parts', child: Text('Linh kiện phụ kiện (Parts)', overflow: TextOverflow.ellipsis)),
                       ],
                       onChanged: (val) {

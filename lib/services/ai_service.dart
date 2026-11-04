@@ -46,21 +46,33 @@ class AiService {
 
       final systemPrompt = '''
 Ban la FurniAI - Chuyen gia tu van noi that thong minh va ho tro ky thuat cua he thong Furni3D (Sofa So Good).
-Cac san pham 3D Furni3D:
-1. Poang Scandi Chair (Ghe uon nhiet Scandinavia, model CHAIR-01)
-2. Eames Lounge Chair (Ghe boc da cong thai hoc, model CHAIR-18)
-3. Strandmon Wing Chair (Ghe tua lung cao co dien, model CHAIR-34)
-4. Pax Wardrobe Closet (Tu quan ao 2 canh, model CLOSET-01)
-5. Koppang Dresser Drawer (Tu ngan keo 3 tang go soi, model DRAWER-30)
-6. Nordic Oak Desk (Ban lam viec go soi nhap khau, model TABLE-08)
-7. Hemnes Wood Table (Tu dau giuong ngan keo, model TABLE-09)
-8. Noguchi Coffee Table (Ban tra dang la mat kinh, model TABLE-26)
+Cac san pham 3D Furni3D co the xem tuong tac 3D truc tiep trong ung dung (19 model Unity):
+1. Poang Scandi Chair (Ghe uon nhiet Scandinavia, model Chair01)
+2. Strandmon Lounge Armchair (Ghe banh tua cao, model Chair18)
+3. Frosta Nordic Stool (Ghe dau tron xep chong, model Chair34)
+4. Hemnes 2-Door Wardrobe (Tu quan ao 2 canh go soi, model Closet01)
+5. Pax Modern Closet 23 (Tu quan ao am tuong da ngan, model Closet23)
+6. Malm 3-Drawer Chest 30 (Tu ngan keo 3 tang toi gian, model Drawer30)
+7. Koppang Walnut Drawer 31 (Tu ngan keo go oc cho, model Drawer31)
+8. Nordli Wide Dresser 50 (Tu ke ngan keo rong 6 ngan, model Drawer50)
+9. Malm Bed Frame 26 (Giuong ngu go tu nhien 1m6 phong cach Nhat, model Bed26)
+10. Hemnes King Bed Frame 35 (Giuong ngu Master King 1m8, model Bed35)
+11. Kivik Scandi Fabric Sofa 36 (Sofa ni 2 cho Scandinavia cao cap, model Sofa36)
+12. Landskrona Leather Sectional 49 (Sofa da goc chu L sang trong, model Sofa49)
+13. Nordic Oak Desk 08 (Ban lam viec soi Bac Au, model Table08)
+14. Ingatorp Dining Table 09 (Ban an mo rong gia dinh, model Table09)
+15. Lovbacken Coffee Table 26 (Ban tra sofa dang la, model Table26)
+16. Lisabo Dining Table 33 (Ban an chan cheo 4-6 ghe, model Table33)
+17. Gladom Bistro Table 43 (Ban cafe tron chan sat, model Table43)
+18. Marble Luxury Coffee Table 48 (Ban tra mat da cam thach, model Table48)
+19. Godmorgon Vanity Drawer 04 (Tu lavabo phong tam ngan keo, model BathroomVanity04)
 
 Cac phu kien linh kien thay the san co:
 - Oc cam lien ket 15mm & chot go phi 8
 - Ban le giam chan canh tu inox 304
-- Mieng dem cao su boc chan ban/ghe chong tray
+- Mieng dem cao su boc chan ban/ghe/giuong chong tray
 - Tay nam dong thau chai xuoc Nordic
+- Ray truot bi giam chan ngan keo
 
 Hay tra loi ngan gon, than thien, chu dao bang tieng Viet. Neu khach bao thieu linh kien lap rap, hay xac dinh ten linh kien va khuyen khach tao phieu cap bu mien phi.
 ''';
@@ -146,19 +158,35 @@ Bạn có thể ấn nút "Tạo phiếu cấp bù ngay" bên dưới để hệ
     }
 
     // Kiem tra chu de: Goi y phoi san pham (Cross-sell / Decor)
-    if (lower.contains('phòng khách') || lower.contains('sofa') || lower.contains('ghế') || lower.contains('bàn trà')) {
+    if (lower.contains('phòng ngủ') || lower.contains('giường') || lower.contains('tủ áo') || lower.contains('bed')) {
       return AiChatMessage(
         text: '''
-Gợi ý phối không gian Phòng khách phong cách Bắc Âu (Scandinavian):
-1. Ghế bành chủ đạo: Poäng Scandi Chair (Ghế gỗ uốn nhiệt công thái học)
-2. Bàn trà trung tâm: Noguchi Coffee Table (Mặt kính cường lực dáng lá)
-3. Tủ lưu trữ: Koppang Dresser Drawer (Tủ 3 tầng gỗ sồi vân tự nhiên)
+Gợi ý bộ combo Phòng ngủ Master thư thái & sang trọng:
+1. Giường ngủ chính: Hemnes King Bed Frame 35 (Cỡ lớn 1m8 Master, gỗ thông tự nhiên)
+2. Tủ quần áo: Pax Modern Closet 23 (Tủ âm tường đa ngăn có đèn LED)
+3. Tủ ngăn kéo đầu giường: Koppang Walnut Drawer 31 (Gỗ óc chó sang trọng)
 
-Sự kết hợp này mang lại ánh sáng ấm cúng, tối ưu diện tích và đồng bộ 100% mã màu gỗ sồi tự nhiên!''',
+Cả 3 mẫu đều có mô hình 3D Unity để bạn trực tiếp xoay 360 độ và xem từng bước lắp mộng âm dương!''',
         isUser: false,
         timestamp: DateTime.now(),
         suggestedAction: 'VIEW_PRODUCT',
-        suggestedProductOrPart: 'Poäng Scandi Chair',
+        suggestedProductOrPart: 'Hemnes King Bed Frame 35',
+      );
+    }
+
+    if (lower.contains('phòng khách') || lower.contains('sofa') || lower.contains('ghế') || lower.contains('bàn trà')) {
+      return AiChatMessage(
+        text: '''
+Gợi ý phối không gian Phòng khách Scandinavian hiện đại:
+1. Sofa tâm điểm: Kivik Scandi Fabric Sofa 36 (Sofa nỉ 2 chỗ êm ái) hoặc Landskrona Sofa 49 (Da góc L)
+2. Bàn trà trung tâm: Marble Luxury Coffee Table 48 (Mặt đá Marble cẩm thạch)
+3. Ghế thư giãn bổ trợ: Poäng Scandi Chair 01 (Bập bênh uốn nhiệt công thái học)
+
+Sự kết hợp này mang lại ánh sáng ấm cúng, tối ưu diện tích và đồng bộ phong cách Bắc Âu!''',
+        isUser: false,
+        timestamp: DateTime.now(),
+        suggestedAction: 'VIEW_PRODUCT',
+        suggestedProductOrPart: 'Kivik Scandi Fabric Sofa 36',
       );
     }
 

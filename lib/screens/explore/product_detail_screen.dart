@@ -73,32 +73,32 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
 
                 // 3D Unity Action Button (Pill on Hero)
-                // Positioned(
-                //   bottom: 16,
-                //   right: 16,
-                //   child: ElevatedButton.icon(
-                //     style: ElevatedButton.styleFrom(
-                //       backgroundColor: AppTheme.primary,
-                //       foregroundColor: Colors.white,
-                //       elevation: 4,
-                //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                //       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                //     ),
-                //     icon: const Icon(Icons.view_in_ar, size: 18),
-                //     label: const Text(
-                //       'Xem mô hình 3D Unity',
-                //       style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                //     ),
-                //     onPressed: () {
-                //       Navigator.push(
-                //         context,
-                //         MaterialPageRoute(
-                //           builder: (_) => Model3DScreen(initialProduct: widget.product),
-                //         ),
-                //       );
-                //     },
-                //   ),
-                // ),
+                Positioned(
+                  bottom: 16,
+                  right: 16,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primary,
+                      foregroundColor: Colors.white,
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    ),
+                    icon: const Icon(Icons.view_in_ar, size: 18),
+                    label: const Text(
+                      'Xem mô hình 3D Unity',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => Model3DScreen(initialProduct: widget.product),
+                        ),
+                      );
+                    },
+                  ),
+                ),
 
                 // Model code chip
                 Positioned(

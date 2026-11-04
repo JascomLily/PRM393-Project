@@ -17,6 +17,56 @@ class Model3DScreen extends StatefulWidget {
 class _Model3DScreenState extends State<Model3DScreen> {
   late final ProductModel _product;
 
+  static const List<String> _officialUnityIds = [
+    'Chair01',
+    'Chair18',
+    'Chair34',
+    'Closet01',
+    'Closet23',
+    'Drawer30',
+    'Drawer31',
+    'Drawer50',
+    'Bed26',
+    'Bed35',
+    'Sofa36',
+    'Sofa49',
+    'Table08',
+    'Table09',
+    'Table26',
+    'Table33',
+    'Table43',
+    'Table48',
+    'BathroomVanity04',
+  ];
+
+  String _resolveUnityModelId(ProductModel product) {
+    final rawCandidates = [
+      product.id,
+      product.modelCode,
+      product.id.replaceAll(RegExp(r'[^a-zA-Z0-9]'), ''),
+      product.modelCode.replaceAll(RegExp(r'[^a-zA-Z0-9]'), ''),
+    ];
+
+    for (final candidate in rawCandidates) {
+      for (final unityId in _officialUnityIds) {
+        if (candidate.toLowerCase() == unityId.toLowerCase()) {
+          return unityId;
+        }
+      }
+    }
+
+    final name = product.name.toLowerCase();
+    if (name.contains('sofa')) return 'Sofa36';
+    if (name.contains('giường') || name.contains('bed')) return 'Bed26';
+    if (name.contains('lavabo') || name.contains('vanity')) return 'BathroomVanity04';
+    if (name.contains('tủ áo') || name.contains('wardrobe') || name.contains('closet')) return 'Closet01';
+    if (name.contains('ngăn kéo') || name.contains('drawer') || name.contains('chest')) return 'Drawer30';
+    if (name.contains('bàn') || name.contains('table') || name.contains('desk')) return 'Table08';
+    if (name.contains('ghế') || name.contains('chair') || name.contains('stool')) return 'Chair01';
+
+    return product.id;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -25,7 +75,8 @@ class _Model3DScreenState extends State<Model3DScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       resumeUnity();
-      sendToUnity('AssemblyManager', 'SetId', _product.id);
+      final unityId = _resolveUnityModelId(_product);
+      sendToUnity('AssemblyManager', 'SetId', unityId);
     });
   }
 
