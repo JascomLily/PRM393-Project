@@ -67,7 +67,7 @@ class InventoryService extends ChangeNotifier {
         return _colorStockMap[key]!;
       }
     }
-    return _stockMap[productId] ?? 10; // Default stock if not set
+    return _stockMap[productId] ?? 10; // Default stock if not registered
   }
 
   // Status check: quantity > 0 is "Còn hàng", == 0 is "Hết hàng"

@@ -62,8 +62,8 @@ class ProductModel {
   final String material;
   final int price;
   final int? originalPrice;
-  final double rating;
-  final int reviewCount;
+  double rating;
+  int reviewCount;
   final String image;
   final String? badge;
   final String category; // 'desk', 'chair', 'shelf', 'lamp', 'parts'

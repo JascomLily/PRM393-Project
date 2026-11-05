@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
+import '../../models/order_model.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/cart_provider.dart';
-import '../../providers/missing_report_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/order_provider.dart';
-import '../../models/missing_report_model.dart';
+import '../../services/inventory_service.dart';
 import '../../widgets/product_image_view.dart';
 import '../auth/login_screen.dart';
 import 'report_missing_dialog.dart';
@@ -20,113 +20,26 @@ class PartsScreen extends StatefulWidget {
 }
 
 class _PartsScreenState extends State<PartsScreen> {
+  String _activeTab = 'catalog'; // 'catalog' or 'orders'
   String _searchQuery = '';
+  String _orderStatusFilter = 'all'; // 'all', 'choDuyet', 'choGiao', 'dangGiao', 'completed'
 
-  void _showShippingTrackingDialog(
-    BuildContext context,
-    MissingReportModel report,
-    MissingReportProvider reportProv,
-  ) {
-    final trackingCode = 'VT${1000000 + DateTime.now().millisecondsSinceEpoch % 8999999}';
-    final ctrl = TextEditingController(text: 'Đã gửi bưu phẩm Viettel Post mã $trackingCode (Miễn phí 100%)');
 
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Cập nhật mã vận đơn bưu cục', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Gửi bù phụ kiện cho: ${report.partName}', style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-            const SizedBox(height: 12),
-            TextField(
-              controller: ctrl,
-              maxLines: 2,
-              decoration: const InputDecoration(
-                labelText: 'Mã vận đơn / Ghi chú phát hàng',
-                contentPadding: EdgeInsets.all(12),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Hủy')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, foregroundColor: Colors.white),
-            onPressed: () {
-              reportProv.updateReportStatus(
-                report.id,
-                'DELIVERING',
-                adminNote: ctrl.text.trim(),
-              );
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: AppTheme.primary,
-                  content: Text('Đã chuyển phiếu ${report.id} sang Đang chuyển phát nhanh!'),
-                ),
-              );
-            },
-            child: const Text('Xác nhận gửi'),
-          ),
-        ],
-      ),
-    );
-  }
 
-  void _showTicketDetails(
-    BuildContext context,
-    MissingReportModel report,
-    bool isAdmin,
-    MissingReportProvider reportProv,
-  ) {
-    Color statusBg;
-    Color statusColor;
-    String statusText;
-
-    switch (report.status) {
-      case 'APPROVED':
-        statusBg = AppTheme.successBg;
-        statusColor = AppTheme.success;
-        statusText = 'Đã duyệt gửi bù';
-        break;
-      case 'DELIVERING':
-        statusBg = AppTheme.infoBg;
-        statusColor = AppTheme.info;
-        statusText = 'Đang chuyển phát nhanh';
-        break;
-      case 'COMPLETED':
-        statusBg = AppTheme.successBg;
-        statusColor = AppTheme.success;
-        statusText = 'Đã nhận đủ phụ kiện';
-        break;
-      case 'REJECTED':
-        statusBg = AppTheme.errorBg;
-        statusColor = AppTheme.error;
-        statusText = 'Từ chối hỗ trợ';
-        break;
-      default:
-        statusBg = AppTheme.warningBg;
-        statusColor = AppTheme.warning;
-        statusText = 'Đang chờ xử lý';
-    }
-
+  void _showOrderTimelineDialog(BuildContext context, OrderModel order) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         titlePadding: const EdgeInsets.fromLTRB(20, 20, 16, 0),
-        contentPadding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+        contentPadding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
               child: Text(
-                'Chi tiết ${report.id}',
+                'Chi tiết đơn ${order.code}',
                 style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -142,173 +55,153 @@ class _PartsScreenState extends State<PartsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: ProductImageView(
-                  imageUrl: report.photoUrl,
-                  height: 180,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  placeholderIconSize: 36,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Đơn: ${report.orderCode}',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(8)),
-                    child: Text(
-                      statusText,
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: statusColor),
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(height: 20),
-              const Text('Sản phẩm & Linh kiện:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textMuted)),
-              const SizedBox(height: 3),
-              Text(
-                '${report.productName} • ${report.partName} (Số lượng: ${report.quantity})',
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-              ),
-              const SizedBox(height: 10),
-              const Text('Ghi chú tình trạng:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textMuted)),
-              const SizedBox(height: 3),
-              Text(
-                report.note.isNotEmpty ? report.note : 'Không có ghi chú thêm.',
-                style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-              ),
-              const SizedBox(height: 10),
-              const Text('Phản hồi CSKH / Vận đơn:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primary)),
-              const SizedBox(height: 3),
-              Text(
-                report.adminNote ?? 'Chưa có thông tin cập nhật từ bưu điện.',
-                style: const TextStyle(fontSize: 12, color: AppTheme.primary, fontStyle: FontStyle.italic),
-              ),
-              const SizedBox(height: 6),
-              Text('Thời gian gửi: ${report.createdAt}', style: const TextStyle(fontSize: 10, color: AppTheme.textMuted)),
-              const SizedBox(height: 16),
-              if (!isAdmin && report.status == 'DELIVERING') ...[
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.success,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    icon: const Icon(Icons.check_circle_outline, size: 18),
-                    label: const Text('Xác nhận đã nhận đủ phụ kiện', style: TextStyle(fontWeight: FontWeight.bold)),
-                    onPressed: () {
-                      reportProv.updateReportStatus(
-                        report.id,
-                        'COMPLETED',
-                        adminNote: 'Khách hàng đã xác nhận nhận đủ linh kiện thành công.',
-                      );
-                      Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          backgroundColor: AppTheme.primary,
-                          content: Text('Đã cập nhật: ${report.id} hoàn tất!'),
-                        ),
-                      );
-                    },
+              // Order Type & Status Banner
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: order.isReplacementOrder ? Colors.purple.shade50 : const Color(0xFFF9F6F0),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: order.isReplacementOrder ? Colors.purple.shade200 : const Color(0xFFE8DFD5),
                   ),
                 ),
-              ],
-              if (isAdmin) ...[
-                const Divider(height: 24),
-                const Text('Thao tác Quản trị viên (Admin):', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                child: Row(
                   children: [
-                    if (report.status == 'PENDING') ...[
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(backgroundColor: AppTheme.success, foregroundColor: Colors.white),
-                        icon: const Icon(Icons.check, size: 14),
-                        label: const Text('Duyệt gửi bù', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                        onPressed: () {
-                          reportProv.updateReportStatus(
-                            report.id,
-                            'APPROVED',
-                            adminNote: 'Đã duyệt gửi bù linh kiện chính hãng từ kho.',
-                          );
-                          Navigator.pop(ctx);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(backgroundColor: AppTheme.primary, content: Text('Đã duyệt phiếu ${report.id}!')),
-                          );
-                        },
+                    Icon(
+                      order.isReplacementOrder ? Icons.build_circle_outlined : Icons.shopping_bag_outlined,
+                      color: order.isReplacementOrder ? Colors.purple.shade700 : AppTheme.woodDark,
+                      size: 22,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            order.isReplacementOrder ? 'Đơn gửi linh kiện bảo hành (0đ)' : 'Đơn đặt mua linh kiện',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: order.isReplacementOrder ? Colors.purple.shade800 : AppTheme.woodDark,
+                            ),
+                          ),
+                          if (order.isReplacementOrder && order.linkedReturnRequestId != null)
+                            Text(
+                              'Theo yêu cầu khiếu nại: ${order.linkedReturnRequestId}',
+                              style: const TextStyle(fontSize: 10, color: Colors.blueGrey),
+                            ),
+                        ],
                       ),
-                      OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(foregroundColor: AppTheme.error, side: const BorderSide(color: AppTheme.error)),
-                        icon: const Icon(Icons.close, size: 14),
-                        label: const Text('Từ chối', style: TextStyle(fontSize: 11)),
-                        onPressed: () {
-                          reportProv.updateReportStatus(
-                            report.id,
-                            'REJECTED',
-                            adminNote: 'Từ chối: Yêu cầu không thuộc điều kiện hỗ trợ bảo hành linh kiện.',
-                          );
-                          Navigator.pop(ctx);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(backgroundColor: AppTheme.error, content: Text('Đã từ chối phiếu ${report.id}.')),
-                          );
-                        },
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _getStatusBg(order.orderStatus),
+                        borderRadius: BorderRadius.circular(6),
                       ),
-                    ],
-                    if (report.status == 'APPROVED') ...[
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(backgroundColor: AppTheme.info, foregroundColor: Colors.white),
-                        icon: const Icon(Icons.local_shipping_outlined, size: 14),
-                        label: const Text('Gửi bưu điện (Viettel Post)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                        onPressed: () {
-                          Navigator.pop(ctx);
-                          _showShippingTrackingDialog(context, report, reportProv);
-                        },
+                      child: Text(
+                        order.orderStatus.label,
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _getStatusColor(order.orderStatus)),
                       ),
-                    ],
-                    if (report.status == 'DELIVERING') ...[
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(backgroundColor: AppTheme.success, foregroundColor: Colors.white),
-                        icon: const Icon(Icons.done_all, size: 14),
-                        label: const Text('Đánh dấu đã hoàn thành', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                        onPressed: () {
-                          reportProv.updateReportStatus(
-                            report.id,
-                            'COMPLETED',
-                            adminNote: 'Admin đã xác nhận bưu cục phát thành công.',
-                          );
-                          Navigator.pop(ctx);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(backgroundColor: AppTheme.primary, content: Text('Phiếu ${report.id} đã hoàn thành!')),
-                          );
-                        },
-                      ),
-                    ],
-                    TextButton.icon(
-                      style: TextButton.styleFrom(foregroundColor: AppTheme.error),
-                      icon: const Icon(Icons.delete_outline, size: 14),
-                      label: const Text('Xóa phiếu', style: TextStyle(fontSize: 11)),
-                      onPressed: () {
-                        reportProv.deleteReport(report.id);
-                        Navigator.pop(ctx);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(backgroundColor: AppTheme.primary, content: Text('Đã xóa phiếu ${report.id}.')),
-                        );
-                      },
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(height: 14),
+
+              // Items
+              const Text('Danh sách linh kiện:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textMuted)),
+              const SizedBox(height: 6),
+              ...order.items.map((it) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      children: [
+                        ProductImageView(
+                          imageUrl: it.image,
+                          width: 36,
+                          height: 36,
+                          fit: BoxFit.cover,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '${it.name} (x${it.quantity})',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        Text(
+                          order.isReplacementOrder ? 'Miễn phí' : NumberFormat.currency(locale: 'vi_VN', symbol: '₫').format(it.price * it.quantity),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: order.isReplacementOrder ? Colors.green.shade700 : AppTheme.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )),
+              const Divider(height: 20),
+
+              // Reject Reason if rejected
+              if (order.orderStatus == OrderStatus.daTuChoi && order.rejectReason != null) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Lý do từ chối từ Quản trị viên:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.red)),
+                      const SizedBox(height: 2),
+                      Text(order.rejectReason!, style: const TextStyle(fontSize: 11, color: Colors.red)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
               ],
+
+              // Timeline
+              const Text('Dòng thời gian trạng thái:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textMuted)),
+              const SizedBox(height: 8),
+              ...order.timeline.map((step) => Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          step.status == 'completed'
+                              ? Icons.check_circle
+                              : (step.status == 'current' ? Icons.radio_button_checked : Icons.radio_button_unchecked),
+                          size: 16,
+                          color: step.status == 'completed'
+                              ? Colors.green
+                              : (step.status == 'current' ? AppTheme.woodDark : Colors.grey),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(step.title, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                  Text(step.time, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text(step.description, style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  )),
             ],
           ),
         ),
@@ -316,35 +209,66 @@ class _PartsScreenState extends State<PartsScreen> {
     );
   }
 
+  Color _getStatusBg(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.giaoThanhCong:
+        return AppTheme.successBg;
+      case OrderStatus.dangGiao:
+        return AppTheme.infoBg;
+      case OrderStatus.daTuChoi:
+      case OrderStatus.daHuy:
+        return AppTheme.errorBg;
+      default:
+        return AppTheme.warningBg;
+    }
+  }
+
+  Color _getStatusColor(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.giaoThanhCong:
+        return AppTheme.success;
+      case OrderStatus.dangGiao:
+        return AppTheme.info;
+      case OrderStatus.daTuChoi:
+      case OrderStatus.daHuy:
+        return AppTheme.error;
+      default:
+        return AppTheme.warning;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
     final productProv = Provider.of<ProductProvider>(context);
-    final reportProv = Provider.of<MissingReportProvider>(context);
     final auth = Provider.of<AuthProvider>(context);
     final orderProv = Provider.of<OrderProvider>(context);
     final cart = Provider.of<CartProvider>(context, listen: false);
+    final inventory = InventoryService();
     final user = auth.currentUser;
+    final isAdmin = auth.isAdmin;
 
-    // Filter tickets so guests and uninvolved users see no tickets
-    final List<MissingReportModel> userReports;
+    // Filter parts-related orders for current user
+    final List<OrderModel> userPartsOrders;
     if (user == null) {
-      userReports = [];
-    } else if (user.isAdmin) {
-      userReports = reportProv.reports;
+      userPartsOrders = [];
     } else {
-      final userOrderCodes = orderProv.orders
-          .where((o) =>
-              (user.phone.isNotEmpty && o.receiverPhone == user.phone) ||
-              (user.name.isNotEmpty && o.receiverName == user.name))
-          .map((o) => o.code.replaceAll('#', '').trim().toUpperCase())
-          .toSet();
+      userPartsOrders = orderProv.orders.where((o) {
+        final isOwner = (user.phone.isNotEmpty && o.receiverPhone == user.phone) ||
+            (user.name.isNotEmpty && o.receiverName == user.name);
+        if (!isOwner) return false;
 
-      userReports = reportProv.reports.where((r) {
-        final code = r.orderCode.replaceAll('#', '').trim().toUpperCase();
-        return userOrderCodes.contains(code);
+        // Is either replacement order or has spare parts items
+        final isPartsOrder = o.isReplacementOrder ||
+            o.items.any((item) =>
+                item.productId.startsWith('part-') ||
+                (item.variant != null && item.variant!.toUpperCase().startsWith('PART-')) ||
+                productProv.spareParts.any((sp) => sp.id == item.productId || sp.code == item.variant));
+        return isPartsOrder;
       }).toList();
     }
+
+
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -353,489 +277,708 @@ class _PartsScreenState extends State<PartsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Report Missing Parts Hero Banner
+            // MỤC 4: Switcher Tabs: "Kho linh kiện" vs "Đơn linh kiện"
             Container(
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: AppTheme.surface,
-                borderRadius: BorderRadius.circular(20),
+                color: const Color(0xFFF1EBE4),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: AppTheme.border),
-                boxShadow: AppTheme.cardShadow,
               ),
               child: Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppTheme.woodLight,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppTheme.wood.withOpacity(0.2)),
-                    ),
-                    child: const Icon(Icons.support_agent, color: AppTheme.woodDark, size: 28),
-                  ),
-                  const SizedBox(width: 14),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Thiếu linh kiện khi nhận hàng?',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 13,
-                            color: AppTheme.textPrimary,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () => setState(() => _activeTab = 'catalog'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: _activeTab == 'catalog' ? const Color(0xFF2C1810) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Center(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Kho linh kiện',
+                              maxLines: 1,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: _activeTab == 'catalog' ? Colors.white : AppTheme.woodDark,
+                              ),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 3),
-                        const Text(
-                          'Gửi yêu cầu kèm ảnh, Furni3D cam kết gửi bù phụ kiện miễn phí trong 24h.',
-                          style: TextStyle(fontSize: 11, color: AppTheme.textSecondary, height: 1.3),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    onPressed: () {
-                      if (!auth.isLoggedIn || user == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Vui lòng đăng nhập để gửi yêu cầu hỗ trợ linh kiện.'),
-                            behavior: SnackBarBehavior.floating,
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () => setState(() => _activeTab = 'orders'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: _activeTab == 'orders' ? const Color(0xFF2C1810) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Center(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Đơn linh kiện',
+                                  maxLines: 1,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: _activeTab == 'orders' ? Colors.white : AppTheme.woodDark,
+                                  ),
+                                ),
+                                if (userPartsOrders.isNotEmpty) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: _activeTab == 'orders' ? Colors.amber : const Color(0xFF2C1810),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      '${userPartsOrders.length}',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: _activeTab == 'orders' ? const Color(0xFF2C1810) : Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
-                        );
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const LoginScreen()),
-                        );
-                        return;
-                      }
-                      showDialog(
-                        context: context,
-                        builder: (_) => const ReportMissingDialog(),
-                      );
-                    },
-                    child: const Text('Báo cáo', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
+            const SizedBox(height: 16),
 
-            const SizedBox(height: 20),
+            // TAB 1: CATALOG
+            if (_activeTab == 'catalog') ...[
+              // MỤC 3: Hide Missing Parts Hero Banner when Admin is logged in
+              if (!isAdmin) ...[
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppTheme.border),
+                    boxShadow: AppTheme.cardShadow,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.woodLight,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppTheme.wood.withOpacity(0.2)),
+                        ),
+                        child: const Icon(Icons.support_agent, color: AppTheme.woodDark, size: 28),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Thiếu linh kiện khi nhận hàng?',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13,
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            const Text(
+                              'Gửi yêu cầu kèm ảnh, Furni3D cam kết gửi bù phụ kiện miễn phí trong 24h.',
+                              style: TextStyle(fontSize: 11, color: AppTheme.textSecondary, height: 1.3),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: () {
+                          if (!auth.isLoggedIn || user == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Vui lòng đăng nhập để gửi yêu cầu hỗ trợ linh kiện.'),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const LoginScreen()),
+                            );
+                            return;
+                          }
+                          showDialog(
+                            context: context,
+                            builder: (_) => const ReportMissingDialog(),
+                          );
+                        },
+                        child: const Text('Báo cáo', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
 
-            // Active Missing Reports Status Tracker (Customer & Admin Ticket Management)
-            if (user != null && userReports.isNotEmpty) ...[
-              Row(
+              // Spare Parts Catalog Header
+              const Row(
                 children: [
-                  const Icon(Icons.mark_email_read_outlined, size: 16, color: AppTheme.primary),
-                  const SizedBox(width: 6),
+                  Icon(Icons.inventory_2_outlined, size: 16, color: AppTheme.primary),
+                  SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      user.isAdmin
-                          ? 'Quản lý phiếu hỗ trợ linh kiện (${userReports.length}):'
-                          : 'Phiếu hỗ trợ linh kiện của bạn (${userReports.length}):',
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                      'Kho phụ tùng & Linh kiện thay thế chính hãng:',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
 
-              ...userReports.map((report) {
-                Color statusBg;
-                Color statusColor;
-                String statusText;
+              TextField(
+                onChanged: (value) => setState(() => _searchQuery = value.trim().toLowerCase()),
+                decoration: InputDecoration(
+                  hintText: 'Tìm theo mã hoặc tên linh kiện',
+                  prefixIcon: const Icon(Icons.search, size: 20),
+                  filled: true,
+                  fillColor: AppTheme.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: AppTheme.border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: AppTheme.border),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
 
-                switch (report.status) {
-                  case 'APPROVED':
-                    statusBg = AppTheme.successBg;
-                    statusColor = AppTheme.success;
-                    statusText = 'Đã duyệt gửi bù';
-                    break;
-                  case 'DELIVERING':
-                    statusBg = AppTheme.infoBg;
-                    statusColor = AppTheme.info;
-                    statusText = 'Đang chuyển phát nhanh';
-                    break;
-                  case 'COMPLETED':
-                    statusBg = AppTheme.successBg;
-                    statusColor = AppTheme.success;
-                    statusText = 'Đã nhận đủ phụ kiện';
-                    break;
-                  case 'REJECTED':
-                    statusBg = AppTheme.errorBg;
-                    statusColor = AppTheme.error;
-                    statusText = 'Từ chối hỗ trợ';
-                    break;
-                  default:
-                    statusBg = AppTheme.warningBg;
-                    statusColor = AppTheme.warning;
-                    statusText = 'Đang chờ xử lý';
-                }
+              // MỤC 1: Live Stock reading from InventoryService & Real-time Update
+              ...productProv.spareParts.where((part) {
+                if (_searchQuery.isEmpty) return true;
+                return part.name.toLowerCase().contains(_searchQuery) ||
+                    part.code.toLowerCase().contains(_searchQuery);
+              }).map((part) {
+                final liveStock = inventory.getStock(part.id);
+                final isOutOfStock = liveStock <= 0;
 
-                return Material(
-                  color: Colors.transparent,
-                  child: InkWell(
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surface,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: AppTheme.border),
+                    boxShadow: AppTheme.cardShadow,
+                  ),
+                  child: Row(
+                    children: [
+                      ProductImageView(
+                        imageUrl: part.image,
+                        width: 64,
+                        height: 64,
+                        fit: BoxFit.cover,
+                        borderRadius: BorderRadius.circular(12),
+                        placeholderIconSize: 24,
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              part.name,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.textPrimary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              part.description,
+                              style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Tương thích: ${part.compatibleProduct}',
+                              style: const TextStyle(fontSize: 10, color: AppTheme.textMuted),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 6),
+                            Wrap(
+                              alignment: WrapAlignment.spaceBetween,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 8,
+                              runSpacing: 6,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      currencyFormatter.format(part.price),
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppTheme.primary,
+                                      ),
+                                    ),
+                                    Text(
+                                      isOutOfStock ? 'Hết hàng' : 'Còn $liveStock sản phẩm',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: isOutOfStock ? AppTheme.error : AppTheme.success,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                // MỤC 2: HIDE "Thêm vào giỏ" FOR ADMIN
+                                if (!isAdmin)
+                                  ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: isOutOfStock ? AppTheme.surfaceAlt : AppTheme.primaryMint,
+                                      foregroundColor: isOutOfStock ? AppTheme.textMuted : AppTheme.primary,
+                                      elevation: 0,
+                                      visualDensity: VisualDensity.compact,
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    ),
+                                    icon: const Icon(Icons.add_shopping_cart, size: 13),
+                                    label: const Text('Thêm vào giỏ', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                    onPressed: isOutOfStock
+                                        ? null
+                                        : () {
+                                            final success = cart.addItem(
+                                              id: part.id,
+                                              name: part.name,
+                                              price: part.price,
+                                              image: part.image,
+                                              variant: part.code,
+                                            );
+                                            if (!success) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  backgroundColor: AppTheme.error,
+                                                  content: Text('Số lượng trong giỏ đã đạt giới hạn tồn kho ($liveStock)!'),
+                                                ),
+                                              );
+                                            } else {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  backgroundColor: AppTheme.primary,
+                                                  content: Text('Đã thêm "${part.name}" vào giỏ hàng!'),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                  )
+                                else
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF1EBE4),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: const Color(0xFFE2D6CA)),
+                                    ),
+                                    child: const Text(
+                                      'Chế độ xem Quản trị',
+                                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF805528)),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+
+            // TAB 2: MỤC 4 – THEO DÕI ĐƠN HÀNG LINH KIỆN CỦA USER
+            if (_activeTab == 'orders') ...[
+              if (user == null)
+                Container(
+                  padding: const EdgeInsets.all(28),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    onTap: () => _showTicketDetails(context, report, user.isAdmin, reportProv),
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      padding: const EdgeInsets.all(14),
+                    border: Border.all(color: AppTheme.border),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.account_circle_outlined, size: 48, color: AppTheme.wood),
+                      const SizedBox(height: 10),
+                      const Text(
+                        'Vui lòng đăng nhập để theo dõi đơn mua và đơn cấp bù linh kiện của bạn.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                      ),
+                      const SizedBox(height: 14),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, foregroundColor: Colors.white),
+                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
+                        child: const Text('Đăng nhập ngay'),
+                      ),
+                    ],
+                  ),
+                )
+              else ...[
+                // Filter chips for parts orders
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      ChoiceChip(
+                        label: Text('Tất cả (${userPartsOrders.length})'),
+                        selected: _orderStatusFilter == 'all',
+                        onSelected: (val) => setState(() => _orderStatusFilter = 'all'),
+                        selectedColor: const Color(0xFF2C1810),
+                        labelStyle: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: _orderStatusFilter == 'all' ? Colors.white : AppTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ChoiceChip(
+                        label: Text('Chờ duyệt (${userPartsOrders.where((o) => o.orderStatus == OrderStatus.choDuyet).length})'),
+                        selected: _orderStatusFilter == 'choDuyet',
+                        onSelected: (val) => setState(() => _orderStatusFilter = 'choDuyet'),
+                        selectedColor: const Color(0xFF2C1810),
+                        labelStyle: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: _orderStatusFilter == 'choDuyet' ? Colors.white : AppTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ChoiceChip(
+                        label: Text('Chờ giao (${userPartsOrders.where((o) => o.orderStatus == OrderStatus.choGiao).length})'),
+                        selected: _orderStatusFilter == 'choGiao',
+                        onSelected: (val) => setState(() => _orderStatusFilter = 'choGiao'),
+                        selectedColor: const Color(0xFF2C1810),
+                        labelStyle: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: _orderStatusFilter == 'choGiao' ? Colors.white : AppTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ChoiceChip(
+                        label: Text('Đang giao (${userPartsOrders.where((o) => o.orderStatus == OrderStatus.dangGiao).length})'),
+                        selected: _orderStatusFilter == 'dangGiao',
+                        onSelected: (val) => setState(() => _orderStatusFilter = 'dangGiao'),
+                        selectedColor: const Color(0xFF2C1810),
+                        labelStyle: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: _orderStatusFilter == 'dangGiao' ? Colors.white : AppTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ChoiceChip(
+                        label: Text('Đã nhận (${userPartsOrders.where((o) => o.orderStatus == OrderStatus.giaoThanhCong).length})'),
+                        selected: _orderStatusFilter == 'completed',
+                        onSelected: (val) => setState(() => _orderStatusFilter = 'completed'),
+                        selectedColor: const Color(0xFF2C1810),
+                        labelStyle: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: _orderStatusFilter == 'completed' ? Colors.white : AppTheme.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+
+                Builder(builder: (context) {
+                  final filtered = userPartsOrders.where((o) {
+                    if (_orderStatusFilter == 'choDuyet') return o.orderStatus == OrderStatus.choDuyet;
+                    if (_orderStatusFilter == 'choGiao') return o.orderStatus == OrderStatus.choGiao;
+                    if (_orderStatusFilter == 'dangGiao') return o.orderStatus == OrderStatus.dangGiao;
+                    if (_orderStatusFilter == 'completed') return o.orderStatus == OrderStatus.giaoThanhCong;
+                    return true;
+                  }).toList();
+
+                  if (filtered.isEmpty) {
+                    return Container(
+                      padding: const EdgeInsets.all(32),
+                      alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: AppTheme.surface,
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: AppTheme.border),
                       ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
+                          Icon(Icons.inbox_outlined, size: 40, color: Colors.grey.shade400),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Bạn chưa có đơn đặt mua hoặc cấp bù linh kiện nào trong mục này.',
+                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (ctx, idx) {
+                      final order = filtered[idx];
+                      final isRep = order.isReplacementOrder;
+
+                      return InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () => _showOrderTimelineDialog(context, order),
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isRep ? Colors.purple.shade200 : const Color(0xFFE8DFD5),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.03),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              ProductImageView(
-                                imageUrl: report.photoUrl,
-                                width: 48,
-                                height: 48,
-                                fit: BoxFit.cover,
-                                borderRadius: BorderRadius.circular(10),
-                                placeholderIconSize: 22,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              // Order Header: Code, Type & Status
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Expanded(
+                                        Text(
+                                          '${order.code} • ${order.date}',
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                        ),
+                                        const SizedBox(height: 3),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: isRep ? Colors.purple.shade50 : const Color(0xFFF9F6F0),
+                                            borderRadius: BorderRadius.circular(4),
+                                            border: Border.all(
+                                              color: isRep ? Colors.purple.shade200 : const Color(0xFFE8DFD5),
+                                            ),
+                                          ),
                                           child: Text(
-                                            '${report.id} • ${report.orderCode}',
-                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                                            overflow: TextOverflow.ellipsis,
+                                            isRep ? 'Cấp bù linh kiện 0đ (Bảo hành)' : 'Đơn đặt mua linh kiện',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: isRep ? Colors.purple.shade800 : AppTheme.woodDark,
+                                            ),
                                           ),
                                         ),
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                          decoration: BoxDecoration(
-                                            color: statusBg,
-                                            borderRadius: BorderRadius.circular(8),
+                                        if (isRep && order.linkedReturnRequestId != null)
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 2),
+                                            child: Text(
+                                              'Khiếu nại gốc: ${order.linkedReturnRequestId}',
+                                              style: const TextStyle(fontSize: 9, color: Colors.blueGrey),
+                                            ),
                                           ),
-                                          child: Text(
-                                            statusText,
-                                            style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: statusColor),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: _getStatusBg(order.orderStatus),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      order.orderStatus.label,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: _getStatusColor(order.orderStatus),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Divider(height: 16),
+
+                              // Items list
+                              ...order.items.map((it) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 6),
+                                    child: Row(
+                                      children: [
+                                        ProductImageView(
+                                          imageUrl: it.image,
+                                          width: 38,
+                                          height: 38,
+                                          fit: BoxFit.cover,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                it.name,
+                                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              Text(
+                                                'Số lượng: x${it.quantity}',
+                                                style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Text(
+                                          isRep ? '0 ₫' : currencyFormatter.format(it.price * it.quantity),
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: isRep ? Colors.green.shade700 : AppTheme.primary,
                                           ),
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '${report.productName} • ${report.partName} (x${report.quantity})',
-                                      style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    if (report.adminNote != null)
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 4),
-                                        child: Text(
-                                          'Phản hồi CSKH: ${report.adminNote}',
-                                          style: const TextStyle(fontSize: 10, color: AppTheme.primary, fontStyle: FontStyle.italic),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                                  )),
 
-                          // Customer quick action: Confirm receipt
-                          if (!user.isAdmin && report.status == 'DELIVERING') ...[
-                            const SizedBox(height: 10),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppTheme.success,
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  visualDensity: VisualDensity.compact,
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                ),
-                                icon: const Icon(Icons.check_circle_outline, size: 14),
-                                label: const Text('Xác nhận đã nhận đủ phụ kiện', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                                onPressed: () {
-                                  reportProv.updateReportStatus(
-                                    report.id,
-                                    'COMPLETED',
-                                    adminNote: 'Khách hàng đã xác nhận nhận đủ linh kiện thành công.',
-                                  );
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      backgroundColor: AppTheme.primary,
-                                      content: Text('Đã cập nhật: ${report.id} hoàn tất!'),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
+                              const Divider(height: 16),
 
-                          // Admin quick actions
-                          if (user.isAdmin) ...[
-                            const SizedBox(height: 10),
-                            Wrap(
-                              spacing: 6,
-                              runSpacing: 6,
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              children: [
-                                if (report.status == 'PENDING') ...[
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppTheme.success,
-                                      foregroundColor: Colors.white,
-                                      visualDensity: VisualDensity.compact,
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                    ),
-                                    onPressed: () {
-                                      reportProv.updateReportStatus(
-                                        report.id,
-                                        'APPROVED',
-                                        adminNote: 'Admin đã duyệt gửi bù linh kiện chính hãng.',
-                                      );
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(backgroundColor: AppTheme.primary, content: Text('Đã duyệt phiếu ${report.id}!')),
-                                      );
-                                    },
-                                    child: const Text('Duyệt bù', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                                  ),
-                                  OutlinedButton(
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: AppTheme.error,
-                                      side: const BorderSide(color: AppTheme.error),
-                                      visualDensity: VisualDensity.compact,
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                    ),
-                                    onPressed: () {
-                                      reportProv.updateReportStatus(
-                                        report.id,
-                                        'REJECTED',
-                                        adminNote: 'Từ chối: Không đủ điều kiện bảo hành linh kiện.',
-                                      );
-                                    },
-                                    child: const Text('Từ chối', style: TextStyle(fontSize: 10)),
-                                  ),
-                                ],
-                                if (report.status == 'APPROVED')
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppTheme.info,
-                                      foregroundColor: Colors.white,
-                                      visualDensity: VisualDensity.compact,
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                    ),
-                                    onPressed: () => _showShippingTrackingDialog(context, report, reportProv),
-                                    child: const Text('Gửi bưu điện', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                                  ),
-                                if (report.status == 'DELIVERING')
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppTheme.success,
-                                      foregroundColor: Colors.white,
-                                      visualDensity: VisualDensity.compact,
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                    ),
-                                    onPressed: () {
-                                      reportProv.updateReportStatus(
-                                        report.id,
-                                        'COMPLETED',
-                                        adminNote: 'Admin đã đánh dấu hoàn tất phiếu hỗ trợ.',
-                                      );
-                                    },
-                                    child: const Text('Hoàn thành', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                                  ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                                  child: Text('Chi tiết & Ảnh »', style: TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.bold)),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }),
-              const SizedBox(height: 16),
-            ],
-
-            // Spare Parts Store Catalog
-            const Row(
-              children: [
-                Icon(Icons.inventory_2_outlined, size: 16, color: AppTheme.primary),
-                SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    'Kho phụ tùng & Linh kiện thay thế chính hãng:',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            TextField(
-              onChanged: (value) => setState(() => _searchQuery = value.trim().toLowerCase()),
-              decoration: InputDecoration(
-                hintText: 'Tìm theo mã hoặc tên linh kiện',
-                prefixIcon: const Icon(Icons.search, size: 20),
-                filled: true,
-                fillColor: AppTheme.surface,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: AppTheme.border),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: AppTheme.border),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            ...productProv.spareParts.where((part) {
-              if (_searchQuery.isEmpty) return true;
-              return part.name.toLowerCase().contains(_searchQuery) ||
-                  part.code.toLowerCase().contains(_searchQuery);
-            }).map((part) {
-              final stock = part.stock ?? 0;
-              final isOutOfStock = stock == 0;
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppTheme.surface,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: AppTheme.border),
-                  boxShadow: AppTheme.cardShadow,
-                ),
-                child: Row(
-                  children: [
-                    ProductImageView(
-                      imageUrl: part.image,
-                      width: 64,
-                      height: 64,
-                      fit: BoxFit.cover,
-                      borderRadius: BorderRadius.circular(12),
-                      placeholderIconSize: 24,
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            part.name,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.textPrimary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            part.description,
-                            style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Tương thích: ${part.compatibleProduct}',
-                            style: const TextStyle(fontSize: 10, color: AppTheme.textMuted),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 6),
-                          Wrap(
-                            alignment: WrapAlignment.spaceBetween,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            spacing: 8,
-                            runSpacing: 6,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
+                              // Actions row
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    currencyFormatter.format(part.price),
-                                    style: const TextStyle(
-                                      fontSize: 13,
+                                    isRep ? 'Miễn phí bảo hành' : 'Tổng: ${currencyFormatter.format(order.totalAmount)}',
+                                    style: TextStyle(
+                                      fontSize: 12,
                                       fontWeight: FontWeight.w800,
-                                      color: AppTheme.primary,
+                                      color: isRep ? Colors.green.shade700 : const Color(0xFF2C1810),
                                     ),
                                   ),
-                                  Text(
-                                    isOutOfStock ? 'Hết hàng' : 'Còn $stock sản phẩm',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: isOutOfStock ? AppTheme.error : AppTheme.success,
-                                    ),
+
+                                  Row(
+                                    children: [
+                                      // Cancel button when choDuyet (purchase order only)
+                                      if (!isRep && order.orderStatus == OrderStatus.choDuyet)
+                                        OutlinedButton(
+                                          style: OutlinedButton.styleFrom(
+                                            foregroundColor: Colors.red,
+                                            side: const BorderSide(color: Colors.red),
+                                            visualDensity: VisualDensity.compact,
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                          ),
+                                          onPressed: () {
+                                            orderProv.cancelOrderByCustomer(order.id, customerId: user.id);
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text('Đã hủy đơn ${order.code}. Tồn kho đã được hoàn trả!'),
+                                                backgroundColor: const Color(0xFF2C1810),
+                                              ),
+                                            );
+                                          },
+                                          child: const Text('Hủy đơn', style: TextStyle(fontSize: 11)),
+                                        ),
+
+                                      // Confirm delivered button when dangGiao
+                                      if (order.orderStatus == OrderStatus.dangGiao)
+                                        ElevatedButton.icon(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: AppTheme.success,
+                                            foregroundColor: Colors.white,
+                                            visualDensity: VisualDensity.compact,
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                          ),
+                                          icon: const Icon(Icons.check_circle_outline, size: 14),
+                                          label: const Text('Đã nhận hàng', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                          onPressed: () {
+                                            orderProv.confirmDeliveredByCustomer(order.id, customerId: user.id);
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                backgroundColor: AppTheme.primary,
+                                                content: Text(isRep
+                                                    ? 'Đã xác nhận nhận đủ linh kiện cấp bù! Yêu cầu hỗ trợ đã hoàn tất.'
+                                                    : 'Đã xác nhận nhận hàng cho đơn ${order.code}!'),
+                                              ),
+                                            );
+                                          },
+                                        ),
+
+                                      const SizedBox(width: 6),
+                                      const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
+                                    ],
                                   ),
                                 ],
                               ),
-                              ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: isOutOfStock ? AppTheme.surfaceAlt : AppTheme.primaryMint,
-                                  foregroundColor: isOutOfStock ? AppTheme.textMuted : AppTheme.primary,
-                                  elevation: 0,
-                                  visualDensity: VisualDensity.compact,
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                ),
-                                icon: const Icon(Icons.add_shopping_cart, size: 13),
-                                label: const Text('Thêm vào giỏ', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                                onPressed: isOutOfStock ? null : () {
-                                  cart.addItem(
-                                    id: part.id,
-                                    name: part.name,
-                                    price: part.price,
-                                    image: part.image,
-                                    variant: part.code,
-                                  );
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      backgroundColor: AppTheme.primary,
-                                      content: Text('Đã thêm "${part.name}" vào giỏ hàng!'),
-                                    ),
-                                  );
-                                },
-                              ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
+                        ),
+                      );
+                    },
+                  );
+                }),
+              ],
+            ],
 
             const SizedBox(height: 24),
           ],

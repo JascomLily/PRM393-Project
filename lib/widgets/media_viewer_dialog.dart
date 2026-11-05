@@ -59,8 +59,13 @@ class _MediaViewerDialogState extends State<MediaViewerDialog> {
     try {
       if (kIsWeb || widget.mediaPath.startsWith('http')) {
         _videoCtrl = VideoPlayerController.networkUrl(Uri.parse(widget.mediaPath));
+      } else if (widget.mediaPath.startsWith('content://')) {
+        _videoCtrl = VideoPlayerController.contentUri(Uri.parse(widget.mediaPath));
       } else {
-        _videoCtrl = VideoPlayerController.file(File(widget.mediaPath));
+        final cleanPath = widget.mediaPath.startsWith('file://')
+            ? widget.mediaPath.replaceFirst('file://', '')
+            : widget.mediaPath;
+        _videoCtrl = VideoPlayerController.file(File(cleanPath));
       }
 
       await _videoCtrl!.initialize();
@@ -187,7 +192,10 @@ class _MediaViewerDialogState extends State<MediaViewerDialog> {
         ),
       );
     } else {
-      final file = File(widget.mediaPath);
+      final cleanPath = widget.mediaPath.startsWith('file://')
+          ? widget.mediaPath.replaceFirst('file://', '')
+          : widget.mediaPath;
+      final file = File(cleanPath);
       imageWidget = Image.file(
         file,
         fit: BoxFit.contain,

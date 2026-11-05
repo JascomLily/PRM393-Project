@@ -5,6 +5,7 @@ import 'providers/product_provider.dart';
 import 'providers/cart_provider.dart';
 import 'providers/order_provider.dart';
 import 'providers/missing_report_provider.dart';
+import 'services/inventory_service.dart';
 import 'screens/main_navigation_screen.dart';
 import 'services/supabase_service.dart';
 import 'package:flutter/services.dart';
@@ -15,7 +16,8 @@ void main() async {
   await SupabaseService.initialize();
 
   await SystemChrome.setEnabledSystemUIMode(
-    SystemUiMode.edgeToEdge,
+    SystemUiMode.manual,
+    overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
   );
 
   SystemChrome.setSystemUIOverlayStyle(
@@ -23,7 +25,7 @@ void main() async {
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
-      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarColor: Color(0xFFFBF8F5),
       systemNavigationBarIconBrightness: Brightness.dark,
       systemNavigationBarDividerColor: Colors.transparent,
     ),
@@ -36,6 +38,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
         ChangeNotifierProvider(create: (_) => MissingReportProvider()),
+        ChangeNotifierProvider.value(value: InventoryService()),
       ],
       child: const SofaSoGoodApp(),
     ),

@@ -726,7 +726,70 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
   }
 
+    void _confirmDeleteReview(
+    BuildContext context,
+    String productId,
+    String reviewId,
+    String author, {
+    String? orderId,
+  }) {
+    final productProv = Provider.of<ProductProvider>(context, listen: false);
+    final orderProv = Provider.of<OrderProvider>(context, listen: false);
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Xác nhận xóa đánh giá', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        content: Text(
+          'Bạn có chắc chắn muốn xóa đánh giá của "$author" không?\nĐánh giá sẽ bị ẩn khỏi trang sản phẩm và điểm trung bình sẽ được cập nhật lại.',
+          style: const TextStyle(fontSize: 13, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade700,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              productProv.softDeleteReview(
+                productId,
+                reviewId,
+                adminId: auth.currentUser?.id ?? 'admin',
+                reason: 'Quản trị viên xóa từ trang chi tiết sản phẩm',
+              );
+              if (orderId != null) {
+                final oIdx = orderProv.orders.indexWhere((o) => o.id == orderId);
+                if (oIdx != -1) {
+                  final o = orderProv.orders[oIdx];
+                  o.reviewStars = null;
+                  o.reviewComment = 'Đánh giá đã bị gỡ bỏ do vi phạm tiêu chuẩn cộng đồng.';
+                  o.reviewMedia = [];
+                }
+              }
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Đã xóa đánh giá thành công!'),
+                  backgroundColor: Color(0xFF2C1810),
+                ),
+              );
+            },
+            child: const Text('Xóa đánh giá'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCustomerReviewsSection(BuildContext context) {
+    final auth = Provider.of<AuthProvider>(context);
     final orderProvider = Provider.of<OrderProvider>(context);
     final productProvider = Provider.of<ProductProvider>(context);
         final currentProduct = productProvider.getProductById(widget.product.id) ?? widget.product;
@@ -753,27 +816,33 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     for (final o in orderProvider.orders) {
       if (o.reviewStars != null) {
         final matchesProduct = o.items.any((item) =>
-            item.name.toLowerCase() == widget.product.name.toLowerCase() ||
-            item.productId == widget.product.id ||
+            item.name.toLowerCase().contains(widget.product.name.toLowerCase()) ||
+            widget.product.name.toLowerCase().contains(item.name.toLowerCase()) ||
+            item.productId.toLowerCase() == widget.product.id.toLowerCase() ||
             (widget.product.modelCode.isNotEmpty &&
-                item.name
-                    .toLowerCase()
-                    .contains(widget.product.modelCode.toLowerCase())));
+                (item.name.toLowerCase().contains(widget.product.modelCode.toLowerCase()) ||
+                 item.productId.toLowerCase().contains(widget.product.modelCode.toLowerCase()))));
 
-        if (matchesProduct) {
-          realReviews.add({
-            'author': o.receiverName.isNotEmpty
-                ? o.receiverName
-                : 'Khách hàng Furni3D',
-            'stars': o.reviewStars ?? 5,
-            'date': o.date,
-            'comment': (o.reviewComment != null && o.reviewComment!.isNotEmpty)
-                ? o.reviewComment!
-                : 'Sản phẩm hoàn thiện đẹp, đúng với mô tả và bản vẽ 3D.',
-            'media': o.reviewMedia ?? <String>[],
-            'variant': 'Gỗ Sồi Trắng Tự Nhiên',
-            'isLive': true,
-          });
+        if (matchesProduct && o.reviewComment != 'Đánh giá đã bị gỡ bỏ do vi phạm tiêu chuẩn cộng đồng.') {
+          final reviewId = 'ord-rev-${o.id}';
+          if (!seenIds.contains(reviewId)) {
+            seenIds.add(reviewId);
+            realReviews.add({
+              'id': reviewId,
+              'orderId': o.id,
+              'author': o.receiverName.isNotEmpty
+                  ? o.receiverName
+                  : 'Khách hàng Sofa So Good',
+              'stars': o.reviewStars ?? 5,
+              'date': o.date,
+              'comment': (o.reviewComment != null && o.reviewComment!.isNotEmpty)
+                  ? o.reviewComment!
+                  : 'Sản phẩm hoàn thiện đẹp, đúng với mô tả và bản vẽ 3D.',
+              'media': o.reviewMedia ?? <String>[],
+              'variant': 'Gỗ Sồi Trắng Tự Nhiên',
+              'isLive': true,
+            });
+          }
         }
       }
     }
@@ -812,6 +881,32 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Notification if current user's review was taken down
+        if (!auth.isAdmin && auth.currentUser != null &&
+            (currentProduct.reviews.any((r) => r.isDeleted && r.author == auth.currentUser!.name) ||
+             orderProvider.orders.any((o) => (o.receiverName == auth.currentUser!.name || o.receiverPhone == auth.currentUser!.phone) && o.reviewComment == 'Đánh giá đã bị gỡ bỏ do vi phạm tiêu chuẩn cộng đồng.')))
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.amber.shade50,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.amber.shade200),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, size: 16, color: Colors.amber.shade900),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Đánh giá trước đó của bạn đã bị gỡ bỏ bởi Quản trị viên do vi phạm quy chuẩn cộng đồng.',
+                    style: TextStyle(fontSize: 11, color: Colors.amber.shade900, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
         // Title & Review Count
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1072,7 +1167,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 final r = filteredReviews[idx];
                 final author = r['author'] as String;
                 final stars = r['stars'] as int;
-                final date = r['date'] as String;
+                final dynamic rawDate = r['date'];
+                final String date = rawDate is DateTime
+                    ? DateFormat('dd/MM/yyyy HH:mm').format(rawDate)
+                    : (rawDate != null ? rawDate.toString() : '');
                 final comment = r['comment'] as String;
                 final variant = r['variant'] as String? ?? '';
                 final mediaList = (r['media'] as List).cast<String>();
@@ -1170,6 +1268,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ],
                           ),
                         ),
+                        if (auth.isAdmin)
+                          IconButton(
+                            tooltip: 'Xóa đánh giá (Admin)',
+                            icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                            onPressed: () {
+                              _confirmDeleteReview(
+                                context,
+                                currentProduct.id,
+                                r['id'].toString(),
+                                author,
+                                orderId: r['orderId']?.toString(),
+                              );
+                            },
+                          ),
                       ],
                     ),
                     const SizedBox(height: 6),

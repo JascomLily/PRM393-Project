@@ -24,6 +24,28 @@ class SparePartModel {
     required this.description,
     required this.compatibleProduct,
   });
+
+  SparePartModel copyWith({
+    String? id,
+    String? name,
+    String? code,
+    int? price,
+    int? stock,
+    String? image,
+    String? description,
+    String? compatibleProduct,
+  }) {
+    return SparePartModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      code: code ?? this.code,
+      price: price ?? this.price,
+      stock: stock ?? this.stock,
+      image: image ?? this.image,
+      description: description ?? this.description,
+      compatibleProduct: compatibleProduct ?? this.compatibleProduct,
+    );
+  }
 }
 
 class ProductProvider extends ChangeNotifier {
@@ -32,8 +54,8 @@ class ProductProvider extends ChangeNotifier {
 
   ProductProvider() {
     _products = getMockProducts();
-    _initInventory();
     _initSpareParts();
+    _initInventory();
     loadFromSupabase();
   }
 
@@ -41,12 +63,15 @@ class ProductProvider extends ChangeNotifier {
     for (final p in _products) {
       InventoryService().initStock(p.id, p.stockQuantity, colors: p.colors);
     }
+    for (final sp in _spareParts) {
+      InventoryService().initStock(sp.id, sp.stock ?? 10, colors: [sp.code]);
+    }
   }
 
   void reloadProducts() {
     _products = getMockProducts();
-    _initInventory();
     _initSpareParts();
+    _initInventory();
     loadFromSupabase();
     notifyListeners();
   }
@@ -63,8 +88,28 @@ class ProductProvider extends ChangeNotifier {
 
   List<ProductModel> get products => List.unmodifiable(_products);
   List<SparePartModel> get spareParts {
-    _initSpareParts();
-    return List.unmodifiable(_spareParts);
+    return _spareParts.map((sp) {
+      final liveStock = InventoryService().getStock(sp.id);
+      return sp.copyWith(stock: liveStock);
+    }).toList();
+  }
+
+  int getSparePartStock(String partId) {
+    return InventoryService().getStock(partId);
+  }
+
+  void updateSparePartStock(String partId, int newStock) {
+    final safeStock = newStock < 0 ? 0 : newStock;
+    final index = _spareParts.indexWhere((p) => p.id == partId);
+    if (index != -1) {
+      _spareParts[index] = _spareParts[index].copyWith(stock: safeStock);
+      InventoryService().updateStock(
+        productId: partId,
+        newQuantity: safeStock,
+        reason: 'Admin cập nhật tồn kho linh kiện',
+      );
+      notifyListeners();
+    }
   }
 
   void _initSpareParts() {
@@ -174,9 +219,18 @@ class ProductProvider extends ChangeNotifier {
 
   // Customer submits review -> instantly visible to everyone!
   void addProductReview(String productId, ProductReviewItem review) {
-    final index = _products.indexWhere((p) => p.id == productId);
+    var index = _products.indexWhere((p) => p.id == productId || p.id.toLowerCase() == productId.toLowerCase());
+    if (index == -1) {
+      index = _products.indexWhere((p) =>
+          p.name.trim().toLowerCase() == productId.trim().toLowerCase() ||
+          p.name.toLowerCase().contains(productId.toLowerCase()) ||
+          productId.toLowerCase().contains(p.name.toLowerCase()) ||
+          (p.modelCode.isNotEmpty && p.modelCode.toLowerCase() == productId.toLowerCase()));
+    }
     if (index != -1) {
       _products[index].reviews.insert(0, review);
+      _products[index].rating = _products[index].calculatedRating;
+      _products[index].reviewCount = _products[index].calculatedReviewCount;
       notifyListeners();
     }
   }
@@ -196,6 +250,8 @@ class ProductProvider extends ChangeNotifier {
         review.isDeleted = true;
         review.deletedAt = DateTime.now();
         review.deletedBy = adminId;
+        _products[pIdx].rating = _products[pIdx].calculatedRating;
+        _products[pIdx].reviewCount = _products[pIdx].calculatedReviewCount;
         notifyListeners();
       }
     }

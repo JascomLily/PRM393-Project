@@ -540,7 +540,8 @@ class _AdminScreenState extends State<AdminScreen>
   // ==========================================================================
   Widget _buildCustomersTab() {
     final auth = Provider.of<AuthProvider>(context);
-    final users = auth.allUsers;
+    // Danh sách chỉ hiển thị tài khoản User (Mục 6)
+    final users = auth.allUsers.where((u) => !u.isAdmin).toList();
 
     final activeCount = users.where((u) => !u.isBanned).length;
     final bannedCount = users.where((u) => u.isBanned).length;
@@ -599,7 +600,7 @@ class _AdminScreenState extends State<AdminScreen>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Hoạt động: $activeCount • Đã bị khóa: $bannedCount',
+                      'Đang hoạt động: $activeCount • Đã vô hiệu hóa: $bannedCount',
                       style: const TextStyle(fontSize: 11, color: Colors.white70),
                     ),
                   ],
@@ -652,7 +653,7 @@ class _AdminScreenState extends State<AdminScreen>
               ),
               const SizedBox(width: 8),
               _buildFilterChoiceChip(
-                label: 'Đã bị khóa ($bannedCount)',
+                label: 'Đã vô hiệu hóa ($bannedCount)',
                 selected: _customerFilter == 'banned',
                 selectedColor: Colors.red.shade700,
                 onSelected: () => setState(() => _customerFilter = 'banned'),
@@ -762,13 +763,18 @@ class _AdminScreenState extends State<AdminScreen>
                                     'SĐT: ${user.phone}',
                                     style: const TextStyle(fontSize: 11, color: Colors.blueGrey),
                                   ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Ngày tạo: ${DateFormat('dd/MM/yyyy').format(user.createdAt ?? DateTime(2026, 1, 15))}',
+                                  style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                ),
                               ],
                             ),
                           ),
                         ],
                       ),
 
-                      // Status & Ban details
+                      // Status & Deactivation details (Mục 6)
                       const SizedBox(height: 8),
                       Row(
                         children: [
@@ -779,7 +785,7 @@ class _AdminScreenState extends State<AdminScreen>
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            user.isBanned ? 'Trạng thái: ĐÃ BỊ KHÓA TÀI KHOẢN' : 'Trạng thái: Đang hoạt động',
+                            user.isBanned ? 'Trạng thái: ĐÃ VÔ HIỆU HÓA' : 'Trạng thái: Hoạt động',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
@@ -799,16 +805,29 @@ class _AdminScreenState extends State<AdminScreen>
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(color: Colors.red.shade100),
                           ),
-                          child: Text(
-                            'Lý do khóa: ${user.banReason}',
-                            style: TextStyle(fontSize: 10, color: Colors.red.shade900),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Lý do vô hiệu hóa: ${user.banReason}',
+                                style: TextStyle(fontSize: 10, color: Colors.red.shade900, fontWeight: FontWeight.w600),
+                              ),
+                              if (user.bannedAt != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Text(
+                                    'Thời gian: ${DateFormat('dd/MM/yyyy HH:mm').format(user.bannedAt!)} • Bởi: ${user.bannedBy ?? 'Admin'}',
+                                    style: TextStyle(fontSize: 9, color: Colors.red.shade700),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                       ],
 
                       const Divider(height: 18),
 
-                      // SOLE ACTION: Ban / Unban account with strict permissions
+                      // SOLE ACTION: Vô hiệu hóa / Kích hoạt lại (Mục 6)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -819,7 +838,7 @@ class _AdminScreenState extends State<AdminScreen>
                             )
                           else if (isAnotherAdmin)
                             const Text(
-                              '(Quản trị viên - Không thể khóa)',
+                              '(Quản trị viên - Không thể vô hiệu hóa)',
                               style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: Colors.grey),
                             )
                           else if (!user.isBanned)
@@ -830,8 +849,8 @@ class _AdminScreenState extends State<AdminScreen>
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
-                              icon: const Icon(Icons.lock_outline, size: 13),
-                              label: const Text('Khóa tài khoản', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                              icon: const Icon(Icons.block, size: 13),
+                              label: const Text('Vô hiệu hóa', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                               onPressed: () => _showBanDialog(user),
                             )
                           else
@@ -842,14 +861,33 @@ class _AdminScreenState extends State<AdminScreen>
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
-                              icon: const Icon(Icons.lock_open, size: 13),
-                              label: const Text('Mở khóa tài khoản', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                              icon: const Icon(Icons.check_circle_outline, size: 13),
+                              label: const Text('Kích hoạt lại', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                               onPressed: () {
-                                auth.toggleBanUser(user.id);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Đã mở khóa tài khoản cho ${user.name}!'),
-                                    backgroundColor: Colors.green.shade700,
+                                showDialog(
+                                  context: context,
+                                  builder: (c) => AlertDialog(
+                                    backgroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    title: const Text('Kích hoạt lại tài khoản', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                    content: Text('Bạn có chắc chắn muốn kích hoạt lại tài khoản cho khách hàng "${user.name}"? Khách hàng sẽ có thể đăng nhập và đặt hàng lại bình thường.'),
+                                    actions: [
+                                      TextButton(onPressed: () => Navigator.pop(c), child: const Text('Hủy')),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade700, foregroundColor: Colors.white),
+                                        onPressed: () {
+                                          auth.toggleBanUser(user.id);
+                                          Navigator.pop(c);
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Đã kích hoạt lại tài khoản cho ${user.name}!'),
+                                              backgroundColor: Colors.green.shade700,
+                                            ),
+                                          );
+                                        },
+                                        child: const Text('Xác nhận kích hoạt'),
+                                      ),
+                                    ],
                                   ),
                                 );
                               },
@@ -1978,13 +2016,13 @@ class _AdminScreenState extends State<AdminScreen>
 
           return AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: Text('Khóa tài khoản ${user.name}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            title: Text('Vô hiệu hóa tài khoản ${user.name}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Khi bị khóa, khách hàng sẽ bị ép đăng xuất ngay và không thể đăng nhập lại vào hệ thống.\nVui lòng nhập lý do khóa:',
+                  'Khi bị vô hiệu hóa, tài khoản này sẽ bị đăng xuất ngay và không thể đăng nhập lại vào ứng dụng.\nVui lòng nhập lý do vô hiệu hóa:',
                   style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                 ),
                 const SizedBox(height: 8),
@@ -2017,7 +2055,7 @@ class _AdminScreenState extends State<AdminScreen>
                         Navigator.pop(ctx);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Đã khóa tài khoản của ${user.name}!'),
+                            content: Text('Đã vô hiệu hóa tài khoản của ${user.name}!'),
                             backgroundColor: Colors.red.shade700,
                           ),
                         );

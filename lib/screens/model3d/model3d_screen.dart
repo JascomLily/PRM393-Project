@@ -17,6 +17,8 @@ class Model3DScreen extends StatefulWidget {
 
 class _Model3DScreenState extends State<Model3DScreen> {
   late final ProductModel _product;
+  int _currentStep = 1;
+  late int _totalSteps;
 
   static const List<String> _officialUnityIds = [
     'Chair01',
@@ -73,6 +75,13 @@ class _Model3DScreenState extends State<Model3DScreen> {
     super.initState();
     _product = widget.initialProduct ?? getMockProducts().first;
 
+    // Estimate total assembly steps (default 4-5 steps, or 1 step if minimal assembly)
+    if (_product.assemblyTimeMinutes <= 5) {
+      _totalSteps = 1;
+    } else {
+      _totalSteps = (_product.assemblyTimeMinutes / 5).clamp(2, 5).round();
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       resumeUnity();
@@ -88,11 +97,11 @@ class _Model3DScreenState extends State<Model3DScreen> {
     );
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
-        statusBarColor: Colors.black,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-        systemNavigationBarColor: Colors.black,
-        systemNavigationBarIconBrightness: Brightness.light,
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.dark,
         systemNavigationBarDividerColor: Colors.transparent,
       ),
     );
@@ -109,17 +118,56 @@ class _Model3DScreenState extends State<Model3DScreen> {
     sendToUnity('AssemblyManager', methodName, '');
   }
 
+  void _onMessageFromUnity(String data) {
+    final msg = data.trim();
+    if (msg.contains('COMPLETED') || msg.contains('DONE') || msg.contains('END')) {
+      setState(() {
+        _currentStep = _totalSteps;
+      });
+    } else if (msg.contains(':')) {
+      final parts = msg.split(':');
+      if (parts.length >= 2) {
+        final s = int.tryParse(parts[parts.length - 2]);
+        final t = int.tryParse(parts[parts.length - 1]);
+        if (s != null && s > 0) _currentStep = s;
+        if (t != null && t > 0) _totalSteps = t;
+        setState(() {});
+      }
+    }
+  }
+
+  void _onPrevClicked() {
+    _sendUnityCommand('OnBackClicked');
+    setState(() {
+      if (_currentStep > 1) {
+        _currentStep--;
+      }
+    });
+  }
+
+  void _onNextClicked() {
+    _sendUnityCommand('OnNextClicked');
+    setState(() {
+      if (_currentStep < _totalSteps) {
+        _currentStep++;
+      }
+    });
+  }
+
   void _returnToHome() {
     pauseUnity();
     _restoreSystemUI();
+    // Quay về Menu chính, dọn sạch stack điều hướng để Back không quay lại 3D (Mục 7)
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+      MaterialPageRoute(builder: (_) => const MainNavigationScreen(initialIndex: 0)),
       (_) => false,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final isLastStep = _currentStep >= _totalSteps || _totalSteps <= 1;
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -173,36 +221,111 @@ class _Model3DScreenState extends State<Model3DScreen> {
         ],
       ),
       body: SafeArea(
+        top: false,
+        bottom: true,
         child: Column(
           children: [
-            const Expanded(child: EmbedUnity()),
+            Expanded(
+              child: EmbedUnity(
+                onMessageFromUnity: _onMessageFromUnity,
+              ),
+            ),
+
+            // Step Progress & Assembly Controls
             Container(
-              color: Colors.white,
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-              child: Row(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, -2)),
+                ],
+              ),
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _sendUnityCommand('OnBackClicked'),
-                      icon: const Icon(Icons.arrow_back),
-                      label: const Text('Trước'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                  // Step Indicator
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Bước $_currentStep / $_totalSteps',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2C1810),
+                        ),
                       ),
-                    ),
+                      Text(
+                        isLastStep ? 'Đã hoàn thành các bước' : 'Đang lắp mộng âm dương',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isLastStep ? const Color(0xFF2E7D32) : Colors.blueGrey,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _sendUnityCommand('OnNextClicked'),
-                      icon: const Icon(Icons.arrow_forward),
-                      label: const Text('Tiếp theo'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2C1810),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
+                  const SizedBox(height: 6),
+                  LinearProgressIndicator(
+                    value: _totalSteps > 0 ? (_currentStep / _totalSteps).clamp(0.0, 1.0) : 1.0,
+                    backgroundColor: const Color(0xFFE8DFD5),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      isLastStep ? const Color(0xFF2E7D32) : const Color(0xFF805528),
                     ),
+                    minHeight: 4,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Action Buttons: [Trước], [Tiếp theo] or [Hoàn thành]
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _currentStep > 1 ? _onPrevClicked : null,
+                          icon: const Icon(Icons.arrow_back, size: 16),
+                          label: const Text('Trước', style: TextStyle(fontWeight: FontWeight.bold)),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            side: BorderSide(
+                              color: _currentStep > 1 ? const Color(0xFF2C1810) : Colors.grey.shade300,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: isLastStep
+                            ? ElevatedButton.icon(
+                                onPressed: _returnToHome,
+                                icon: const Icon(Icons.check_circle_outline, size: 18),
+                                label: const Text(
+                                  'Hoàn thành',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF2E7D32),
+                                  foregroundColor: Colors.white,
+                                  elevation: 2,
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              )
+                            : ElevatedButton.icon(
+                                onPressed: _onNextClicked,
+                                icon: const Icon(Icons.arrow_forward, size: 16),
+                                label: const Text('Tiếp theo', style: TextStyle(fontWeight: FontWeight.bold)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF2C1810),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              ),
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -10,6 +10,7 @@ import '../../models/order_model.dart';
 import '../../models/address_model.dart';
 import '../../theme/app_theme.dart';
 import '../../services/location_service.dart';
+import '../../services/inventory_service.dart';
 import '../../widgets/delivery_map_view.dart';
 import '../main_navigation_screen.dart';
 import 'vnpay_gateway_screen.dart';
@@ -297,15 +298,78 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }).toList();
 
     final rand = Random();
+    final orderCode = '#F3D-${100000 + rand.nextInt(900000)}';
+
+    // ATOMIC INVENTORY DEDUCTION & VALIDATION (Mục 1 & 3)
+    final itemsForDeduction = cart.items.map((it) => {
+      'productId': it.id,
+      'quantity': it.quantity,
+      'color': it.variant,
+      'name': it.name,
+    }).toList();
+
+    for (final it in itemsForDeduction) {
+      final pid = it['productId'] as String;
+      final qty = it['quantity'] as int;
+      final col = it['color'] as String?;
+      final name = it['name'] as String;
+      final available = InventoryService().getStock(pid, color: col);
+      if (available < qty) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 22),
+                SizedBox(width: 8),
+                Text('Kho không đủ số lượng', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              ],
+            ),
+            content: Text(
+              'Mặt hàng "$name" chỉ còn $available sản phẩm trong kho (bạn đang đặt $qty).\nVui lòng điều chỉnh lại số lượng trong giỏ hàng.',
+              style: const TextStyle(fontSize: 13, height: 1.4),
+            ),
+            actions: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2C1810), foregroundColor: Colors.white),
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Đã hiểu'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+    }
+
+    final successDeduct = InventoryService().deductOrderStock(
+      orderCode: orderCode,
+      items: itemsForDeduction,
+    );
+
+    if (!successDeduct) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Không thể đặt hàng do tồn kho sản phẩm hoặc linh kiện không đủ.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     final newOrder = OrderModel(
       id: 'ord-${DateTime.now().millisecondsSinceEpoch}',
-      code: '#F3D-${100000 + rand.nextInt(900000)}',
+      code: orderCode,
       date: DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now()),
       totalAmount: finalTotal,
       paymentMethod: paymentMethod,
       paymentStatus: paymentMethod == 'COD' ? 'PENDING' : 'PAID',
       transactionId: transactionId,
-      status: 'shipping',
+      orderStatus: OrderStatus.choDuyet,
+      stockDeducted: true,
+      stockReverted: false,
       receiverName: _nameController.text.trim(),
       receiverPhone: _phoneController.text.trim(),
       shippingAddress: _addressController.text.trim(),

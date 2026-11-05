@@ -13,6 +13,7 @@ class UserModel {
   DateTime? bannedAt;
   String? bannedBy;
   String? banReason;
+  DateTime? createdAt;
   List<AddressModel> addresses;
 
   UserModel({
@@ -28,6 +29,7 @@ class UserModel {
     this.bannedAt,
     this.bannedBy,
     this.banReason,
+    this.createdAt,
     List<AddressModel>? addresses,
     // Ignored legacy coins parameter for backward compatibility
     int? furniCoins,
@@ -44,6 +46,10 @@ class UserModel {
             ];
 
   bool get isAdmin => role == 'admin';
+  bool get isDeactivated => isBanned || !isActive;
+  DateTime? get deactivatedAt => bannedAt;
+  String? get deactivatedBy => bannedBy;
+  String? get deactivationReason => banReason;
   int get furniCoins => 0;
   set furniCoins(int val) {}
 
@@ -108,6 +114,7 @@ class UserModel {
         'bannedAt': bannedAt?.toIso8601String(),
         'bannedBy': bannedBy,
         'banReason': banReason,
+        'createdAt': (createdAt ?? DateTime(2026, 1, 15)).toIso8601String(),
         'addresses': addresses.map((a) => a.toJson()).toList(),
       };
 
@@ -148,6 +155,7 @@ class UserModel {
       bannedAt: json['bannedAt'] != null ? DateTime.tryParse(json['bannedAt']) : null,
       bannedBy: json['bannedBy'],
       banReason: json['banReason'],
+      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt']) : DateTime(2026, 1, 15),
       addresses: parsedAddresses,
     );
   }
