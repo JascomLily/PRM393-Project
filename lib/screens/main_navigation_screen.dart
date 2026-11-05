@@ -27,7 +27,6 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   late int _currentIndex;
-  bool _adminStorePreviewMode = false;
 
   @override
   void initState() {
@@ -65,17 +64,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final auth = Provider.of<AuthProvider>(context);
     final isAdmin = auth.isAdmin;
 
-    // Shopee-style: If user is Admin and NOT previewing the customer storefront,
-    // display the dedicated Admin Workspace Portal directly!
-    if (isAdmin && !_adminStorePreviewMode) {
-      return AdminScreen(
-        onPreviewStore: () {
-          setState(() {
-            _adminStorePreviewMode = true;
-            _currentIndex = 0;
-          });
-        },
-      );
+    // Dedicated Admin Workspace Portal for Admin (No shopping / duplicate features)
+    if (isAdmin) {
+      return const AdminScreen();
     }
 
     final screens = <Widget>[
@@ -235,54 +226,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
       body: Column(
         children: [
-          // Shopee-style Admin Store Preview Banner
-          if (isAdmin && _adminStorePreviewMode)
-            Container(
-              width: double.infinity,
-              color: const Color(0xFF2C1810),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              child: Row(
-                children: [
-                  const Icon(Icons.remove_red_eye_outlined, color: Colors.amber, size: 16),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text(
-                      'Chế độ Xem trước Shop (Admin Preview)',
-                      style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        _adminStorePreviewMode = false;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.amber,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.arrow_back, color: Color(0xFF2C1810), size: 12),
-                          SizedBox(width: 4),
-                          Text(
-                            'Về Quản Trị',
-                            style: TextStyle(
-                              color: Color(0xFF2C1810),
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+
 
           Expanded(
             child: IndexedStack(index: _currentIndex, children: screens),

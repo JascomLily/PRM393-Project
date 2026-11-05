@@ -10,6 +10,7 @@ import '../../widgets/media_viewer_dialog.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/order_provider.dart';
+import '../../providers/product_provider.dart';
 import '../model3d/model3d_screen.dart';
 import '../checkout/checkout_screen.dart';
 import '../auth/login_screen.dart';
@@ -49,7 +50,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
     final cart = Provider.of<CartProvider>(context, listen: false);
     final auth = Provider.of<AuthProvider>(context);
-
+    
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
@@ -727,9 +728,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildCustomerReviewsSection(BuildContext context) {
     final orderProvider = Provider.of<OrderProvider>(context);
+    final productProvider = Provider.of<ProductProvider>(context);
+        final currentProduct = productProvider.getProductById(widget.product.id) ?? widget.product;
 
-    // 1. Gather ONLY real live reviews from OrderProvider for this product (NO MOCK DATA)
+    // 1. Gather reviews from ProductModel.activeReviews (Mục 3A & 4) AND OrderProvider
     final realReviews = <Map<String, dynamic>>[];
+    final seenIds = <String>{};
+
+    for (final rev in currentProduct.activeReviews) {
+      if (!seenIds.contains(rev.id)) {
+        seenIds.add(rev.id);
+        realReviews.add({
+          'id': rev.id,
+          'author': rev.userName.isNotEmpty ? rev.userName : 'Khách hàng Sofa So Good',
+          'stars': rev.rating,
+          'date': rev.createdAt,
+          'comment': rev.comment,
+          'media': rev.mediaUrls,
+          'variant': currentProduct.material,
+          'isLive': true,
+        });
+      }
+    }
     for (final o in orderProvider.orders) {
       if (o.reviewStars != null) {
         final matchesProduct = o.items.any((item) =>
@@ -1054,7 +1074,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 final stars = r['stars'] as int;
                 final date = r['date'] as String;
                 final comment = r['comment'] as String;
-                final variant = r['variant'] as String;
+                final variant = r['variant'] as String? ?? '';
                 final mediaList = (r['media'] as List).cast<String>();
 
                 return Column(
@@ -1153,14 +1173,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Text(
-                      'Phân loại: ',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF805528),
-                        fontWeight: FontWeight.w500,
+                    if (variant.isNotEmpty)
+                      Text(
+                        'Phân loại: ',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF805528),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
                     if (comment.isNotEmpty) ...[
                       const SizedBox(height: 6),
                       Text(

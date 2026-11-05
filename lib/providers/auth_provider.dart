@@ -165,11 +165,16 @@ class AuthProvider extends ChangeNotifier {
       if (userStr != null) {
         _currentUser = UserModel.fromJson(jsonDecode(userStr));
         if (_currentUser != null) {
-          final idx = _users.indexWhere((u) => u.id == _currentUser!.id);
-          if (idx != -1) {
-            _users[idx] = _currentUser!;
+          if (_currentUser!.isBanned || !_currentUser!.isActive) {
+            _currentUser = null;
+            await _saveUserToStorage();
           } else {
-            _users.insert(0, _currentUser!);
+            final idx = _users.indexWhere((u) => u.id == _currentUser!.id);
+            if (idx != -1) {
+              _users[idx] = _currentUser!;
+            } else {
+              _users.insert(0, _currentUser!);
+            }
           }
 
           // Đồng bộ lại profile mới nhất từ Supabase (nếu online)
@@ -267,13 +272,15 @@ class AuthProvider extends ChangeNotifier {
         (u) => u.email.toLowerCase() == normalizedEmail);
 
     if (existingIndex != -1) {
-      if (!_users[existingIndex].isActive) {
+      final user = _users[existingIndex];
+      if (user.isBanned || !user.isActive) {
         _isLoading = false;
         notifyListeners();
+        final reason = user.banReason ?? 'Vi phạm điều khoản dịch vụ';
         throw Exception(
-            'Tài khoản này đã bị vô hiệu hóa bởi Quản trị viên. Vui lòng liên hệ hỗ trợ.');
+            'Tài khoản của bạn đã bị khóa bởi Quản trị viên. Lý do: $reason. Vui lòng liên hệ hỗ trợ.');
       }
-      _currentUser = _users[existingIndex];
+      _currentUser = user;
       _isLoading = false;
       await _saveUserToStorage();
       notifyListeners();
@@ -572,16 +579,50 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  void toggleUserActive(String userId) {
-    final index = _users.indexWhere((u) => u.id == userId);
-    if (index != -1) {
-      _users[index].isActive = !_users[index].isActive;
-      if (_currentUser?.id == userId) {
-        _currentUser!.isActive = _users[index].isActive;
-        _saveUserToStorage();
-      }
-      notifyListeners();
+  // Ban / Unban customer account (Mục 6)
+  // Strictly enforces:
+  // - Admin cannot ban self
+  // - Admin cannot ban another Admin
+  // - Banned user is immediately logged out if active
+  bool toggleBanUser(String targetUserId, {String? reason, String? adminId}) {
+    if (_currentUser != null && _currentUser!.id == targetUserId) {
+      throw Exception('Quản trị viên không thể tự khóa tài khoản của chính mình!');
     }
+
+    final index = _users.indexWhere((u) => u.id == targetUserId);
+    if (index == -1) return false;
+
+    final targetUser = _users[index];
+    if (targetUser.role == 'admin') {
+      throw Exception('Không được phép khóa tài khoản của Quản trị viên khác!');
+    }
+
+    final newBanState = !targetUser.isBanned;
+    targetUser.isBanned = newBanState;
+    targetUser.isActive = !newBanState;
+
+    if (newBanState) {
+      targetUser.bannedAt = DateTime.now();
+      targetUser.bannedBy = adminId ?? _currentUser?.id;
+      targetUser.banReason = reason ?? 'Vi phạm chính sách cộng đồng Sofa So Good.';
+    } else {
+      targetUser.bannedAt = null;
+      targetUser.bannedBy = null;
+      targetUser.banReason = null;
+    }
+
+    // If currently logged-in user got banned, force logout immediately
+    if (_currentUser?.id == targetUserId && newBanState) {
+      _currentUser = null;
+      _saveUserToStorage();
+    }
+
+    notifyListeners();
+    return true;
+  }
+
+  void toggleUserActive(String userId) {
+    toggleBanUser(userId);
   }
 
   void deleteUser(String userId) {

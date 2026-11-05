@@ -112,8 +112,7 @@ class _CartScreenState extends State<CartScreen> {
   Widget build(BuildContext context) {
     final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
     final cart = Provider.of<CartProvider>(context);
-    final auth = Provider.of<AuthProvider>(context);
-    final userCoins = auth.currentUser?.furniCoins ?? 0;
+    
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -318,44 +317,7 @@ class _CartScreenState extends State<CartScreen> {
 
                         const SizedBox(height: 10),
 
-                        // FurniCoins Points Toggle
-                        if (userCoins > 0)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: AppTheme.woodLight,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppTheme.wood.withOpacity(0.2)),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.monetization_on, color: AppTheme.woodDark, size: 18),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          'Dùng $userCoins Xu (Tiết kiệm ${currencyFormatter.format(cart.getCoinsDiscount(userCoins))})',
-                                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.woodDark),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Switch(
-                                  value: cart.useFurniCoins,
-                                  activeColor: AppTheme.wood,
-                                  onChanged: (val) => cart.setUseFurniCoins(val),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                        const SizedBox(height: 12),
+                        
 
                         // Subtotal & Shipping calculation
                         Row(
@@ -404,7 +366,7 @@ class _CartScreenState extends State<CartScreen> {
                               children: [
                                 const Text('Tổng thanh toán:', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
                                 Text(
-                                  currencyFormatter.format(cart.getFinalTotal(userCoins)),
+                                  currencyFormatter.format(cart.finalTotal),
                                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppTheme.primary),
                                 ),
                               ],
@@ -432,8 +394,8 @@ class _CartScreenState extends State<CartScreen> {
                                             context,
                                             MaterialPageRoute(
                                               builder: (_) => CheckoutScreen(
-                                                amount: cart.getFinalTotal(userCoins),
-                                                coinsUsed: cart.useFurniCoins ? (cart.getCoinsDiscount(userCoins) ~/ 1000) : 0,
+                                                amount: cart.finalTotal,
+                                                
                                               ),
                                             ),
                                           );
@@ -458,8 +420,8 @@ class _CartScreenState extends State<CartScreen> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) => CheckoutScreen(
-                                      amount: cart.getFinalTotal(userCoins),
-                                      coinsUsed: cart.useFurniCoins ? (cart.getCoinsDiscount(userCoins) ~/ 1000) : 0,
+                                      amount: cart.finalTotal,
+                                      
                                     ),
                                   ),
                                 );

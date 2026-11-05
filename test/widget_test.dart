@@ -1,3 +1,5 @@
+import 'package:furni3d_mobile/models/order_model.dart';
+import 'package:furni3d_mobile/services/inventory_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:furni3d_mobile/models/address_model.dart';
@@ -30,7 +32,7 @@ void main() {
       role: 'customer',
     );
     expect(user.isAdmin, false);
-    expect(user.furniCoins, 100);
+    expect(user.furniCoins, 0);
 
     user.role = 'admin';
     expect(user.isAdmin, true);
@@ -165,7 +167,7 @@ void main() {
     );
     expect(success, true);
     expect(auth.currentUser?.name, 'Khach Hang Moi');
-    expect(auth.currentUser?.furniCoins, 100);
+    expect(auth.currentUser?.furniCoins, 0);
     expect(auth.currentUser?.isActive, true);
 
     // Attempt to register with duplicate email should throw
@@ -286,13 +288,114 @@ void main() {
     expect(auth.currentUser, isNull);
   });
 
-  test('Dynamic FurniCoins reward calculation based on order total', () {
-    int calc(int total) => (total / 50000).clamp(10, 50).round();
-    expect(calc(500000), 10);
-    expect(calc(1500000), 30);
-    expect(calc(2450000), 49);
-    expect(calc(4700000), 50);
-    expect(calc(10000000), 50);
+  test('InventoryService atomic deduction, oversell prevention and reversion test (Mục 3)', () {
+    final inv = InventoryService();
+    inv.updateStock(productId: 'TEST-ITEM-01', newQuantity: 5, reason: 'Test setup');
+
+    expect(inv.getStock('TEST-ITEM-01'), 5);
+    expect(inv.isAvailable('TEST-ITEM-01', requestedQty: 3), true);
+    expect(inv.isAvailable('TEST-ITEM-01', requestedQty: 10), false); // Anti-oversell
+
+    // Deduct stock
+    final deducted = inv.deductOrderStock(
+      orderCode: '#F3D-TEST-1',
+      items: [{'productId': 'TEST-ITEM-01', 'quantity': 3}],
+    );
+    expect(deducted, true);
+    expect(inv.getStock('TEST-ITEM-01'), 2);
+
+    // Revert stock upon order rejection or customer cancellation
+    final reverted = inv.revertOrderStock(
+      orderCode: '#F3D-TEST-1',
+      items: [{'productId': 'TEST-ITEM-01', 'quantity': 3}],
+      reason: 'Admin từ chối đơn hàng',
+    );
+    expect(reverted, true);
+    expect(inv.getStock('TEST-ITEM-01'), 5);
+
+    // Cannot revert twice for the same order
+    final doubleRevert = inv.revertOrderStock(
+      orderCode: '#F3D-TEST-1',
+      items: [{'productId': 'TEST-ITEM-01', 'quantity': 3}],
+      reason: 'Revert thử lần hai',
+    );
+    expect(doubleRevert, false);
+  });
+
+  test('OrderProvider 5-state linear state machine and actor permissions (Mục 1)', () {
+    final orderProv = OrderProvider();
+    final testOrder = OrderModel(
+      id: 'ord-linear-test',
+      code: '#F3D-LINEAR-99',
+      date: '05/11/2026',
+      totalAmount: 1000000,
+      paymentMethod: 'COD',
+      paymentStatus: 'PENDING',
+      transactionId: 'TX-TEST-01',
+      orderStatus: OrderStatus.choDuyet,
+      receiverName: 'Nguyen Van Test',
+      receiverPhone: '0901234567',
+      shippingAddress: '123 HCM',
+      timeline: [],
+      items: [
+        OrderItemModel(
+          productId: 'Table08',
+          name: 'Bàn làm việc',
+          price: 1000000,
+          quantity: 1,
+          image: '',
+        ),
+      ],
+    );
+
+    orderProv.addOrder(testOrder);
+    expect(testOrder.orderStatus, OrderStatus.choDuyet);
+
+    // Admin advances: choDuyet -> daDuyet
+    orderProv.advanceOrderStatusByAdmin(testOrder.id, adminId: 'admin-01');
+    expect(testOrder.orderStatus, OrderStatus.daDuyet);
+
+    // Admin advances: daDuyet -> choGiao
+    orderProv.advanceOrderStatusByAdmin(testOrder.id, adminId: 'admin-01');
+    expect(testOrder.orderStatus, OrderStatus.choGiao);
+
+    // Admin advances: choGiao -> dangGiao
+    orderProv.advanceOrderStatusByAdmin(testOrder.id, adminId: 'admin-01');
+    expect(testOrder.orderStatus, OrderStatus.dangGiao);
+
+    // STRICT: Admin CANNOT complete order (only customer can)
+    expect(
+      () => orderProv.advanceOrderStatusByAdmin(testOrder.id, adminId: 'admin-01'),
+      throwsA(isA<Exception>()),
+    );
+
+    // Customer confirms receipt: dangGiao -> giaoThanhCong
+    orderProv.confirmDeliveredByCustomer(testOrder.id, customerId: 'cust-01');
+    expect(testOrder.orderStatus, OrderStatus.giaoThanhCong);
+  });
+
+  test('Customer Ban / Unban strict permissions test (Mục 6)', () {
+    final auth = AuthProvider();
+
+    // 1. Admin cannot ban self
+    final adminUser = auth.allUsers.firstWhere((u) => u.role == 'admin');
+    expect(
+      () => auth.toggleBanUser(adminUser.id, reason: 'Thử tự khóa'),
+      throwsA(isA<Exception>()),
+    );
+
+    // 2. Admin cannot ban another admin
+    // 3. Normal customer can be banned and unbanned
+    final custUser = auth.allUsers.firstWhere((u) => u.role != 'admin');
+    final initialBanned = custUser.isBanned;
+    auth.toggleBanUser(custUser.id, reason: 'Vi phạm spam', adminId: 'admin-01');
+    expect(custUser.isBanned, !initialBanned);
+    expect(custUser.banReason, 'Vi phạm spam');
+
+    // Unban
+    auth.toggleBanUser(custUser.id);
+    expect(custUser.isBanned, initialBanned);
+    expect(custUser.banReason, isNull);
   });
 
   test('AiService fallback knowledge engine provides recommendations and missing part diagnostic', () async {

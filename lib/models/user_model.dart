@@ -6,10 +6,13 @@ class UserModel {
   String email;
   String phone;
   String avatar;
-  int furniCoins;
   String savedAddress;
   String role; // 'customer' or 'admin'
   bool isActive;
+  bool isBanned;
+  DateTime? bannedAt;
+  String? bannedBy;
+  String? banReason;
   List<AddressModel> addresses;
 
   UserModel({
@@ -18,11 +21,16 @@ class UserModel {
     required this.email,
     required this.phone,
     required this.avatar,
-    required this.furniCoins,
     required this.savedAddress,
     this.role = 'customer',
     this.isActive = true,
+    this.isBanned = false,
+    this.bannedAt,
+    this.bannedBy,
+    this.banReason,
     List<AddressModel>? addresses,
+    // Ignored legacy coins parameter for backward compatibility
+    int? furniCoins,
   }) : addresses = addresses ??
             [
               AddressModel(
@@ -36,6 +44,8 @@ class UserModel {
             ];
 
   bool get isAdmin => role == 'admin';
+  int get furniCoins => 0;
+  set furniCoins(int val) {}
 
   AddressModel get defaultAddress {
     return addresses.firstWhere(
@@ -59,10 +69,13 @@ class UserModel {
     String? email,
     String? phone,
     String? avatar,
-    int? furniCoins,
     String? savedAddress,
     String? role,
     bool? isActive,
+    bool? isBanned,
+    DateTime? bannedAt,
+    String? bannedBy,
+    String? banReason,
     List<AddressModel>? addresses,
   }) {
     return UserModel(
@@ -71,10 +84,13 @@ class UserModel {
       email: email ?? this.email,
       phone: phone ?? this.phone,
       avatar: avatar ?? this.avatar,
-      furniCoins: furniCoins ?? this.furniCoins,
       savedAddress: savedAddress ?? this.savedAddress,
       role: role ?? this.role,
       isActive: isActive ?? this.isActive,
+      isBanned: isBanned ?? this.isBanned,
+      bannedAt: bannedAt ?? this.bannedAt,
+      bannedBy: bannedBy ?? this.bannedBy,
+      banReason: banReason ?? this.banReason,
       addresses: addresses ?? List.from(this.addresses),
     );
   }
@@ -85,10 +101,13 @@ class UserModel {
         'email': email,
         'phone': phone,
         'avatar': avatar,
-        'furniCoins': furniCoins,
         'savedAddress': savedAddress,
         'role': role,
         'isActive': isActive,
+        'isBanned': isBanned,
+        'bannedAt': bannedAt?.toIso8601String(),
+        'bannedBy': bannedBy,
+        'banReason': banReason,
         'addresses': addresses.map((a) => a.toJson()).toList(),
       };
 
@@ -122,10 +141,13 @@ class UserModel {
       email: json['email'] ?? '',
       phone: phone,
       avatar: json['avatar'] ?? '',
-      furniCoins: json['furniCoins'] ?? 0,
       savedAddress: savedAddress,
       role: json['role'] ?? 'customer',
       isActive: json['isActive'] ?? true,
+      isBanned: json['isBanned'] ?? false,
+      bannedAt: json['bannedAt'] != null ? DateTime.tryParse(json['bannedAt']) : null,
+      bannedBy: json['bannedBy'],
+      banReason: json['banReason'],
       addresses: parsedAddresses,
     );
   }

@@ -5,12 +5,12 @@ import '../models/cart_item_model.dart';
 import '../models/voucher_model.dart';
 import '../data/mock_data.dart';
 import '../services/supabase_service.dart';
+import '../services/inventory_service.dart';
 
 class CartProvider extends ChangeNotifier {
   final List<CartItemModel> _items = [];
 
   VoucherModel? _appliedVoucher;
-  bool _useFurniCoins = false;
   double? _deliveryDistanceKm;
   final List<VoucherModel> _vouchers = getMockVouchers();
 
@@ -30,7 +30,7 @@ class CartProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      debugPrint('[CartProvider] load storage error: ');
+      debugPrint('[CartProvider] load storage error: $e');
     }
   }
 
@@ -40,7 +40,7 @@ class CartProvider extends ChangeNotifier {
       final list = _items.map((i) => i.toJson()).toList();
       await prefs.setString('saved_cart_items', jsonEncode(list));
     } catch (e) {
-      debugPrint('[CartProvider] save storage error: ');
+      debugPrint('[CartProvider] save storage error: $e');
     }
   }
 
@@ -56,7 +56,6 @@ class CartProvider extends ChangeNotifier {
 
   List<CartItemModel> get items => List.unmodifiable(_items);
   VoucherModel? get appliedVoucher => _appliedVoucher;
-  bool get useFurniCoins => _useFurniCoins;
   double? get deliveryDistanceKm => _deliveryDistanceKm;
   List<VoucherModel> get vouchers => List.unmodifiable(_vouchers);
 
@@ -69,7 +68,7 @@ class CartProvider extends ChangeNotifier {
     return _appliedVoucher!.calculateDiscount(subtotal);
   }
 
-  // Tinh phi giao hang theo khoang cach tu Tru so Furni3D Landmark 81 (<= 20km: 20k; > 20km: +5k/km)
+  // Tinh phi giao hang theo khoang cach tu Tru so SOFA SO GOOD Landmark 81 (<= 20km: 20k; > 20km: +5k/km)
   int getShippingFee() {
     if (_items.isEmpty) return 0;
     if (_deliveryDistanceKm == null) return 20000;
@@ -83,30 +82,24 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Quy doi FurniCoins: 1 Xu = 1.000 VND
-  int getCoinsDiscount(int userCoins) {
-    if (!_useFurniCoins || userCoins <= 0) return 0;
-    final maxAllowed = (subtotal - voucherDiscount) ~/ 1000;
-    final coinsToUse = userCoins < maxAllowed ? userCoins : maxAllowed;
-    return coinsToUse * 1000;
-  }
+  // Tinh tong thanh toan cuoi cung (Khong con co che Xu / FurniCoins)
+  int get finalTotal => getFinalTotal();
 
-  int getCoinsUsed(int userCoins) {
-    if (!_useFurniCoins || userCoins <= 0) return 0;
-    final maxAllowed = (subtotal - voucherDiscount) ~/ 1000;
-    return userCoins < maxAllowed ? userCoins : maxAllowed;
-  }
-
-  int getFinalTotal(int userCoins) {
+  int getFinalTotal([int? legacyCoins]) {
     if (_items.isEmpty) return 0;
-    final total = subtotal -
-        voucherDiscount -
-        getCoinsDiscount(userCoins) +
-        getShippingFee();
+    final total = subtotal - voucherDiscount + getShippingFee();
     return total < 0 ? 0 : total;
   }
 
-  void addItem({
+  // Stub for backward compatibility
+  int getCoinsDiscount([int? userCoins]) => 0;
+  int getCoinsUsed([int? userCoins]) => 0;
+  bool get useFurniCoins => false;
+  void toggleFurniCoins() {}
+  void setUseFurniCoins(bool value) {}
+
+  // Add item with Inventory check
+  bool addItem({
     required String id,
     required String name,
     required int price,
@@ -114,7 +107,14 @@ class CartProvider extends ChangeNotifier {
     String? variant,
     int quantity = 1,
   }) {
-    final existingIndex = _items.indexWhere((item) => item.id == id);
+    final available = InventoryService().getStock(id, color: variant);
+    final existingIndex = _items.indexWhere((item) => item.id == id && item.variant == variant);
+    final currentInCart = existingIndex >= 0 ? _items[existingIndex].quantity : 0;
+
+    if (currentInCart + quantity > available) {
+      return false; // Out of stock or exceeds stock
+    }
+
     if (existingIndex >= 0) {
       _items[existingIndex].quantity += quantity;
     } else {
@@ -129,18 +129,31 @@ class CartProvider extends ChangeNotifier {
     }
     _saveToStorage();
     notifyListeners();
+    return true;
   }
 
-  void updateQuantity(String id, int delta) {
+  bool updateQuantity(String id, int delta) {
     final index = _items.indexWhere((item) => item.id == id);
     if (index >= 0) {
-      _items[index].quantity += delta;
-      if (_items[index].quantity <= 0) {
+      final newQty = _items[index].quantity + delta;
+      if (newQty <= 0) {
         _items.removeAt(index);
+        _saveToStorage();
+        notifyListeners();
+        return true;
       }
+
+      final available = InventoryService().getStock(id, color: _items[index].variant);
+      if (newQty > available) {
+        return false; // Cannot increase beyond available stock
+      }
+
+      _items[index].quantity = newQty;
       _saveToStorage();
       notifyListeners();
+      return true;
     }
+    return false;
   }
 
   void removeItem(String id) {
@@ -152,7 +165,6 @@ class CartProvider extends ChangeNotifier {
   void clearCart() {
     _items.clear();
     _appliedVoucher = null;
-    _useFurniCoins = false;
     _deliveryDistanceKm = null;
     _saveToStorage();
     notifyListeners();
@@ -191,13 +203,6 @@ class CartProvider extends ChangeNotifier {
 
   void removeVoucher() {
     _appliedVoucher = null;
-    notifyListeners();
-  }
-
-  void toggleFurniCoins() { _useFurniCoins = !_useFurniCoins; notifyListeners(); }
-
-  void setUseFurniCoins(bool value) {
-    _useFurniCoins = value;
     notifyListeners();
   }
 

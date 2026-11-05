@@ -174,9 +174,11 @@ class _FurniAiAssistantScreenState extends State<FurniAiAssistantScreen> {
       backgroundColor: const Color(0xFFF7F5F2),
       appBar: AppBar(
         systemOverlayStyle: const SystemUiOverlayStyle(
-          statusBarColor: Colors.black,
-          statusBarIconBrightness: Brightness.light,
-          statusBarBrightness: Brightness.dark,
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+          systemNavigationBarColor: Colors.white,
+          systemNavigationBarIconBrightness: Brightness.dark,
         ),
         title: const Row(
           children: [
@@ -256,43 +258,44 @@ class _FurniAiAssistantScreenState extends State<FurniAiAssistantScreen> {
           ),
 
           // Bottom Input Bar with Safe Area for Android navigation buttons
-          SafeArea(
-            top: false,
-            bottom: true,
-            minimum: const EdgeInsets.only(bottom: 8),
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
-              color: Colors.white,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: TextField(
-                        controller: _textCtrl,
-                        decoration: const InputDecoration(
-                          hintText: 'Hỏi FurniAI về phối đồ, thiếu linh kiện...',
-                          hintStyle: TextStyle(fontSize: 12, color: Colors.grey),
-                          border: InputBorder.none,
+          Container(
+            color: Colors.white,
+            child: SafeArea(
+              top: false,
+              bottom: true,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(24),
                         ),
-                        onSubmitted: _handleSendMessage,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: TextField(
+                          controller: _textCtrl,
+                          decoration: const InputDecoration(
+                            hintText: 'Hỏi FurniAI về phối đồ, thiếu linh kiện...',
+                            hintStyle: TextStyle(fontSize: 12, color: Colors.grey),
+                            border: InputBorder.none,
+                          ),
+                          onSubmitted: _handleSendMessage,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  CircleAvatar(
-                    backgroundColor: AppTheme.primary,
-                    radius: 20,
-                    child: IconButton(
-                      icon: const Icon(Icons.send, size: 18, color: Colors.white),
-                      onPressed: () => _handleSendMessage(_textCtrl.text),
+                    const SizedBox(width: 8),
+                    CircleAvatar(
+                      backgroundColor: AppTheme.primary,
+                      radius: 20,
+                      child: IconButton(
+                        icon: const Icon(Icons.send, size: 18, color: Colors.white),
+                        onPressed: () => _handleSendMessage(_textCtrl.text),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -325,71 +328,36 @@ class _FurniAiAssistantScreenState extends State<FurniAiAssistantScreen> {
       for (final p in allProducts) {
         if (p.name.toLowerCase().contains(lowerTarget) ||
             lowerTarget.contains(p.name.toLowerCase()) ||
-            p.id.toLowerCase() == lowerTarget) {
+            p.id.toLowerCase() == lowerTarget ||
+            p.modelCode.toLowerCase() == lowerTarget) {
           tryAdd(p);
         }
       }
     }
 
-    // 2. Scan text for known product names or model codes
+    // 2. Scan text for known product names, model codes, or keywords
     for (final p in allProducts) {
       final nameLower = p.name.toLowerCase();
-      if (lowerText.contains(nameLower)) {
+      final modelLower = p.modelCode.toLowerCase();
+
+      // Check full product name or modelCode
+      if (lowerText.contains(nameLower) || lowerText.contains(modelLower)) {
         tryAdd(p);
         continue;
       }
 
-      // Check specific keywords for products
-      if (p.id == 'Bed35' &&
-          (lowerText.contains('hemnes king bed') ||
-              lowerText.contains('bed frame 35') ||
-              lowerText.contains('bed35'))) {
-        tryAdd(p);
-      } else if (p.id == 'Closet23' &&
-          (lowerText.contains('pax modern closet') ||
-              lowerText.contains('closet 23') ||
-              lowerText.contains('pax wardrobe') ||
-              lowerText.contains('pax modern'))) {
-        tryAdd(p);
-      } else if (p.id == 'Drawer31' &&
-          (lowerText.contains('koppang walnut') ||
-              lowerText.contains('drawer 31') ||
-              lowerText.contains('koppang'))) {
-        tryAdd(p);
-      } else if (p.id == 'Sofa36' &&
-          (lowerText.contains('kivik') || lowerText.contains('sofa 36'))) {
-        tryAdd(p);
-      } else if (p.id == 'Sofa49' &&
-          (lowerText.contains('landskrona') || lowerText.contains('sofa 49'))) {
-        tryAdd(p);
-      } else if (p.id == 'Table48' &&
-          (lowerText.contains('marble luxury') ||
-              lowerText.contains('table 48') ||
-              lowerText.contains('cẩm thạch'))) {
-        tryAdd(p);
-      } else if (p.id == 'Chair01' &&
-          (lowerText.contains('poäng') ||
-              lowerText.contains('poang') ||
-              lowerText.contains('scandi chair'))) {
-        tryAdd(p);
-      } else if (p.id == 'Table08' &&
-          (lowerText.contains('nordic oak') ||
-              lowerText.contains('table 08') ||
-              lowerText.contains('bàn làm việc'))) {
-        tryAdd(p);
-      } else if (p.id == 'Table26' &&
-          (lowerText.contains('lövbacken') || lowerText.contains('lovbacken'))) {
-        tryAdd(p);
-      } else if (p.id == 'Chair34' && (lowerText.contains('frosta'))) {
-        tryAdd(p);
-      } else if (p.id == 'Chair18' && (lowerText.contains('strandmon'))) {
-        tryAdd(p);
-      } else if (p.id == 'Closet01' && (lowerText.contains('hemnes 2-door'))) {
-        tryAdd(p);
-      } else if (p.id == 'Drawer30' && (lowerText.contains('malm 3-drawer'))) {
-        tryAdd(p);
-      } else if (p.id == 'Bed26' && (lowerText.contains('malm bed frame'))) {
-        tryAdd(p);
+      // Check significant words of product name (e.g. 'hemnes', 'pax', 'koppang', 'malm', 'nordic oak')
+      final significantWords = nameLower
+          .replaceAll(RegExp(r'[^a-zA-Z0-9\s]'), '')
+          .split(' ')
+          .where((w) => w.length >= 4)
+          .toList();
+
+      for (final word in significantWords) {
+        if (lowerText.contains(word)) {
+          tryAdd(p);
+          break;
+        }
       }
     }
 

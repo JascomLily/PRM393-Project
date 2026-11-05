@@ -65,7 +65,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Đăng ký tài khoản thành công! Bạn nhận được +100 Xu thưởng Sofa so good!'),
+            content: Text('Đăng ký tài khoản thành công! Chào mừng bạn đến với SOFA SO GOOD.'),
             backgroundColor: AppTheme.primary,
           ),
         );
@@ -115,12 +115,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'QUÀ TẶNG THÀNH VIÊN MỚI',
+                            'CHÀO MỪNG THÀNH VIÊN MỚI',
                             style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.woodDark, letterSpacing: 0.5),
                           ),
                           SizedBox(height: 2),
                           Text(
-                            'Nhận ngay +100 Xu thưởng Sofa so good (trị giá 100.000₫) giảm giá trực tiếp vào đơn hàng đầu tiên.',
+                            'Trải nghiệm không gian nội thất 3D chân thực, bảo hành chính hãng và hỗ trợ tận tâm từ SOFA SO GOOD.',
                             style: TextStyle(fontSize: 11, color: AppTheme.textSecondary, height: 1.3),
                           ),
                         ],
@@ -187,7 +187,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 onPressed: auth.isLoading ? null : _handleRegister,
                 child: auth.isLoading
                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Text('Tạo tài khoản & Nhận 100 Xu'),
+                    : const Text('Tạo tài khoản'),
               ),
             ],
           ),

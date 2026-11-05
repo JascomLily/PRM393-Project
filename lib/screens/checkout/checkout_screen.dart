@@ -365,7 +365,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       MaterialPageRoute(
         builder: (_) => OrderSuccessScreen(
           order: newOrder,
-          earnedCoins: earnedCoins,
           onGoToOrders: () {
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
@@ -550,7 +549,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
     final savedAddresses = user.addresses;
 
-    final userCoins = user?.furniCoins ?? 0;
+    final userCoins = 0;
     final subtotal = cart.subtotal;
     final voucherDiscount = cart.voucherDiscount;
     final shippingFee = cart.getShippingFee();

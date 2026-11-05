@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../services/vnpay_service.dart';
-import '../../theme/app_theme.dart';
 
 class VnpayGatewayScreen extends StatefulWidget {
   final int amount;

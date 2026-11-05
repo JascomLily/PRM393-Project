@@ -413,7 +413,7 @@ class ProfileScreen extends StatelessWidget {
           ],
         ),
         content: const Text(
-          'Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản của mình? Toàn bộ điểm tích lũy FurniCoins và thông tin cá nhân sẽ bị hủy bỏ hoàn toàn và không thể khôi phục.',
+          'Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản của mình? Toàn bộ thông tin cá nhân và lịch sử giao dịch sẽ bị hủy bỏ hoàn toàn và không thể khôi phục.',
           style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
         ),
         actions: [
@@ -485,7 +485,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Đăng nhập để theo dõi đơn hàng, tích lũy FurniCoins và xem mô hình 3D thực tế.',
+                  'Đăng nhập để theo dõi đơn hàng và trải nghiệm mô hình 3D thực tế.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                 ),

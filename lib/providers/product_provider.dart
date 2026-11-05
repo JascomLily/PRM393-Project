@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/product_model.dart';
 import '../data/mock_data.dart';
 import '../services/supabase_service.dart';
+import '../services/inventory_service.dart';
 
 class SparePartModel {
   final String id;
@@ -31,12 +32,20 @@ class ProductProvider extends ChangeNotifier {
 
   ProductProvider() {
     _products = getMockProducts();
+    _initInventory();
     _initSpareParts();
     loadFromSupabase();
   }
 
+  void _initInventory() {
+    for (final p in _products) {
+      InventoryService().initStock(p.id, p.stockQuantity, colors: p.colors);
+    }
+  }
+
   void reloadProducts() {
     _products = getMockProducts();
+    _initInventory();
     _initSpareParts();
     loadFromSupabase();
     notifyListeners();
@@ -47,6 +56,7 @@ class ProductProvider extends ChangeNotifier {
     final remote = await SupabaseService.fetchProducts();
     if (remote != null && remote.isNotEmpty) {
       _products = remote;
+      _initInventory();
       notifyListeners();
     }
   }
@@ -90,7 +100,7 @@ class ProductProvider extends ChangeNotifier {
         image:
             'https://images.unsplash.com/photo-1580481077111-9a7f34083049?auto=format&fit=crop&w=800&q=80',
         description: 'Bộ 4 đệm chống trầy xước sàn gỗ, giảm rung lắc và triệt tiêu tiếng ồn.',
-        compatibleProduct: 'Tất cả sản phẩm Sofa so good',
+        compatibleProduct: 'Tất cả sản phẩm SOFA SO GOOD',
       ),
       SparePartModel(
         id: 'part-brass-handle',
@@ -109,6 +119,7 @@ class ProductProvider extends ChangeNotifier {
   // CREATE Product
   void addProduct(ProductModel product) {
     _products.insert(0, product);
+    InventoryService().initStock(product.id, product.stockQuantity, colors: product.colors);
     notifyListeners();
     if (SupabaseService.isConfigured) {
       SupabaseService.upsertProduct(product);
@@ -120,10 +131,31 @@ class ProductProvider extends ChangeNotifier {
     final index = _products.indexWhere((p) => p.id == updated.id);
     if (index != -1) {
       _products[index] = updated;
+      InventoryService().updateStock(
+        productId: updated.id,
+        newQuantity: updated.stockQuantity,
+        reason: 'Admin cập nhật thông tin sản phẩm',
+      );
       notifyListeners();
       if (SupabaseService.isConfigured) {
         SupabaseService.upsertProduct(updated);
       }
+    }
+  }
+
+  // UPDATE Stock directly (Mục 3A)
+  void updateStock(String productId, int newStock) => updateProductStock(productId, newStock);
+  void updateProductStock(String productId, int newStock) {
+    final index = _products.indexWhere((p) => p.id == productId);
+    if (index != -1) {
+      final safeStock = newStock < 0 ? 0 : newStock;
+      _products[index].stockQuantity = safeStock;
+      InventoryService().updateStock(
+        productId: productId,
+        newQuantity: safeStock,
+        reason: 'Admin chỉnh sửa số lượng tồn kho',
+      );
+      notifyListeners();
     }
   }
 
@@ -133,6 +165,39 @@ class ProductProvider extends ChangeNotifier {
     notifyListeners();
     if (SupabaseService.isConfigured) {
       SupabaseService.deleteProduct(id);
+    }
+  }
+
+  // ==========================================
+  // SECTION 4: PRODUCT REVIEWS (POST-MODERATION & SOFT DELETE)
+  // ==========================================
+
+  // Customer submits review -> instantly visible to everyone!
+  void addProductReview(String productId, ProductReviewItem review) {
+    final index = _products.indexWhere((p) => p.id == productId);
+    if (index != -1) {
+      _products[index].reviews.insert(0, review);
+      notifyListeners();
+    }
+  }
+
+  // Admin soft-delete review -> removed from display, retained in records
+  void softDeleteReview(
+    String productId,
+    String reviewId, {
+    required String adminId,
+    String? reason,
+  }) {
+    final pIdx = _products.indexWhere((p) => p.id == productId);
+    if (pIdx != -1) {
+      final rIdx = _products[pIdx].reviews.indexWhere((r) => r.id == reviewId);
+      if (rIdx != -1) {
+        final review = _products[pIdx].reviews[rIdx];
+        review.isDeleted = true;
+        review.deletedAt = DateTime.now();
+        review.deletedBy = adminId;
+        notifyListeners();
+      }
     }
   }
 

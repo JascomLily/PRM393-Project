@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -155,9 +156,25 @@ class _MediaViewerDialogState extends State<MediaViewerDialog> {
 
   Widget _buildImageViewer() {
     final isNetwork = widget.mediaPath.startsWith('http');
+    final isBase64 = widget.mediaPath.startsWith('data:image');
     Widget imageWidget;
 
-    if (isNetwork) {
+    if (isBase64) {
+      try {
+        final b64 = widget.mediaPath.split(',').last;
+        imageWidget = Image.memory(
+          base64Decode(b64),
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => const Center(
+            child: Icon(Icons.broken_image, color: Colors.white54, size: 48),
+          ),
+        );
+      } catch (e) {
+        imageWidget = const Center(
+          child: Icon(Icons.broken_image, color: Colors.white54, size: 48),
+        );
+      }
+    } else if (isNetwork) {
       imageWidget = Image.network(
         widget.mediaPath,
         fit: BoxFit.contain,
@@ -171,13 +188,23 @@ class _MediaViewerDialogState extends State<MediaViewerDialog> {
       );
     } else {
       final file = File(widget.mediaPath);
-      if (file.existsSync()) {
-        imageWidget = Image.file(file, fit: BoxFit.contain);
-      } else {
-        imageWidget = const Center(
-          child: Text('Tệp ảnh không tồn tại', style: TextStyle(color: Colors.white70)),
-        );
-      }
+      imageWidget = Image.file(
+        file,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.photo_library_outlined, color: Colors.amber, size: 48),
+              const SizedBox(height: 8),
+              Text(
+                'Ảnh: ${file.path.split(Platform.pathSeparator).last}',
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     return InteractiveViewer(
