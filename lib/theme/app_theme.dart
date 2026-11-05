@@ -76,9 +76,11 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: Colors.black,
-          statusBarIconBrightness: Brightness.light,
-          statusBarBrightness: Brightness.dark,
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarIconBrightness: Brightness.dark,
         ),
         iconTheme: IconThemeData(color: textPrimary),
         titleTextStyle: TextStyle(

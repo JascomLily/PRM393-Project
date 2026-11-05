@@ -280,6 +280,7 @@ class _CartScreenState extends State<CartScreen> {
                     boxShadow: AppTheme.softShadow,
                   ),
                   child: SafeArea(
+                    minimum: const EdgeInsets.only(bottom: 6),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [

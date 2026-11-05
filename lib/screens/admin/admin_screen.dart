@@ -1,3 +1,5 @@
+import 'package:flutter/services.dart';
+import '../../providers/auth_provider.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -17,7 +19,9 @@ import '../../services/supabase_service.dart';
 import '../../theme/app_theme.dart';
 
 class AdminScreen extends StatefulWidget {
-  const AdminScreen({super.key});
+  final VoidCallback? onPreviewStore;
+
+  const AdminScreen({super.key, this.onPreviewStore});
 
   @override
   State<AdminScreen> createState() => _AdminScreenState();
@@ -620,8 +624,76 @@ class _AdminScreenState extends State<AdminScreen>
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text('Quản trị hệ thống Furni3D'),
-        centerTitle: true,
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0.5,
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+        ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2C1810),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.admin_panel_settings, color: Colors.amber, size: 16),
+            ),
+            const SizedBox(width: 8),
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'KÊNH QUẢN TRỊ FURNI3D',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.8,
+                    color: Color(0xFF2C1810),
+                  ),
+                ),
+                Text(
+                  'Cổng Điều Hành & Bán Hàng',
+                  style: TextStyle(fontSize: 10, color: AppTheme.textMuted),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          if (widget.onPreviewStore != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2C1810),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  elevation: 0,
+                ),
+                icon: const Icon(Icons.storefront_outlined, size: 15, color: Colors.amber),
+                label: const Text(
+                  'Xem Shop',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+                onPressed: widget.onPreviewStore,
+              ),
+            ),
+          IconButton(
+            icon: const Icon(Icons.logout, size: 20, color: Color(0xFF2C1810)),
+            tooltip: 'Đăng xuất',
+            onPressed: () {
+              Provider.of<AuthProvider>(context, listen: false).logout();
+            },
+          ),
+          const SizedBox(width: 4),
+        ],
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,

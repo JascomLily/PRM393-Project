@@ -25,7 +25,8 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
-  final ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollCtrl = ScrollController();
+  final GlobalKey _reviewsSectionKey = GlobalKey();
   int _quantity = 1;
   String _selectedWood = 'Gỗ Sồi Trắng Tự Nhiên';
   String _reviewFilter = 'all';
@@ -38,7 +39,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _scrollCtrl.dispose();
+    _scrollCtrl.dispose();
     super.dispose();
   }
 
@@ -67,7 +69,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        controller: _scrollController,
+        controller: _scrollCtrl,
         padding: const EdgeInsets.only(bottom: 100),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,27 +169,30 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ],
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: AppTheme.woodLight,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppTheme.wood.withOpacity(0.3)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.star, color: Color(0xFFF59E0B), size: 16),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${widget.product.rating}',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary),
-                            ),
-                            Text(
-                              ' (${widget.product.reviewCount})',
-                              style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
-                            ),
-                          ],
+                      GestureDetector(
+                        onTap: _scrollToReviews,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppTheme.woodLight,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppTheme.wood.withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.star, color: Color(0xFFF59E0B), size: 16),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${widget.product.rating}',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary),
+                              ),
+                              Text(
+                                ' (${widget.product.reviewCount})',
+                                style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -367,7 +372,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   const SizedBox(height: 20),
 
                   // Customer Reviews Section
-                  _buildCustomerReviewsSection(context),
+                  Container(
+                    key: _reviewsSectionKey,
+                    child: _buildCustomerReviewsSection(context),
+                  ),
                 ],
               ),
             ),
@@ -378,6 +386,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ? SafeArea(
               top: false,
               bottom: true,
+              minimum: const EdgeInsets.only(bottom: 6),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
@@ -440,8 +449,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                       onPressed: () {
-                        _scrollController.animateTo(
-                          _scrollController.position.maxScrollExtent,
+                        _scrollCtrl.animateTo(
+                          _scrollCtrl.position.maxScrollExtent,
                           duration: const Duration(milliseconds: 400),
                           curve: Curves.easeOut,
                         );
@@ -454,6 +463,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           : SafeArea(
               top: false,
               bottom: true,
+              minimum: const EdgeInsets.only(bottom: 6),
               child: Container(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
           decoration: BoxDecoration(
@@ -704,6 +714,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
+  
+  void _scrollToReviews() {
+    if (_reviewsSectionKey.currentContext != null) {
+      Scrollable.ensureVisible(
+        _reviewsSectionKey.currentContext!,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
   Widget _buildCustomerReviewsSection(BuildContext context) {
     final orderProvider = Provider.of<OrderProvider>(context);
 
@@ -784,7 +805,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
             ),
             Text(
-              '( đánh giá thực tế)',
+              '( ${realReviews.length} đánh giá thực tế )',
               style: const TextStyle(
                 fontSize: 12,
                 color: AppTheme.textSecondary,

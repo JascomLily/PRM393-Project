@@ -15,17 +15,16 @@ void main() async {
   await SupabaseService.initialize();
 
   await SystemChrome.setEnabledSystemUIMode(
-    SystemUiMode.manual,
-    overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
+    SystemUiMode.edgeToEdge,
   );
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      statusBarColor: Colors.black,
-      statusBarIconBrightness: Brightness.light,
-      statusBarBrightness: Brightness.dark,
-      systemNavigationBarColor: Colors.black,
-      systemNavigationBarIconBrightness: Brightness.light,
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.dark,
       systemNavigationBarDividerColor: Colors.transparent,
     ),
   );

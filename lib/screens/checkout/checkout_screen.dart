@@ -570,6 +570,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       body: SafeArea(
         top: false,
         bottom: true,
+        minimum: const EdgeInsets.only(bottom: 6),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(

@@ -27,6 +27,7 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   late int _currentIndex;
+  bool _adminStorePreviewMode = false;
 
   @override
   void initState() {
@@ -64,13 +65,25 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final auth = Provider.of<AuthProvider>(context);
     final isAdmin = auth.isAdmin;
 
+    // Shopee-style: If user is Admin and NOT previewing the customer storefront,
+    // display the dedicated Admin Workspace Portal directly!
+    if (isAdmin && !_adminStorePreviewMode) {
+      return AdminScreen(
+        onPreviewStore: () {
+          setState(() {
+            _adminStorePreviewMode = true;
+            _currentIndex = 0;
+          });
+        },
+      );
+    }
+
     final screens = <Widget>[
       const HomeScreen(),
       const ExploreScreen(),
       QrScannerScreen(embedded: true, active: _currentIndex == 2),
       const PartsScreen(),
       const OrdersScreen(),
-      if (isAdmin) const AdminScreen(),
     ];
 
     if (_currentIndex >= screens.length) {
@@ -83,7 +96,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       'Quét mã QR sản phẩm',
       'Linh kiện thay thế',
       'Đơn hàng & Giao dịch',
-      if (isAdmin) 'Quản trị viên Furni3D',
     ];
 
     return Scaffold(
@@ -91,10 +103,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       appBar: AppBar(
         backgroundColor: AppTheme.background,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
         systemOverlayStyle: const SystemUiOverlayStyle(
-          statusBarColor: Colors.black,
-          statusBarIconBrightness: Brightness.light,
-          statusBarBrightness: Brightness.dark,
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarIconBrightness: Brightness.dark,
         ),
         title: Row(
           children: [
@@ -135,7 +150,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ],
         ),
         actions: [
-          // Cart Button with badge (chi hien thi cho khach hang, khong hien thi cho admin)
+          // Cart Button with badge (only for customer mode, hidden for admin in preview)
           if (!isAdmin)
             Stack(
               alignment: Alignment.center,
@@ -149,7 +164,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                     );
                   },
                 ),
-                if (cart.itemCount > 0)
+                if (cart.items.isNotEmpty)
                   Positioned(
                     top: 8,
                     right: 8,
@@ -159,38 +174,34 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                         color: AppTheme.primary,
                         shape: BoxShape.circle,
                       ),
-                      constraints: const BoxConstraints(
-                        minWidth: 16,
-                        minHeight: 16,
-                      ),
+                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                       child: Text(
-                        '${cart.itemCount}',
-                        textAlign: TextAlign.center,
+                        '${cart.items.length}',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   ),
               ],
             ),
 
-          // User Profile or Login Trigger
+          // User Profile / Login Avatar
           if (auth.isLoggedIn)
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                );
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(right: 12, left: 4),
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                  );
+                },
                 child: Container(
-                  width: 32,
-                  height: 32,
+                  padding: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(color: AppTheme.wood, width: 1.5),
@@ -201,23 +212,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             )
           else
             Padding(
-              padding: const EdgeInsets.only(right: 12, left: 4),
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                ),
-                icon: const Icon(Icons.login, size: 14),
+              padding: const EdgeInsets.only(right: 8),
+              child: TextButton.icon(
+                icon: const Icon(Icons.login, size: 16, color: AppTheme.wood),
                 label: const Text(
                   'Đăng nhập',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.wood,
+                  ),
                 ),
                 onPressed: () {
                   Navigator.push(
@@ -229,10 +233,66 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             ),
         ],
       ),
-      body: IndexedStack(index: _currentIndex, children: screens),
+      body: Column(
+        children: [
+          // Shopee-style Admin Store Preview Banner
+          if (isAdmin && _adminStorePreviewMode)
+            Container(
+              width: double.infinity,
+              color: const Color(0xFF2C1810),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              child: Row(
+                children: [
+                  const Icon(Icons.remove_red_eye_outlined, color: Colors.amber, size: 16),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Chế độ Xem trước Shop (Admin Preview)',
+                      style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        _adminStorePreviewMode = false;
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.amber,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.arrow_back, color: Color(0xFF2C1810), size: 12),
+                          SizedBox(width: 4),
+                          Text(
+                            'Về Quản Trị',
+                            style: TextStyle(
+                              color: Color(0xFF2C1810),
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          Expanded(
+            child: IndexedStack(index: _currentIndex, children: screens),
+          ),
+        ],
+      ),
       bottomNavigationBar: SafeArea(
         top: false,
         bottom: true,
+        minimum: const EdgeInsets.only(bottom: 6),
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -264,38 +324,32 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 _currentIndex = index;
               });
             },
-            items: [
-              const BottomNavigationBarItem(
+            items: const [
+              BottomNavigationBarItem(
                 icon: Icon(Icons.home_outlined),
                 activeIcon: Icon(Icons.home),
                 label: 'Trang chủ',
               ),
-              const BottomNavigationBarItem(
+              BottomNavigationBarItem(
                 icon: Icon(Icons.search_outlined),
                 activeIcon: Icon(Icons.search),
                 label: 'Khám phá',
               ),
-              const BottomNavigationBarItem(
+              BottomNavigationBarItem(
                 icon: Icon(Icons.qr_code_scanner_outlined),
                 activeIcon: Icon(Icons.qr_code_scanner),
                 label: 'Quét QR',
               ),
-              const BottomNavigationBarItem(
+              BottomNavigationBarItem(
                 icon: Icon(Icons.build_outlined),
                 activeIcon: Icon(Icons.build),
                 label: 'Linh kiện',
               ),
-              const BottomNavigationBarItem(
+              BottomNavigationBarItem(
                 icon: Icon(Icons.inventory_2_outlined),
                 activeIcon: Icon(Icons.inventory_2),
                 label: 'Đơn hàng',
               ),
-              if (isAdmin)
-                const BottomNavigationBarItem(
-                  icon: Icon(Icons.admin_panel_settings_outlined),
-                  activeIcon: Icon(Icons.admin_panel_settings),
-                  label: 'Quản trị',
-                ),
             ],
           ),
         ),

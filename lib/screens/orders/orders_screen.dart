@@ -740,7 +740,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                           itemBuilder: (_, mIdx) {
                                             final mPath = order.reviewMedia![mIdx];
                                             final isVid =
-                                                mPath.toLowerCase().endsWith('.mp4');
+                                                mPath.toLowerCase().endsWith('.mp4') ||
+                                                mPath.toLowerCase().endsWith('.mov') ||
+                                                mPath.toLowerCase().endsWith('.mkv') ||
+                                                mPath.toLowerCase().endsWith('.webm') ||
+                                                mPath.toLowerCase().endsWith('.3gp');
                                             return GestureDetector(
                                               onTap: () {
                                                 MediaViewerDialog.show(

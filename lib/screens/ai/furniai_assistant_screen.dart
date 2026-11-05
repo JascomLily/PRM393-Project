@@ -259,6 +259,7 @@ class _FurniAiAssistantScreenState extends State<FurniAiAssistantScreen> {
           SafeArea(
             top: false,
             bottom: true,
+            minimum: const EdgeInsets.only(bottom: 8),
             child: Container(
               padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
               color: Colors.white,
